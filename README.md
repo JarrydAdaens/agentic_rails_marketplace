@@ -36,6 +36,7 @@ Then install per plugin, per machine, as the work requires:
 /plugin install game-golden-screenshot-verifier@agentic-rails
 /plugin install wpf-visual-quality-gate@agentic-rails
 /plugin install advisor-guardrail@agentic-rails
+/plugin install jobs-done-guardrail@agentic-rails
 ```
 
 Update, enable, disable, and remove through the same `/plugin` surface. On
@@ -49,10 +50,12 @@ that prompt is the expected, deliberate trust gate for guardrail plugins.
 | `game-golden-screenshot-verifier` | verifier | Claude Code, Codex | Launches a game, drives a deterministic scene, compares an OS-level screenshot against a versioned golden. Exit 0/1. |
 | `wpf-visual-quality-gate` | verifier | Claude Code, Codex | Independent evaluator launches a WPF app, performs the changed interaction with real input, screenshot-verifies against packet criteria. |
 | `advisor-guardrail` | guardrail | Claude Code only | Ships an `advisor` subagent plus hooks that deny the session's first write until the advisor has been consulted. |
+| `jobs-done-guardrail` | guardrail | Claude Code only | Stop hook that requires the project's build and unit tests to pass before an agent with relevant code changes may hand back to the human. |
 
-`advisor-guardrail` is Claude-only because its payload is built on Claude
-Code subagents and PreToolUse permission decisions; it is therefore absent from
-the Codex catalog.
+The two guardrails are Claude-only and absent from the Codex catalog:
+`advisor-guardrail` is built on Claude Code subagents and PreToolUse
+permission decisions, and `jobs-done-guardrail` awaits verification of
+Codex's plugin-root variable for hook commands.
 
 ## Repository layout
 
