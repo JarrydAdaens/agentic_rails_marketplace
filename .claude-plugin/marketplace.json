@@ -1,0 +1,31 @@
+{
+  "name": "agentic-rails",
+  "owner": {
+    "name": "Jarryd Adaens",
+    "email": "jarryd.adaens@outlook.com.au"
+  },
+  "description": "Agentic Rails marketplace: installable, lifecycle-managed verifiers and guardrails for agentic coding tools.",
+  "plugins": [
+    {
+      "name": "game-golden-screenshot-verifier",
+      "source": "./plugins/game-golden-screenshot-verifier",
+      "description": "Runtime smoke verifier for games: launches the game, drives it into a deterministic state, captures a screenshot, and compares it against a versioned golden. Exit 0 pass / 1 fail.",
+      "category": "verifier",
+      "keywords": ["game", "screenshot", "golden", "smoke-test", "verifier"]
+    },
+    {
+      "name": "wpf-visual-quality-gate",
+      "source": "./plugins/wpf-visual-quality-gate",
+      "description": "Evaluator-run visual quality gate for WPF desktop apps: an independent evaluator launches the app, drives the changed interaction with real input, and screenshot-verifies the result against explicit pass criteria.",
+      "category": "verifier",
+      "keywords": ["wpf", "ui", "screenshot", "quality-gate", "verifier"]
+    },
+    {
+      "name": "quota-advisor-guardrail",
+      "source": "./plugins/quota-advisor-guardrail",
+      "description": "Actor-critic guardrail for Claude Code: executor sessions must consult a stronger read-only advisor subagent before their first write, enforced deterministically by a PreToolUse hook. Claude Code only.",
+      "category": "guardrail",
+      "keywords": ["advisor", "guardrail", "hooks", "actor-critic", "quota"]
+    }
+  ]
+}

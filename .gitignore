@@ -1,0 +1,5 @@
+# Python caches from running verifier tests locally.
+__pycache__/
+*.pyc
+.ruff_cache/
+.venv/

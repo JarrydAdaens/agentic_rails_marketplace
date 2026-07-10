@@ -1,0 +1,17 @@
+{
+  "executable": "build/MyGame.exe",
+  "working_dir": null,
+  "launch_args": [],
+  "window_title": "MyGame",
+  "capture": {
+    "mode": "window",
+    "region": null,
+    "size": [256, 256]
+  },
+  "threshold": 95.0,
+  "timeout_sec": 240,
+  "warmup_sec": 15,
+  "settle_sec": 2,
+  "driver": "drivers/input_stub.py",
+  "golden_name": "golden.png"
+}

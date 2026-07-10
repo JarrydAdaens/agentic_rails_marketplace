@@ -1,0 +1,7 @@
+{
+  "name": "game-golden-screenshot-verifier",
+  "description": "Engine-independent runtime smoke verifier for games: launch, drive to a deterministic state, screenshot, compare against a versioned golden. Exit 0 pass / 1 fail.",
+  "author": {
+    "name": "Jarryd Adaens"
+  }
+}
