@@ -25,9 +25,8 @@ Throughout, `<skill-dir>` means the directory containing this SKILL.md, and
 
 ## First-time setup in a project
 
-1. Create the seam folder — `context/verifiers/game-golden-screenshot/` by
-   convention (any location works; all relative paths in the config resolve
-   against it).
+1. Create the seam folder — `harness/game-golden-screenshot/` by convention
+   (any location works; all relative paths in the config resolve against it).
 2. Copy `<skill-dir>/eval_config.example.json` to `<seam-dir>/eval_config.json`
    and fill in the executable path, launch arguments, window title, capture
    size, threshold, timeout, and warmup/settle delays. Relative paths resolve
@@ -43,7 +42,7 @@ Throughout, `<skill-dir>` means the directory containing this SKILL.md, and
 
    ```gitignore
    # Transient game-verifier run artifacts
-   context/verifiers/game-golden-screenshot/last-run/
+   harness/game-golden-screenshot/last-run/
    ```
 
 5. Verify the install without a game: `uv run "<skill-dir>/run_eval.py" --self-test`

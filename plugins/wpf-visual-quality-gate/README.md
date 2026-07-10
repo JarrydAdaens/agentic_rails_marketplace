@@ -20,7 +20,7 @@ IDEs and for a human evaluator.
 
 | Lives in the plugin (updated via marketplace) | Lives in the target project (the seam) |
 | --- | --- |
-| The gate document — procedure, criteria, report format | `context/evaluations/wpf-visual-quality-gate-defaults.md` — launch command, window title, cleanup command |
+| The gate document — procedure, criteria, report format | `harness/wpf-visual-quality-gate/defaults.md` — launch command, window title, cleanup command |
 | The packet example | The trigger lines in the project's `AGENTS.md`/`CLAUDE.md` |
 
 Per UI story, the implementing agent writes an evaluator packet and dispatches

@@ -28,10 +28,10 @@ project.
 
 ## Adopting the gate in a project (once)
 
-1. Create `context/evaluations/wpf-visual-quality-gate-defaults.md` in the
-   target project containing the filled Project Defaults table from the gate
-   document: visual launch command, window title, cleanup command. This file
-   is the entire per-project seam.
+1. Create `harness/wpf-visual-quality-gate/defaults.md` in the target project
+   containing the filled Project Defaults table from the gate document:
+   visual launch command, window title, cleanup command. This file is the
+   entire per-project seam.
 2. Wire the trigger into the project's `AGENTS.md` (or `CLAUDE.md`) so the
    gate is mandatory rather than advisory:
 

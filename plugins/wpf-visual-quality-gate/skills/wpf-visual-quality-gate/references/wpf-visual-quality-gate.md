@@ -37,10 +37,10 @@ supplements screenshot inspection; it never replaces it.
 ## Project Defaults
 
 Each adopting project provides these in
-`context/evaluations/wpf-visual-quality-gate-defaults.md` (created at
-adoption; see the plugin skill). They are the per-project seam; this gate
-document stays as shipped. A story's packet may override them when it needs a
-different launch path.
+`harness/wpf-visual-quality-gate/defaults.md` (created at adoption; see the
+plugin skill). They are the per-project seam; this gate document stays as
+shipped. A story's packet may override them when it needs a different launch
+path.
 
 | Field | Value |
 | --- | --- |

@@ -67,6 +67,16 @@ plugins/<plugin-name>/             # one folder per independently installable pl
 context/                           # design doc and setup review for this repo
 ```
 
+**Project seams live in `harness/`.** A plugin ships the stable engine; the
+consuming project owns one folder per adopted plugin —
+`harness/<plugin-name>/` — holding everything project-specific (config,
+goldens, drivers, defaults) plus git-ignored runtime output (`runs/`,
+`last-run/`, `state/`). The same folder convention holds a project's local,
+not-yet-promoted checks, so a check keeps its home as it graduates from
+project experiment to installed plugin. The layer is defined in the
+`agentic_rails_context_starter` repo's `harness/` template; each plugin's
+README states exactly what its seam folder must contain.
+
 One deliberate adjustment from the design doc's proposed shape (validated
 against both vendors' docs, July 2026): there is no `shared/` payload folder.
 Both tools natively discover `skills/` and `hooks/hooks.json` at the plugin

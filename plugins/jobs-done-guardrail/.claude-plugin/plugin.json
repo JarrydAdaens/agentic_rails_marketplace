@@ -1,0 +1,7 @@
+{
+  "name": "jobs-done-guardrail",
+  "description": "Deterministic Stop-hook guardrail: when an agent finishes a turn with meaningful code changes, the project's build and unit tests must pass before it may hand back to the human. No LLM judgment; fingerprint-skips already-validated states.",
+  "author": {
+    "name": "Jarryd Adaens"
+  }
+}

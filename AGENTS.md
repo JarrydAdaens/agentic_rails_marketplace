@@ -11,6 +11,7 @@ This file provides repository guidance for agentic IDEs and coding agents workin
 - **Kung Fu never touches this repo.** No artifact here is deployed by file copy. Everything installs and uninstalls through each tool's native `/plugin` marketplace commands.
 - **Never edit installed copies.** Installed plugins live in a per-tool cache (e.g. `~/.claude/plugins/cache`). Edit here, commit, and let the marketplace update mechanism deliver the change.
 - **A plugin cannot reference files outside its own folder.** Installs copy the plugin directory into a cache, so `../` paths break. Hook commands use `${CLAUDE_PLUGIN_ROOT}`; per-project state belongs in the target project or the system temp directory.
+- **Project seams follow the harness convention.** Anything a consuming project must provide or that a plugin writes per project lives in that project's `harness/<plugin-name>/` folder (config, goldens, drivers, defaults; git-ignored `runs/`/`state/`/`last-run/` for runtime output). Plugins must not prescribe any other project-side location, and a missing seam must degrade to a silent skip, never an error — plugins are installed system-wide but adopted per project.
 - **Do not set `version` in `.claude-plugin/plugin.json`.** Plugins are versioned by commit SHA so every push is an update. `.codex-plugin/plugin.json` requires a version field; bump it there when the payload changes meaningfully.
 - **Plugin `name` is a stable identifier.** Renames require a `renames` migration map in `.claude-plugin/marketplace.json`; treat that map as append-only history.
 

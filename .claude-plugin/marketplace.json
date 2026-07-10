@@ -21,6 +21,13 @@
       "keywords": ["wpf", "ui", "screenshot", "quality-gate", "verifier"]
     },
     {
+      "name": "jobs-done-guardrail",
+      "source": "./plugins/jobs-done-guardrail",
+      "description": "Deterministic Stop-hook guardrail: an agent finishing a turn with relevant code changes must pass the project's build and unit tests before handing back to the human. Fingerprint-skips already-validated states. Claude Code only.",
+      "category": "guardrail",
+      "keywords": ["build", "test", "stop-hook", "guardrail", "jobs-done"]
+    },
+    {
       "name": "advisor-guardrail",
       "source": "./plugins/advisor-guardrail",
       "description": "Actor-critic guardrail for Claude Code: executor sessions must consult a stronger read-only advisor subagent before their first write, enforced deterministically by a PreToolUse hook. Claude Code only.",

@@ -1,0 +1,50 @@
+{
+  "evalId": "JOBS_DONE_GUARDRAIL",
+  "enabled": true,
+  "failFast": true,
+  "maxRepairAttempts": 2,
+  "outputLineLimit": 200,
+  "build": {
+    "command": "dotnet",
+    "arguments": [
+      "build",
+      "source/YourApp.sln",
+      "--configuration",
+      "Debug"
+    ]
+  },
+  "test": {
+    "command": "dotnet",
+    "arguments": [
+      "test",
+      "source/YourApp.Tests/YourApp.Tests.csproj",
+      "--configuration",
+      "Debug",
+      "--no-build"
+    ]
+  },
+  "includeExtensions": [
+    ".cs",
+    ".xaml",
+    ".csproj",
+    ".sln",
+    ".json",
+    ".xml",
+    ".pubxml",
+    ".props",
+    ".targets",
+    ".resx",
+    ".config",
+    ".ps1",
+    ".fs",
+    ".vb"
+  ],
+  "excludeExtensions": [
+    ".md",
+    ".markdown"
+  ],
+  "excludePaths": [
+    "harness/jobs-done-guardrail/runs/",
+    "harness/jobs-done-guardrail/state/"
+  ]
+}
