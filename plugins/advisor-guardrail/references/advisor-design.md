@@ -1,5 +1,5 @@
 ---
-name: quota-advisor-design
+name: advisor-design
 description: >-
   Design history for the advisor guard rail: the native advisor-tool behavior
   being replicated inside Claude Code, accepted trade-offs, architecture,
@@ -8,7 +8,7 @@ metadata:
   version: "1.0"
 ---
 
-# Quota Advisor — Design Document
+# Advisor Guardrail — Design Document
 
 **Status:** Draft for implementation
 **Target:** Claude Code on Claude Max subscription (no API key)

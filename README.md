@@ -35,7 +35,7 @@ Then install per plugin, per machine, as the work requires:
 ```shell
 /plugin install game-golden-screenshot-verifier@agentic-rails
 /plugin install wpf-visual-quality-gate@agentic-rails
-/plugin install quota-advisor-guardrail@agentic-rails
+/plugin install advisor-guardrail@agentic-rails
 ```
 
 Update, enable, disable, and remove through the same `/plugin` surface. On
@@ -48,9 +48,9 @@ that prompt is the expected, deliberate trust gate for guardrail plugins.
 | --- | --- | --- | --- |
 | `game-golden-screenshot-verifier` | verifier | Claude Code, Codex | Launches a game, drives a deterministic scene, compares an OS-level screenshot against a versioned golden. Exit 0/1. |
 | `wpf-visual-quality-gate` | verifier | Claude Code, Codex | Independent evaluator launches a WPF app, performs the changed interaction with real input, screenshot-verifies against packet criteria. |
-| `quota-advisor-guardrail` | guardrail | Claude Code only | Ships an `advisor` subagent plus hooks that deny the session's first write until the advisor has been consulted. |
+| `advisor-guardrail` | guardrail | Claude Code only | Ships an `advisor` subagent plus hooks that deny the session's first write until the advisor has been consulted. |
 
-`quota-advisor-guardrail` is Claude-only because its payload is built on Claude
+`advisor-guardrail` is Claude-only because its payload is built on Claude
 Code subagents and PreToolUse permission decisions; it is therefore absent from
 the Codex catalog.
 
@@ -77,10 +77,13 @@ duplication. Details in [`context/setup-review.md`](context/setup-review.md).
 ## Naming convention
 
 `<domain>-<subject>-<kind>`, all kebab-case, where **domain** is the surface
-the plugin applies to (`game-`, `wpf-`, `quota-`…) so related plugins cluster
-in the plugin browsers, and **kind** is the artifact type: `-verifier` for
-pass/fail acceptance checks, `-gate` for evaluator-run gates, `-guardrail` for
-hook-enforced behavioral rails. A plugin's `name` is its stable identifier —
+the plugin applies to (`game-`, `wpf-`…) so related plugins cluster in the
+plugin browsers, and **kind** is the artifact type: `-verifier` for pass/fail
+acceptance checks, `-gate` for evaluator-run gates, `-guardrail` for
+hook-enforced behavioral rails. Domain-neutral plugins that apply to every
+session omit the domain prefix (`advisor-guardrail`) — never invent one, and
+never prefix with `rails-`: the marketplace already namespaces every install
+(`<plugin>@agentic-rails`). A plugin's `name` is its stable identifier —
 renaming later requires a `renames` migration entry in the Claude catalog, so
 choose carefully.
 

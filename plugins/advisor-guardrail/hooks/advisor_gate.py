@@ -12,10 +12,10 @@ import sys
 from advisor_markers import marker_path
 
 DENY_REASON = (
-    "Quota Advisor gate: consult the advisor subagent before the first write of "
+    "Advisor gate: consult the advisor subagent before the first write of "
     "this session. Invoke the Task tool with subagent_type 'advisor' (namespaced "
-    "form: 'quota-advisor-guardrail:advisor'), using the consult payload format "
-    "from the Quota Advisor Protocol in your context (TASK / STAGE / "
+    "form: 'advisor-guardrail:advisor'), using the consult payload format "
+    "from the Advisor Protocol in your context (TASK / STAGE / "
     "PLAN-APPROACH / EVIDENCE / QUESTION), then retry this edit."
 )
 

@@ -1,4 +1,4 @@
-# quota-advisor-guardrail
+# advisor-guardrail
 
 Actor–critic guardrail for Claude Code, delivered as a marketplace plugin: an
 executor session (Opus/Sonnet) must consult a stronger, read-only `advisor`
@@ -6,7 +6,7 @@ subagent at decision points, with "consult before your first write" enforced
 by a deterministic PreToolUse hook rather than left as advisory prose. This
 replicates Anthropic's API-only advisor tool inside Claude Code on a Max
 subscription. Full design rationale, native tool comparison, and accepted
-trade-offs live in `references/quota-advisor-design.md`.
+trade-offs live in `references/advisor-design.md`.
 
 **Claude Code only.** The payload is built on Claude Code subagents and
 PreToolUse permission decisions, so this plugin has no Codex manifest and is

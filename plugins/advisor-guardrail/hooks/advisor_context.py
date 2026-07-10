@@ -1,4 +1,4 @@
-"""SessionStart context injection: put the Quota Advisor Protocol into context.
+"""SessionStart context injection: put the Advisor Protocol into context.
 
 A SessionStart hook's stdout is added to the session's context, which replaces
 the installer-era step of appending the protocol to the target project's

@@ -1,4 +1,4 @@
-"""Shared marker-path helper for the quota-advisor hooks.
+"""Shared marker-path helper for the advisor-guardrail hooks.
 
 Consult markers are per-session flags: advisor_marker.py creates one when the
 advisor subagent is consulted, advisor_gate.py checks for it before allowing

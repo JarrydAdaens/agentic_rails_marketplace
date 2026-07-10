@@ -64,7 +64,7 @@ recommended registration form on every machine.
 
 Both tools treat plugin hooks and MCP servers as high-trust and require the
 user to review/approve them at install; they are not automatically trusted.
-Users installing `quota-advisor-guardrail` approve three Python hooks
+Users installing `advisor-guardrail` approve three Python hooks
 (PreToolUse gate, PostToolUse marker, SessionStart cleanup/context). This
 prompt is the deliberate trust gate — plugin READMEs say what will be asked.
 
@@ -80,15 +80,18 @@ commit; running it is part of the publishing checklist.
 ## 7. Naming convention — decided
 
 `<domain>-<subject>-<kind>`: domain = the surface the plugin applies to
-(`game-`, `wpf-`, `quota-`), kind = `-verifier` (pass/fail acceptance check),
-`-gate` (evaluator-run gate), or `-guardrail` (hook-enforced rail). Existing
-verifier names already complied and were kept. Applied identically in both
-catalogs. Version fields: omitted in Claude manifests (commit-SHA versioning,
+(`game-`, `wpf-`), kind = `-verifier` (pass/fail acceptance check),
+`-gate` (evaluator-run gate), or `-guardrail` (hook-enforced rail).
+Domain-neutral plugins omit the domain prefix — the advisor guardrail applies
+to every session, so it is `advisor-guardrail`, not `quota-advisor-guardrail`
+(its origin name) or `rails-advisor-guardrail` (the marketplace already
+namespaces installs as `<plugin>@agentic-rails`). Existing verifier names
+already complied and were kept. Applied identically in both catalogs. Version fields: omitted in Claude manifests (commit-SHA versioning,
 every push is an update); required and maintained in Codex manifests.
 
 ## Conversion notes (first three plugins)
 
-- **`quota-advisor-guardrail`** replaces the `rails-advisor-setup` installer
+- **`advisor-guardrail`** replaces the `rails-advisor-setup` installer
   skill from `agentic_rails_tooling`. The installer's copy/merge steps
   (settings.json merge, CLAUDE.md append, .gitignore merge) are all replaced
   by native mechanisms: hooks register via `hooks/hooks.json`, the agent ships

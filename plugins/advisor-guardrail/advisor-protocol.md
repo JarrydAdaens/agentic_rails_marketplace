@@ -1,9 +1,9 @@
-## Quota Advisor Protocol
+## Advisor Protocol
 
 This session pairs executor models (Opus/Sonnet) with a stronger advisor: the
-`advisor` subagent shipped by the `quota-advisor-guardrail` plugin (runs on
+`advisor` subagent shipped by the `advisor-guardrail` plugin (runs on
 Fable). Invoke it via the Task tool with subagent_type `advisor` (namespaced
-form: `quota-advisor-guardrail:advisor`). Consult it at decision points.
+form: `advisor-guardrail:advisor`). Consult it at decision points.
 Consults are cheap relative to mistakes but expensive relative to silence —
 target 2–3 per task.
 

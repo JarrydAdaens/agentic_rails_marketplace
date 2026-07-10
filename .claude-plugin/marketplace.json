@@ -21,11 +21,11 @@
       "keywords": ["wpf", "ui", "screenshot", "quality-gate", "verifier"]
     },
     {
-      "name": "quota-advisor-guardrail",
-      "source": "./plugins/quota-advisor-guardrail",
+      "name": "advisor-guardrail",
+      "source": "./plugins/advisor-guardrail",
       "description": "Actor-critic guardrail for Claude Code: executor sessions must consult a stronger read-only advisor subagent before their first write, enforced deterministically by a PreToolUse hook. Claude Code only.",
       "category": "guardrail",
-      "keywords": ["advisor", "guardrail", "hooks", "actor-critic", "quota"]
+      "keywords": ["advisor", "guardrail", "hooks", "actor-critic", "consult"]
     }
   ]
 }
