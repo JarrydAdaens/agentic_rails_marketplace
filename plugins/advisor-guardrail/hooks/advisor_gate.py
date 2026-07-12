@@ -9,12 +9,12 @@ advisor_marker.py (PostToolUse on Task/Agent).
 import json
 import sys
 
-from advisor_markers import marker_path
+from advisor_markers import has_marker
 
 DENY_REASON = (
-    "Advisor gate: consult the advisor subagent before the first write of "
-    "this session. Invoke the Task tool with subagent_type 'advisor' (namespaced "
-    "form: 'advisor-guardrail:advisor'), using the consult payload format "
+    "Advisor gate: consult the advisor before the first write of this session. "
+    "In Claude, invoke advisor-guardrail:advisor with Task/Agent; in Codex, invoke "
+    "consult_advisor. Use the consult payload format "
     "from the Advisor Protocol in your context (TASK / STAGE / "
     "PLAN-APPROACH / EVIDENCE / QUESTION), then retry this edit."
 )
@@ -27,7 +27,7 @@ def main() -> None:
         sys.exit(0)  # malformed input: fail open rather than block all writes
 
     session_id = payload.get("session_id", "unknown")
-    if marker_path(session_id).exists():
+    if has_marker(session_id):
         sys.exit(0)
 
     print(json.dumps({

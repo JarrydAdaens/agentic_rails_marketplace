@@ -1,58 +1,42 @@
 # advisor-guardrail
 
-Actor–critic guardrail for Claude Code, delivered as a marketplace plugin: an
-executor session (Opus/Sonnet) must consult a stronger, read-only `advisor`
-subagent at decision points, with "consult before your first write" enforced
-by a deterministic PreToolUse hook rather than left as advisory prose. This
-replicates Anthropic's API-only advisor tool inside Claude Code on a Max
-subscription. Full design rationale, native tool comparison, and accepted
-trade-offs live in `references/advisor-design.md`.
+Actor-critic guardrail for Claude Code and Codex. An executor must consult a
+stronger, read-only advisor at decision points, with the first supported write
+surface gated per session. Claude keeps its Fable subagent; Codex gains the
+`consult_advisor` MCP tool backed by `gpt-5.6-sol` at high reasoning through the
+user's existing Codex login.
 
-**Claude Code only.** The payload is built on Claude Code subagents and
-PreToolUse permission decisions, so this plugin has no Codex manifest and is
-absent from the Codex catalog.
+## Platform implementations
 
-## What the plugin registers
+| Platform | Advisor invocation | Model | Gated writes |
+| --- | --- | --- | --- |
+| Claude Code | Task/Agent `advisor-guardrail:advisor` | Fable | Write, Edit, MultiEdit, NotebookEdit |
+| Codex | `consult_advisor(task, stage, approach, evidence, question)` | `gpt-5.6-sol`, high reasoning | `apply_patch` |
 
-| Component | Role |
-| --- | --- |
-| `agents/advisor.md` | The advisor subagent: read-only tools (Read/Grep/Glob), 120-word brevity contract, checkpoint-not-explorer role. Runs on Fable. |
-| `hooks/advisor_gate.py` (PreToolUse) | Denies the session's first Write/Edit/MultiEdit/NotebookEdit until a consult marker exists. |
-| `hooks/advisor_marker.py` (PostToolUse on Task/Agent) | Touches the per-session marker when the invoked subagent is the advisor (plain or plugin-namespaced). |
-| `hooks/advisor_cleanup.py` (SessionStart) | Removes consult markers older than 24 hours. |
-| `hooks/advisor_context.py` (SessionStart) | Prints `advisor-protocol.md` so the consult protocol enters the session's context. |
+Claude's agent, timing, structured payload, and 120-word contract are unchanged.
+Codex's bundled stdio MCP server runs `codex exec` ephemerally in the executor's
+workspace with a read-only sandbox, so it can inspect repository files but
+cannot modify them. It uses the installed CLI login; no API key is read or
+required. Python's standard library and the `codex` executable must be on PATH.
 
-On install, Claude Code asks you to review and trust these hooks — that
-prompt is the point of the guardrail being a plugin.
+On install, review and trust the hooks and local MCP command. This trust prompt
+is expected: the plugin executes bundled Python and, for a Codex consultation,
+starts the locally authenticated Codex CLI. Authentication, unavailable-model,
+missing-executable, and timeout failures are returned as actionable tool errors.
 
-Everything the old installer skill copied or merged is now native: hook
-registration replaces the `settings.json` merge, the SessionStart context
-injection replaces the `CLAUDE.md` append, and consult markers moved from the
-project's `.claude/` folder to the system temp directory
-(`<temp>/claude-advisor-markers/`), so no `.gitignore` entry is needed.
-Enable the plugin per project or globally through the standard `/plugin`
-enablement scopes.
+The first completed consultation creates a neutral marker under
+`<temp>/advisor-guardrail-markers/` and unlocks writes for that session. Legacy
+`<temp>/claude-advisor-markers/` markers are recognized during migration. A
+fresh session remains locked.
 
-## What to expect after install
+## Known limitations
 
-In each fresh session, the first file write is denied with an instructive
-reason; it succeeds after one advisor consult. The deny is the feature
-working, not an error.
-
-## Model note
-
-The advisor is pinned to `model: fable` in `agents/advisor.md`. If a machine's
-plan or Claude Code version does not resolve the `fable` alias, change the
-line to `opus` here in the marketplace copy (never in the installed cache) —
-a Sonnet-executor/Opus-advisor pairing is still a genuine capability lift.
-
-## Known limitations (accepted v1 trade-offs)
-
-- **Bash is deliberately ungated** — reliably classifying read-only vs.
-  state-changing shell commands in a hook is fragile; the protocol text
-  covers Bash advisorily.
-- **Per-session, not per-task**: a long multi-task session only forces one
-  consult.
-- The advisor sees only the structured consult payload, not the transcript;
-  thin payloads produce poor advice. The payload contract in the protocol is
-  the mitigation.
+- Shell commands are advisory-only. Reliably parsing shell writes is too
+  fragile, so Bash and shell-command surfaces are intentionally ungated.
+- Gating is per session, not per task; a long multi-task session forces only
+  its first consultation.
+- Advisors see the structured payload and readable workspace, not the executor
+  transcript. Thin evidence produces poor advice.
+- Claude still depends on the `fable` alias being available. Codex requires
+  access to the fixed `gpt-5.6-sol` model and consumes existing ChatGPT/Codex
+  quota.

@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "advisor-guardrail": {
+      "command": "python",
+      "args": ["${CODEX_PLUGIN_ROOT}/mcp/advisor_server.py"],
+      "windows": {
+        "command": "python",
+        "args": ["${CODEX_PLUGIN_ROOT}/mcp/advisor_server.py"]
+      }
+    }
+  }
+}

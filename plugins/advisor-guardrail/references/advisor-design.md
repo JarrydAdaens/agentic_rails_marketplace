@@ -11,9 +11,9 @@ metadata:
 # Advisor Guardrail — Design Document
 
 **Status:** Draft for implementation
-**Target:** Claude Code on Claude Max subscription (no API key)
+**Target:** Claude Code on Claude Max and Codex through the user's existing login (no API key)
 **Implementer:** Claude Fable 5 via Claude Code
-**Author context:** Replicates the pattern of Anthropic's native API advisor tool inside Claude Code, using subagents + rules + hooks. Executors are Opus/Sonnet; advisor is Fable.
+**Author context:** Replicates the advisor pattern across Claude Code and Codex. Claude executors use a Fable subagent; Codex executors use a bundled stdio MCP advisor backed by `gpt-5.6-sol` at high reasoning.
 
 **Primary reference:** https://platform.claude.com/docs/en/agents-and-tools/tool-use/advisor-tool
 Secondary reference (subagents): https://code.claude.com/docs/en/sub-agents
@@ -69,6 +69,15 @@ Claude Code session (executor: opus or sonnet)
                               tools: Read, Grep, Glob (read-only)
                               returns: ≤120-word advice block
 ```
+
+Codex uses the same timing and payload contract through
+`consult_advisor(task, stage, approach, evidence, question)`. The MCP server
+runs `codex exec --ephemeral --sandbox read-only --model gpt-5.6-sol -c
+model_reasoning_effort='"high"'` in the executor workspace using the installed
+Codex login. The shared PostToolUse marker recognizes both implementations;
+the shared PreToolUse gate additionally matches Codex `apply_patch`. Marker
+storage is platform-neutral, with temporary recognition of legacy Claude
+markers. Shell writes remain advisory-only on both platforms.
 
 ## 5. Components
 

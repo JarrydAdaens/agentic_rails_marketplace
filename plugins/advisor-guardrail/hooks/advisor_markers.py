@@ -15,8 +15,20 @@ from pathlib import Path
 
 
 def marker_dir() -> Path:
+    return Path(tempfile.gettempdir()) / "advisor-guardrail-markers"
+
+
+def legacy_marker_dir() -> Path:
     return Path(tempfile.gettempdir()) / "claude-advisor-markers"
 
 
 def marker_path(session_id: str) -> Path:
     return marker_dir() / f"advisor-consulted-{session_id}"
+
+
+def legacy_marker_path(session_id: str) -> Path:
+    return legacy_marker_dir() / f"advisor-consulted-{session_id}"
+
+
+def has_marker(session_id: str) -> bool:
+    return marker_path(session_id).exists() or legacy_marker_path(session_id).exists()
