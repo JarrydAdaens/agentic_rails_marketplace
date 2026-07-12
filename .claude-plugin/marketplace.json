@@ -33,6 +33,13 @@
       "description": "Actor-critic guardrail for Claude Code: executor sessions must consult a stronger read-only advisor subagent before their first write, enforced deterministically by a PreToolUse hook. Claude Code only.",
       "category": "guardrail",
       "keywords": ["advisor", "guardrail", "hooks", "actor-critic", "consult"]
+    },
+    {
+      "name": "python-uv-guardrail",
+      "source": "./plugins/python-uv-guardrail",
+      "description": "Deterministic PreToolUse guardrail: any Bash command that invokes python/pip directly instead of through uv is denied with a retry instruction, keeping Python work inside isolated, uv-managed environments. Pure pattern match. Claude Code only.",
+      "category": "guardrail",
+      "keywords": ["python", "uv", "pip", "guardrail", "pre-tool-use"]
     }
   ]
 }

@@ -1,0 +1,7 @@
+{
+  "name": "python-uv-guardrail",
+  "description": "Deterministic PreToolUse guardrail: any Bash command that invokes python/pip without a uv prefix is denied with a retry instruction, keeping Python work inside isolated, uv-managed environments. No LLM judgment; pure pattern match. Claude Code only.",
+  "author": {
+    "name": "Jarryd Adaens"
+  }
+}
