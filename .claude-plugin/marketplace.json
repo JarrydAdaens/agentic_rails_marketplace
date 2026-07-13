@@ -40,6 +40,13 @@
       "description": "Deterministic PreToolUse guardrail: any Bash command that invokes python/pip directly instead of through uv is denied with a retry instruction, keeping Python work inside isolated, uv-managed environments. Pure pattern match. Claude Code only.",
       "category": "guardrail",
       "keywords": ["python", "uv", "pip", "guardrail", "pre-tool-use"]
+    },
+    {
+      "name": "readme-name-guardrail",
+      "source": "./plugins/readme-name-guardrail",
+      "description": "Deterministic PreToolUse guardrail: denies creating a 'readme.md' (any capitalization) anywhere but the project root, and denies git add/commit of one, keeping the repository to a single unambiguous README instead of dozens of same-named files. Rename with a descriptive prefix. Pure pattern match. Claude Code only.",
+      "category": "guardrail",
+      "keywords": ["readme", "naming", "guardrail", "pre-tool-use", "git"]
     }
   ]
 }

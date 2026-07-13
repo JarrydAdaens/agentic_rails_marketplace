@@ -1,0 +1,7 @@
+{
+  "name": "readme-name-guardrail",
+  "description": "Deterministic PreToolUse guardrail: denies creating a 'readme.md' (any capitalization) anywhere but the project root, and denies git add/commit of one, so the codebase keeps a single unambiguous README instead of dozens of same-named files crowding terminal file references. Rename with a descriptive prefix (e.g. creatures-readme.md). No LLM judgment. Claude Code only.",
+  "author": {
+    "name": "Jarryd Adaens"
+  }
+}
