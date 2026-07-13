@@ -1,7 +1,7 @@
 ## Advisor Protocol
 
 This session pairs an executor with a stronger, read-only advisor. In Claude
-Code, invoke the Fable subagent via Task/Agent as
+Code, invoke the Opus advisor subagent via Task/Agent as
 `advisor-guardrail:advisor`. In Codex, invoke the `consult_advisor` MCP tool,
 backed by `gpt-5.6-sol` at high reasoning. Consult it at decision points.
 Consults are cheap relative to mistakes but expensive relative to silence —

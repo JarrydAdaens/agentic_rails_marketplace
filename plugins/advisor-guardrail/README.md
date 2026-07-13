@@ -2,7 +2,7 @@
 
 Actor-critic guardrail for Claude Code and Codex. An executor must consult a
 stronger, read-only advisor at decision points, with the first supported write
-surface gated per session. Claude keeps its Fable subagent; Codex gains the
+surface gated per session. Claude runs its advisor on Opus; Codex gains the
 `consult_advisor` MCP tool backed by `gpt-5.6-sol` at high reasoning through the
 user's existing Codex login.
 
@@ -10,7 +10,7 @@ user's existing Codex login.
 
 | Platform | Advisor invocation | Model | Gated writes |
 | --- | --- | --- | --- |
-| Claude Code | Task/Agent `advisor-guardrail:advisor` | Fable | Write, Edit, MultiEdit, NotebookEdit |
+| Claude Code | Task/Agent `advisor-guardrail:advisor` | Opus | Write, Edit, MultiEdit, NotebookEdit |
 | Codex | `consult_advisor(task, stage, approach, evidence, question)` | `gpt-5.6-sol`, high reasoning | `apply_patch` |
 
 Claude's agent, timing, structured payload, and 120-word contract are unchanged.
@@ -37,6 +37,7 @@ fresh session remains locked.
   its first consultation.
 - Advisors see the structured payload and readable workspace, not the executor
   transcript. Thin evidence produces poor advice.
-- Claude still depends on the `fable` alias being available. Codex requires
-  access to the fixed `gpt-5.6-sol` model and consumes existing ChatGPT/Codex
-  quota.
+- Claude runs the advisor on Opus. The capability lift is greatest with a
+  Sonnet executor; an Opus executor gets a same-tier second opinion rather than
+  a stronger one. Codex requires access to the fixed `gpt-5.6-sol` model and
+  consumes existing ChatGPT/Codex quota.

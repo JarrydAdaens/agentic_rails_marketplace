@@ -5,7 +5,7 @@ description: >-
   being replicated inside Claude Code, accepted trade-offs, architecture,
   cost controls, risks, and the v2 backlog.
 metadata:
-  version: "1.0"
+  version: "1.1"
 ---
 
 # Advisor Guardrail — Design Document
@@ -13,7 +13,7 @@ metadata:
 **Status:** Draft for implementation
 **Target:** Claude Code on Claude Max and Codex through the user's existing login (no API key)
 **Implementer:** Claude Fable 5 via Claude Code
-**Author context:** Replicates the advisor pattern across Claude Code and Codex. Claude executors use a Fable subagent; Codex executors use a bundled stdio MCP advisor backed by `gpt-5.6-sol` at high reasoning.
+**Author context:** Replicates the advisor pattern across Claude Code and Codex. Claude executors use an Opus advisor subagent; Codex executors use a bundled stdio MCP advisor backed by `gpt-5.6-sol` at high reasoning.
 
 **Primary reference:** https://platform.claude.com/docs/en/agents-and-tools/tool-use/advisor-tool
 Secondary reference (subagents): https://code.claude.com/docs/en/sub-agents
@@ -27,8 +27,8 @@ Anthropic's native advisor tool pairs a cheaper **executor** model with a strong
 We want the same behavioural pattern inside Claude Code on Max quota:
 
 - Main session runs Opus or Sonnet doing the actual work.
-- At specific decision points, the main agent consults a **Fable advisor subagent** for a plan, course correction, or completion review.
-- Advisor output is short, high-signal, and cheap relative to letting Fable do the whole task.
+- At specific decision points, the main agent consults an **Opus advisor subagent** for a plan, course correction, or completion review.
+- Advisor output is short, high-signal, and cheap relative to letting the advisor do the whole task.
 
 ## 2. What the native tool does (behaviour to replicate)
 
@@ -48,8 +48,8 @@ From the advisor tool doc:
 | Advisor automatically receives the full transcript | Subagent receives only the Task prompt the executor writes | **Biggest gap.** Mitigated by a mandatory structured consult payload (§5.2) and giving the advisor read-only repo tools so it can verify claims itself |
 | Advisor runs with no tools | Advisor gets `Read`, `Grep`, `Glob` (read-only) | Improvement over native: the advisor can inspect actual files instead of trusting the executor's summary. Costs extra tokens; bounded by the brevity contract |
 | Server-side, single request, zero client plumbing | Client-side: subagent + CLAUDE.md rules + hooks | Hooks make the "consult before first write" rule deterministic rather than advisory |
-| Fable advisor returns encrypted output the client can't read | Advice is plain text in the transcript | No downside for us |
-| Billed per-model at API rates | Everything draws from one Max quota pool | Fable consults burn quota faster than Sonnet work; brevity contract is the cost control |
+| Native advisor returns encrypted output the client can't read | Advice is plain text in the transcript | No downside for us |
+| Billed per-model at API rates | Everything draws from one Max quota pool | Opus consults burn quota faster than Sonnet work; brevity contract is the cost control |
 
 ## 4. Architecture
 
@@ -65,7 +65,7 @@ Claude Code session (executor: opus or sonnet)
 │                             writes session marker file
 │
 └── Task tool ──────────────► advisor subagent (.claude/agents/advisor.md)
-                              model: fable
+                              model: opus
                               tools: Read, Grep, Glob (read-only)
                               returns: ≤120-word advice block
 ```
@@ -94,7 +94,7 @@ description: >
   for trivial lookups or when the next action is dictated by tool output
   just read.
 tools: Read, Grep, Glob
-model: fable
+model: opus
 ---
 ```
 
@@ -156,7 +156,7 @@ Purpose: replicate the doc's "hard rule" — the first state-changing action on 
 
 ## 6. Implementation plan
 
-**Phase 1 — Advisor subagent.** Create `.claude/agents/advisor.md` per §5.1. Acceptance: `Use the advisor subagent` on a toy question returns a ≤120-word structured response, and the session confirms it ran on Fable.
+**Phase 1 — Advisor subagent.** Create `.claude/agents/advisor.md` per §5.1. Acceptance: `Use the advisor subagent` on a toy question returns a ≤120-word structured response, and the session confirms it ran on Opus.
 
 **Phase 2 — CLAUDE.md rules.** Add the timing block per §5.3 including the payload contract. Acceptance: on a fresh non-trivial task, executor consults before its first write without being told, and the consult prompt matches the payload format.
 
@@ -166,8 +166,8 @@ Purpose: replicate the doc's "hard rule" — the first state-changing action on 
 
 ## 7. Risks and open questions
 
-1. **Frontmatter `model:` field reliability.** A reported Claude Code bug (github.com/anthropics/claude-code issue #44385, Apr 2026) had subagents ignoring frontmatter `model` and inheriting the parent model. Verify on the installed version in Phase 1 by confirming the advisor actually runs on Fable. Mitigation if broken: have the executor pass `model` explicitly on the Task invocation (per-invocation model parameter takes precedence over frontmatter). Do **not** use `CLAUDE_CODE_SUBAGENT_MODEL` — it forces all subagents to one model.
-2. **Fable availability on this Max plan/version.** `fable` is a documented model alias for subagents, but confirm it resolves on the workstation's Claude Code version and plan before building on it. Fallback: `model: opus` still gives Sonnet executors a genuine capability lift (this is exactly the Sonnet-executor/Opus-advisor pairing the native doc recommends).
+1. **Frontmatter `model:` field reliability.** A reported Claude Code bug (github.com/anthropics/claude-code issue #44385, Apr 2026) had subagents ignoring frontmatter `model` and inheriting the parent model. Verify on the installed version in Phase 1 by confirming the advisor actually runs on Opus. Mitigation if broken: have the executor pass `model` explicitly on the Task invocation (per-invocation model parameter takes precedence over frontmatter). Do **not** use `CLAUDE_CODE_SUBAGENT_MODEL` — it forces all subagents to one model.
+2. **Advisor model choice.** The advisor ships on `opus`. Fable 5, the original choice, has been withdrawn by Anthropic, so the plugin no longer depends on the `fable` alias resolving. Opus gives Sonnet executors a genuine capability lift (the Sonnet-executor/Opus-advisor pairing the native doc recommends); an Opus executor gets a same-tier second opinion rather than a stronger one.
 3. **Context gap.** If advice quality is poor, the likely cause is a thin consult payload, not the advisor. Tighten the payload contract before touching anything else.
 4. **Bash enforcement hole** (§5.4). Known and accepted for v1.
 5. **Per-session vs per-task gating** (§5.4). Known limitation; revisit if multi-task sessions are common.
