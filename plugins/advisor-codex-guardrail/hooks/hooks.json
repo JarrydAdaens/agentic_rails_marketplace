@@ -1,0 +1,40 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "^apply_patch$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python -c \"import os,sys,runpy; d=os.path.join(os.environ['CODEX_PLUGIN_ROOT'],'hooks'); sys.path.insert(0,d); runpy.run_path(os.path.join(d,'advisor_gate.py'),run_name='__main__')\""
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": ".*consult_advisor$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python -c \"import os,sys,runpy; d=os.path.join(os.environ['CODEX_PLUGIN_ROOT'],'hooks'); sys.path.insert(0,d); runpy.run_path(os.path.join(d,'advisor_marker.py'),run_name='__main__')\""
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python -c \"import os,sys,runpy; d=os.path.join(os.environ['CODEX_PLUGIN_ROOT'],'hooks'); sys.path.insert(0,d); runpy.run_path(os.path.join(d,'advisor_cleanup.py'),run_name='__main__')\""
+          },
+          {
+            "type": "command",
+            "command": "python -c \"import os,sys,runpy; d=os.path.join(os.environ['CODEX_PLUGIN_ROOT'],'hooks'); sys.path.insert(0,d); runpy.run_path(os.path.join(d,'advisor_context.py'),run_name='__main__')\""
+          }
+        ]
+      }
+    ]
+  }
+}

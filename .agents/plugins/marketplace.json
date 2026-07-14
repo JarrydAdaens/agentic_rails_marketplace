@@ -21,10 +21,10 @@
       "category": "verifier"
     },
     {
-      "name": "advisor-guardrail",
+      "name": "advisor-codex-guardrail",
       "source": {
         "source": "local",
-        "path": "./plugins/advisor-guardrail"
+        "path": "./plugins/advisor-codex-guardrail"
       },
       "policy": {
         "installation": "AVAILABLE",

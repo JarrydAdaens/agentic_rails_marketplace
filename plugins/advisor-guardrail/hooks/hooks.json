@@ -2,22 +2,22 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "^(Write|Edit|MultiEdit|NotebookEdit|apply_patch)$",
+        "matcher": "^(Write|Edit|MultiEdit|NotebookEdit)$",
         "hooks": [
           {
             "type": "command",
-            "command": "python -c \"import os,runpy; runpy.run_path(os.path.join(os.environ.get('CODEX_PLUGIN_ROOT') or os.environ['CLAUDE_PLUGIN_ROOT'],'hooks','advisor_gate.py'),run_name='__main__')\""
+            "command": "python -c \"import os,sys,runpy; d=os.path.join(os.environ['CLAUDE_PLUGIN_ROOT'],'hooks'); sys.path.insert(0,d); runpy.run_path(os.path.join(d,'advisor_gate.py'),run_name='__main__')\""
           }
         ]
       }
     ],
     "PostToolUse": [
       {
-        "matcher": "^(Task|Agent|.*consult_advisor)$",
+        "matcher": "^(Task|Agent)$",
         "hooks": [
           {
             "type": "command",
-            "command": "python -c \"import os,runpy; runpy.run_path(os.path.join(os.environ.get('CODEX_PLUGIN_ROOT') or os.environ['CLAUDE_PLUGIN_ROOT'],'hooks','advisor_marker.py'),run_name='__main__')\""
+            "command": "python -c \"import os,sys,runpy; d=os.path.join(os.environ['CLAUDE_PLUGIN_ROOT'],'hooks'); sys.path.insert(0,d); runpy.run_path(os.path.join(d,'advisor_marker.py'),run_name='__main__')\""
           }
         ]
       }
@@ -27,11 +27,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python -c \"import os,runpy; runpy.run_path(os.path.join(os.environ.get('CODEX_PLUGIN_ROOT') or os.environ['CLAUDE_PLUGIN_ROOT'],'hooks','advisor_cleanup.py'),run_name='__main__')\""
+            "command": "python -c \"import os,sys,runpy; d=os.path.join(os.environ['CLAUDE_PLUGIN_ROOT'],'hooks'); sys.path.insert(0,d); runpy.run_path(os.path.join(d,'advisor_cleanup.py'),run_name='__main__')\""
           },
           {
             "type": "command",
-            "command": "python -c \"import os,runpy; runpy.run_path(os.path.join(os.environ.get('CODEX_PLUGIN_ROOT') or os.environ['CLAUDE_PLUGIN_ROOT'],'hooks','advisor_context.py'),run_name='__main__')\""
+            "command": "python -c \"import os,sys,runpy; d=os.path.join(os.environ['CLAUDE_PLUGIN_ROOT'],'hooks'); sys.path.insert(0,d); runpy.run_path(os.path.join(d,'advisor_context.py'),run_name='__main__')\""
           }
         ]
       }

@@ -19,6 +19,7 @@ This file provides repository guidance for agentic IDEs and coding agents workin
 
 - One folder per plugin under `plugins/`, named `<domain>-<subject>-<kind>` (kinds: `-verifier`, `-gate`, `-guardrail`). Payload lives in the default component directories (`skills/`, `agents/`, `hooks/hooks.json`) — authored once, discovered natively by both tools. Only the thin `.claude-plugin/` and `.codex-plugin/` manifests are per-tool.
 - Claude-only plugins (payloads built on Claude subagents or hook schemas) carry no `.codex-plugin/` manifest and are excluded from `.agents/plugins/marketplace.json`; say so in the plugin README.
+- Symmetrically, Codex-only plugins (payloads built on a Codex MCP server or the `apply_patch` surface) carry no `.claude-plugin/` manifest and are excluded from `.claude-plugin/marketplace.json`; say so in the plugin README. A capability that both tools need is split into a per-tool pair (e.g. `advisor-guardrail` + `advisor-codex-guardrail`) so neither tool loads the other's payload.
 - Every plugin folder has a `README.md` stating what it does, what the consuming project must provide, and any known limitations.
 - Both catalogs (`.claude-plugin/marketplace.json`, `.agents/plugins/marketplace.json`) must list every compatible plugin; keep them in sync when adding or removing plugins.
 - File and folder names are kebab-case except tool-mandated names and language-idiomatic code files. American English throughout.

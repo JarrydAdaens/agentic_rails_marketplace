@@ -50,12 +50,14 @@ that prompt is the expected, deliberate trust gate for guardrail plugins.
 | `game-golden-screenshot-verifier` | verifier | Claude Code, Codex | Launches a game, drives a deterministic scene, compares an OS-level screenshot against a versioned golden. Exit 0/1. |
 | `wpf-visual-quality-gate` | verifier | Claude Code, Codex | Independent evaluator launches a WPF app, performs the changed interaction with real input, screenshot-verifies against packet criteria. |
 | `advisor-guardrail` | guardrail | Claude Code only | Ships an `advisor` subagent plus hooks that deny the session's first write until the advisor has been consulted. |
+| `advisor-codex-guardrail` | guardrail | Codex only | Ships a `consult_advisor` MCP tool (GPT-5.6-Sol) plus hooks that deny the session's first `apply_patch` until the advisor has been consulted. |
 | `jobs-done-guardrail` | guardrail | Claude Code only | Stop hook that requires the project's build and unit tests to pass before an agent with relevant code changes may hand back to the human. |
 
-The two guardrails are Claude-only and absent from the Codex catalog:
-`advisor-guardrail` is built on Claude Code subagents and PreToolUse
-permission decisions, and `jobs-done-guardrail` awaits verification of
-Codex's plugin-root variable for hook commands.
+`advisor-guardrail` (Claude Code) and `advisor-codex-guardrail` (Codex) are the
+same guard rail split per tool — one plugin each so neither tool ever loads the
+other's payload, and each appears only in its own tool's catalog.
+`jobs-done-guardrail` is Claude-only and absent from the Codex catalog: it
+awaits verification of Codex's plugin-root variable for hook commands.
 
 ## Repository layout
 

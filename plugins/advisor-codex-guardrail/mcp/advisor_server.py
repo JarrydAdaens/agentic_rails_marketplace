@@ -109,7 +109,7 @@ def dispatch(message: dict[str, Any]) -> dict[str, Any] | None:
     if method == "notifications/initialized":
         return None
     if method == "initialize":
-        return response(request_id, {"protocolVersion": "2025-03-26", "capabilities": {"tools": {}}, "serverInfo": {"name": "advisor-guardrail", "version": "1.0.0"}})
+        return response(request_id, {"protocolVersion": "2025-03-26", "capabilities": {"tools": {}}, "serverInfo": {"name": "advisor-codex-guardrail", "version": "1.0.0"}})
     if method == "tools/list":
         return response(request_id, {"tools": [TOOL]})
     if method == "tools/call":

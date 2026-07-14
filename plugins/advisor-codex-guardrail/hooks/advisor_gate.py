@@ -1,9 +1,9 @@
-"""PreToolUse gate: deny Write/Edit tools until the advisor has been consulted this session.
+"""PreToolUse gate: deny apply_patch until the advisor has been consulted this session.
 
 Reads the hook payload from stdin. If no consult marker exists for the current
 session, emits a permissionDecision deny so the executor self-corrects by
-consulting the advisor subagent first. Marker files are created by
-advisor_marker.py (PostToolUse on Task/Agent).
+consulting the advisor first. Marker files are created by advisor_marker.py
+(PostToolUse on consult_advisor).
 """
 
 import json
@@ -13,9 +13,9 @@ from advisor_markers import has_marker
 
 DENY_REASON = (
     "Advisor gate: consult the advisor before the first write of this session. "
-    "Invoke advisor-guardrail:advisor with Task/Agent, using the consult payload "
-    "format from the Advisor Protocol in your context (TASK / STAGE / "
-    "PLAN-APPROACH / EVIDENCE / QUESTION), then retry this edit."
+    "Invoke consult_advisor with the payload format from the Advisor Protocol in "
+    "your context (task / stage / approach / evidence / question), then retry "
+    "this patch."
 )
 
 

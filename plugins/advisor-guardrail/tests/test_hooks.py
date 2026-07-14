@@ -36,12 +36,6 @@ class HookTests(unittest.TestCase):
             directory.mkdir.assert_called_once_with(parents=True, exist_ok=True)
             marker.touch.assert_called_once()
 
-    def test_codex_consult_creates_marker(self):
-        marker = MagicMock()
-        with patch.object(advisor_marker, "marker_dir"), patch.object(advisor_marker, "marker_path", return_value=marker):
-            self.invoke(advisor_marker, {"session_id": "codex", "tool_name": "mcp__advisor-guardrail__consult_advisor", "tool_input": {}})
-        marker.touch.assert_called_once()
-
     def test_non_advisor_and_malformed_payload_do_not_mark(self):
         self.invoke(advisor_marker, {"session_id": "no", "tool_name": "Task", "tool_input": {"subagent_type": "worker"}})
         with patch.object(advisor_marker, "marker_path") as marker:
@@ -52,7 +46,7 @@ class HookTests(unittest.TestCase):
                 advisor_marker.main()
 
     def test_gate_denies_before_consult_and_allows_after(self):
-        denied = self.invoke(advisor_gate, {"session_id": "gate", "tool_name": "apply_patch"})
+        denied = self.invoke(advisor_gate, {"session_id": "gate", "tool_name": "Edit"})
         self.assertEqual(json.loads(denied)["hookSpecificOutput"]["permissionDecision"], "deny")
         with patch.object(advisor_gate, "has_marker", return_value=True):
             self.assertEqual(self.invoke(advisor_gate, {"session_id": "gate", "tool_name": "Write"}), "")
@@ -75,10 +69,14 @@ class HookTests(unittest.TestCase):
         for marker in markers:
             marker.unlink.assert_called_once()
 
-    def test_hooks_match_both_platform_write_and_advisor_surfaces(self):
+    def test_hooks_match_claude_write_and_advisor_surfaces(self):
         config = json.loads((HOOKS / "hooks.json").read_text(encoding="utf-8"))
-        self.assertIn("apply_patch", config["hooks"]["PreToolUse"][0]["matcher"])
-        self.assertIn("consult_advisor", config["hooks"]["PostToolUse"][0]["matcher"])
+        pre = config["hooks"]["PreToolUse"][0]["matcher"]
+        post = config["hooks"]["PostToolUse"][0]["matcher"]
+        self.assertIn("Write", pre)
+        self.assertNotIn("apply_patch", pre)
+        self.assertIn("Task", post)
+        self.assertNotIn("consult_advisor", post)
 
 
 if __name__ == "__main__":

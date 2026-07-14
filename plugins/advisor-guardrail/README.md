@@ -1,28 +1,26 @@
 # advisor-guardrail
 
-Actor-critic guardrail for Claude Code and Codex. An executor must consult a
-stronger, read-only advisor at decision points, with the first supported write
-surface gated per session. Claude runs its advisor on Opus; Codex gains the
-`consult_advisor` MCP tool backed by `gpt-5.6-sol` at high reasoning through the
-user's existing Codex login.
+Actor-critic guardrail for Claude Code. An executor must consult a stronger,
+read-only advisor subagent at decision points, and the session's first write is
+gated until that consult happens. The advisor runs on Opus.
 
-## Platform implementations
+> **Codex users:** this plugin is Claude Code only. The Codex equivalent — a
+> `consult_advisor` MCP tool backed by `gpt-5.6-sol` — ships as a separate
+> plugin, `advisor-codex-guardrail`, so neither tool ever loads the other's
+> payload.
 
-| Platform | Advisor invocation | Model | Gated writes |
-| --- | --- | --- | --- |
-| Claude Code | Task/Agent `advisor-guardrail:advisor` | Opus | Write, Edit, MultiEdit, NotebookEdit |
-| Codex | `consult_advisor(task, stage, approach, evidence, question)` | `gpt-5.6-sol`, high reasoning | `apply_patch` |
+## How it works
 
-Claude's agent, timing, structured payload, and 120-word contract are unchanged.
-Codex's bundled stdio MCP server runs `codex exec` ephemerally in the executor's
-workspace with a read-only sandbox, so it can inspect repository files but
-cannot modify them. It uses the installed CLI login; no API key is read or
-required. Python's standard library and the `codex` executable must be on PATH.
+| Piece | Mechanism |
+| --- | --- |
+| Advisor | Task/Agent subagent `advisor-guardrail:advisor`, model Opus, read-only (`Read`, `Grep`, `Glob`) |
+| Write gate | `PreToolUse` on `Write`, `Edit`, `MultiEdit`, `NotebookEdit` — denied until one consult has occurred this session |
+| Consult marker | `PostToolUse` on `Task`/`Agent` — an advisor consult unlocks writes for the session |
+| Protocol | `SessionStart` injects the consult protocol into context; stale markers are cleaned |
 
-On install, review and trust the hooks and local MCP command. This trust prompt
-is expected: the plugin executes bundled Python and, for a Codex consultation,
-starts the locally authenticated Codex CLI. Authentication, unavailable-model,
-missing-executable, and timeout failures are returned as actionable tool errors.
+On install, review and trust the hooks. This trust prompt is expected: the
+plugin executes bundled Python at tool-use and session-start time. Only the
+standard library is used; no network access and no API key.
 
 The first completed consultation creates a neutral marker under
 `<temp>/advisor-guardrail-markers/` and unlocks writes for that session. Legacy
@@ -35,9 +33,8 @@ fresh session remains locked.
   fragile, so Bash and shell-command surfaces are intentionally ungated.
 - Gating is per session, not per task; a long multi-task session forces only
   its first consultation.
-- Advisors see the structured payload and readable workspace, not the executor
-  transcript. Thin evidence produces poor advice.
-- Claude runs the advisor on Opus. The capability lift is greatest with a
-  Sonnet executor; an Opus executor gets a same-tier second opinion rather than
-  a stronger one. Codex requires access to the fixed `gpt-5.6-sol` model and
-  consumes existing ChatGPT/Codex quota.
+- The advisor sees the structured payload and the readable workspace, not the
+  executor transcript. Thin evidence produces poor advice.
+- The advisor runs on Opus. The capability lift is greatest with a Sonnet
+  executor; an Opus executor gets a same-tier second opinion rather than a
+  stronger one.

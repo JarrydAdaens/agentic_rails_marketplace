@@ -26,7 +26,7 @@ def payload(**overrides):
 class AdvisorServerTests(unittest.TestCase):
     def test_mcp_launcher_keeps_executor_workspace(self):
         config = json.loads((SERVER_PATH.parents[1] / ".mcp.json").read_text(encoding="utf-8"))
-        launcher = config["mcpServers"]["advisor-guardrail"]
+        launcher = config["mcpServers"]["advisor-codex-guardrail"]
         self.assertNotIn("cwd", launcher)
         self.assertIn("${CODEX_PLUGIN_ROOT}", launcher["args"][0])
 
@@ -73,6 +73,10 @@ class AdvisorServerTests(unittest.TestCase):
     def test_auth_and_model_failures_are_classified(self):
         self.assertIn("sign in", server.classify_failure("Not logged in"))
         self.assertIn("gpt-5.6-sol", server.classify_failure("model not available"))
+
+    def test_initialize_reports_plugin_server_name(self):
+        result = server.dispatch({"id": 1, "method": "initialize"})
+        self.assertEqual(result["result"]["serverInfo"]["name"], "advisor-codex-guardrail")
 
     def test_dispatch_returns_tool_error_for_bad_payload(self):
         result = server.dispatch({"id": 1, "method": "tools/call", "params": {"name": "consult_advisor", "arguments": {}}})

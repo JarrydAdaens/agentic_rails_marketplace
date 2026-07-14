@@ -11,9 +11,9 @@ metadata:
 # Advisor Guardrail — Design Document
 
 **Status:** Draft for implementation
-**Target:** Claude Code on Claude Max and Codex through the user's existing login (no API key)
+**Target:** Claude Code on Claude Max
 **Implementer:** Claude Fable 5 via Claude Code
-**Author context:** Replicates the advisor pattern across Claude Code and Codex. Claude executors use an Opus advisor subagent; Codex executors use a bundled stdio MCP advisor backed by `gpt-5.6-sol` at high reasoning.
+**Author context:** Replicates the advisor pattern inside Claude Code. Executors consult an Opus advisor subagent. (The Codex counterpart — a bundled stdio MCP advisor backed by `gpt-5.6-sol` — is a separate plugin, `advisor-codex-guardrail`.)
 
 **Primary reference:** https://platform.claude.com/docs/en/agents-and-tools/tool-use/advisor-tool
 Secondary reference (subagents): https://code.claude.com/docs/en/sub-agents
@@ -70,14 +70,11 @@ Claude Code session (executor: opus or sonnet)
                               returns: ≤120-word advice block
 ```
 
-Codex uses the same timing and payload contract through
-`consult_advisor(task, stage, approach, evidence, question)`. The MCP server
-runs `codex exec --ephemeral --sandbox read-only --model gpt-5.6-sol -c
-model_reasoning_effort='"high"'` in the executor workspace using the installed
-Codex login. The shared PostToolUse marker recognizes both implementations;
-the shared PreToolUse gate additionally matches Codex `apply_patch`. Marker
-storage is platform-neutral, with temporary recognition of legacy Claude
-markers. Shell writes remain advisory-only on both platforms.
+The PostToolUse marker recognizes the advisor subagent (plain or
+plugin-namespaced); the PreToolUse gate matches the Claude write surfaces.
+Markers live in the system temp directory, with temporary recognition of
+legacy `claude-advisor-markers`. Shell writes remain advisory-only. The Codex
+counterpart lives in the separate `advisor-codex-guardrail` plugin.
 
 ## 5. Components
 
