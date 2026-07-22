@@ -117,3 +117,8 @@ choose carefully.
    Codex-compatible, `.agents/plugins/marketplace.json`.
 4. Validate with `claude plugin validate .`, then commit and push. The commit
    history is the version record.
+
+## License
+
+This repository is licensed under the [Apache License 2.0](LICENSE).
+See [NOTICE](NOTICE) for attribution details.
