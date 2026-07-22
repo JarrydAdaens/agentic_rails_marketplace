@@ -4,7 +4,7 @@ This file provides repository guidance for agentic IDEs and coding agents workin
 
 ## What this repository is
 
-`agentic_rails_marketplace` is the fourth repository of the Agentic Rails framework: a **native plugin marketplace** that both Claude Code and Codex register directly and install individual plugins from. It holds the artifacts that have a lifecycle (verifiers and guardrails, with the hooks that wire them in), as opposed to the inert files the other three rails hold. Read `context/design.md` before reshaping anything — the boundaries are the point.
+`agentic_rails_marketplace` is the fourth repository of the Agentic Rails framework: a **native plugin marketplace** that both Claude Code and Codex register directly and install individual plugins from. It holds the artifacts that have a lifecycle (verifiers and guardrails, with the hooks that wire them in), as opposed to the inert files the other three repositories hold. Read `context/design.md` before reshaping anything — the boundaries are the point.
 
 ## Hard rules
 
@@ -27,4 +27,4 @@ This file provides repository guidance for agentic IDEs and coding agents workin
 
 ## What does not belong here
 
-Inert, copy-deployed artifacts — rules, skills without lifecycle, agents, memories, context templates — belong in the other three rails (`agentic_rails_tooling`, `agentic_rails_context_starter`, `agentic_rails_memory`). If an artifact needs no install/uninstall behavior, it is not a plugin.
+Inert, copy-deployed artifacts — rules, skills without lifecycle, agents, memories, context templates — belong in the other three repositories (`agentic_rails_tooling`, `agentic_rails_context_starter`, `agentic_rails_memory`). If an artifact needs no install/uninstall behavior, it is not a plugin.
