@@ -15,20 +15,21 @@
 """SessionStart cleanup: delete stale critic-consult markers.
 
 Markers are per-session, so old sessions leave orphaned files behind. Anything
-older than 24 hours can never belong to a live session and is removed.
+older than 24 hours can never belong to a live session and is removed. Marker
+directories the plugin used under earlier names are swept too, so a rename does
+not strand files in the temp directory forever.
 """
 
 import sys
 import time
+from pathlib import Path
 
-from critic_markers import marker_dir
+from critic_markers import legacy_marker_dirs, marker_dir
 
 MAX_AGE_SECONDS = 24 * 60 * 60
 
 
-def main() -> None:
-    cutoff = time.time() - MAX_AGE_SECONDS
-    directory = marker_dir()
+def sweep(directory: Path, cutoff: float) -> None:
     if not directory.is_dir():
         return
     for marker in directory.glob("critic-consulted-*"):
@@ -37,6 +38,17 @@ def main() -> None:
                 marker.unlink()
         except OSError:
             pass  # another session may have removed it; never block startup
+
+
+def main() -> None:
+    cutoff = time.time() - MAX_AGE_SECONDS
+    sweep(marker_dir(), cutoff)
+    for legacy in legacy_marker_dirs():
+        sweep(legacy, cutoff)
+        try:
+            legacy.rmdir()  # only succeeds once the last stale marker is gone
+        except OSError:
+            pass
 
 
 if __name__ == "__main__":

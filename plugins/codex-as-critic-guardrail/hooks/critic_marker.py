@@ -15,7 +15,7 @@
 """PostToolUse marker: record that the critic was consulted this session.
 
 Fires on consult_critic completions (plain or MCP-namespaced, e.g.
-mcp__critic-guardrail__consult_critic). Touches a per-session marker file that
+mcp__codex-as-critic-guardrail__consult_critic). Touches a per-session marker file that
 critic_gate.py checks before allowing Write/Edit tools.
 """
 
@@ -23,12 +23,14 @@ import json
 import sys
 
 from critic_markers import marker_dir, marker_path
+from critic_streams import force_utf8
 
 
 def main() -> None:
+    force_utf8()
     try:
         payload = json.load(sys.stdin)
-    except json.JSONDecodeError:
+    except (json.JSONDecodeError, UnicodeDecodeError):
         sys.exit(0)
 
     tool_name = str(payload.get("tool_name") or payload.get("tool") or "")

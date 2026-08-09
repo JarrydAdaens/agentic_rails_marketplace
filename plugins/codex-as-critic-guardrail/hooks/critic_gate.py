@@ -24,6 +24,7 @@ import json
 import sys
 
 from critic_markers import has_marker
+from critic_streams import force_utf8
 
 DENY_REASON = (
     "Critic gate: consult the critic before the first write of this session. "
@@ -34,9 +35,10 @@ DENY_REASON = (
 
 
 def main() -> None:
+    force_utf8()
     try:
         payload = json.load(sys.stdin)
-    except json.JSONDecodeError:
+    except (json.JSONDecodeError, UnicodeDecodeError):
         sys.exit(0)  # malformed input: fail open rather than block all writes
 
     session_id = payload.get("session_id", "unknown")

@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "codex-as-critic-guardrail": {
+      "command": "python",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp/critic_server.py"]
+    }
+  }
+}

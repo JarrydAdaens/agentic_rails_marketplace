@@ -35,8 +35,8 @@
       "keywords": ["advisor", "guardrail", "hooks", "actor-critic", "consult"]
     },
     {
-      "name": "critic-guardrail",
-      "source": "./plugins/critic-guardrail",
+      "name": "codex-as-critic-guardrail",
+      "source": "./plugins/codex-as-critic-guardrail",
       "description": "Cross-vendor actor-critic guardrail for Claude Code: executor sessions must consult an antagonistic, read-only GPT-5.6-Sol critic (via the local Codex CLI) before their first write, enforced deterministically by a PreToolUse hook. Claude Code only.",
       "category": "guardrail",
       "keywords": ["critic", "guardrail", "hooks", "actor-critic", "codex", "cross-vendor"]
@@ -55,5 +55,8 @@
       "category": "guardrail",
       "keywords": ["readme", "naming", "guardrail", "pre-tool-use", "git"]
     }
-  ]
+  ],
+  "renames": {
+    "critic-guardrail": "codex-as-critic-guardrail"
+  }
 }

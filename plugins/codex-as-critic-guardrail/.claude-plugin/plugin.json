@@ -1,5 +1,5 @@
 {
-  "name": "critic-guardrail",
+  "name": "codex-as-critic-guardrail",
   "description": "Cross-vendor actor-critic guardrail for Claude Code: executor sessions must consult an antagonistic, read-only GPT-5.6-Sol critic (via the local Codex CLI) before their first write, enforced deterministically by a PreToolUse hook. Ships the consult_critic MCP tool, the enforcement hooks, and SessionStart injection of the consult protocol.",
   "author": {
     "name": "Jarryd Adaens"

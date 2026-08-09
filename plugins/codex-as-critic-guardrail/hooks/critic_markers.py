@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Shared marker-path helper for the critic-guardrail hooks.
+"""Shared marker-path helper for the codex-as-critic-guardrail hooks.
 
 Consult markers are per-session flags: critic_marker.py creates one when the
 critic MCP tool completes, critic_gate.py checks for it before allowing the
@@ -27,9 +27,18 @@ from __future__ import annotations
 import tempfile
 from pathlib import Path
 
+# Marker directories this plugin has used. The first is current; the rest are
+# names it shipped under before, kept so cleanup can still sweep markers left in
+# the temp directory by an older install.
+MARKER_DIR_NAMES = ("codex-as-critic-guardrail-markers", "critic-guardrail-markers")
+
 
 def marker_dir() -> Path:
-    return Path(tempfile.gettempdir()) / "critic-guardrail-markers"
+    return Path(tempfile.gettempdir()) / MARKER_DIR_NAMES[0]
+
+
+def legacy_marker_dirs() -> list[Path]:
+    return [Path(tempfile.gettempdir()) / name for name in MARKER_DIR_NAMES[1:]]
 
 
 def marker_path(session_id: str) -> Path:

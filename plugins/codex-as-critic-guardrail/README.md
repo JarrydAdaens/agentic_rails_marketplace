@@ -1,4 +1,4 @@
-# critic-guardrail
+# codex-as-critic-guardrail
 
 Cross-vendor actor-critic guardrail for Claude Code. The executor must consult
 an antagonistic, read-only critic at decision points, and the session's first
@@ -12,6 +12,9 @@ together.
 > **Codex users:** this plugin is Claude Code only — its point is reaching from
 > Claude out to Codex. The Codex-side sibling, `advisor-codex-guardrail`,
 > already consults `gpt-5.6-sol` natively.
+
+> Formerly published as `critic-guardrail`. Existing installs migrate
+> automatically through the marketplace `renames` map.
 
 ## How it works
 
@@ -34,17 +37,37 @@ missing-executable, and timeout failures are returned as actionable tool
 errors.
 
 The first completed consultation creates a marker under
-`<temp>/critic-guardrail-markers/` and unlocks writes for that session. A fresh
-session remains locked.
+`<temp>/codex-as-critic-guardrail-markers/` and unlocks writes for that session.
+A fresh session remains locked.
 
-## Choosing between advisor-guardrail and critic-guardrail
+## Consult timeout
+
+A consultation is a full Codex run at high reasoning, and it gets slower the
+larger and less familiar the repository is. Measured across real sessions, the
+median consult took 51 seconds, the 90th percentile 132 seconds, and the longest
+success 178 seconds.
+
+The default cap is therefore **600 seconds**. Claude Code imposes no competing
+limit — a stdio MCP server has no per-request timer, and an unset
+`MCP_TOOL_TIMEOUT` defaults to roughly 28 hours — so this cap is the only one
+that applies. Raise it for very large repositories:
+
+```jsonc
+// .claude/settings.json
+{ "env": { "CODEX_CRITIC_TIMEOUT_SECONDS": "900" } }
+```
+
+A timeout error reports the limit, names the variable, and includes whatever
+Codex managed to emit before it was cut off.
+
+## Choosing between advisor-guardrail and codex-as-critic-guardrail
 
 Both gate the session's first write behind a consult; install one, not both —
 two gates mean two mandatory consults per session. `advisor-guardrail` gives a
 same-ecosystem senior advisor (Opus) whose advice the executor is told to
-weight heavily. `critic-guardrail` gives a cross-vendor antagonist whose
-objections the executor is told to test against evidence, not obey. Prefer the
-critic when the failure mode you fear is confident same-family groupthink;
+weight heavily. `codex-as-critic-guardrail` gives a cross-vendor antagonist
+whose objections the executor is told to test against evidence, not obey. Prefer
+the critic when the failure mode you fear is confident same-family groupthink;
 prefer the advisor when you want a capability lift for a smaller executor.
 
 ## Known limitations
@@ -57,6 +80,8 @@ prefer the advisor when you want a capability lift for a smaller executor.
   executor transcript. Thin evidence produces a thin critique.
 - Requires the Codex CLI on PATH with an authenticated login, access to the
   fixed `gpt-5.6-sol` model, and consumes existing ChatGPT/Codex quota.
+- A consultation blocks the MCP server until it completes; the server handles
+  one consult at a time, which is all the write gate ever asks of it.
 - An adversarial critic will sometimes object to sound approaches; the
   protocol tells the executor to test objections against evidence rather than
   capitulate, but a suggestible executor may still over-correct.

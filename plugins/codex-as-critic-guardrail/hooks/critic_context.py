@@ -22,8 +22,11 @@ CLAUDE.md. Missing protocol file exits silently — never block startup.
 import sys
 from pathlib import Path
 
+from critic_streams import force_utf8
+
 
 def main() -> None:
+    force_utf8()
     protocol = Path(__file__).resolve().parent.parent / "critic-protocol.md"
     try:
         print(protocol.read_text(encoding="utf-8"))

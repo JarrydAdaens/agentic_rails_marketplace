@@ -17,6 +17,8 @@ from __future__ import annotations
 import contextlib
 import io
 import json
+import os
+import subprocess
 import sys
 import unittest
 from pathlib import Path
@@ -41,7 +43,7 @@ class HookTests(unittest.TestCase):
         return output.getvalue()
 
     def test_plain_and_mcp_namespaced_consult_create_marker(self):
-        for tool in ("consult_critic", "mcp__critic-guardrail__consult_critic"):
+        for tool in ("consult_critic", "mcp__codex-as-critic-guardrail__consult_critic"):
             directory, marker = MagicMock(), MagicMock()
             with patch.object(critic_marker, "marker_dir", return_value=directory), patch.object(critic_marker, "marker_path", return_value=marker):
                 self.invoke(critic_marker, {"session_id": "s1", "tool_name": tool})
@@ -75,8 +77,46 @@ class HookTests(unittest.TestCase):
         marker.unlink.assert_called_once()
 
     def test_marker_paths_are_plugin_specific(self):
-        self.assertEqual(critic_markers.marker_dir().name, "critic-guardrail-markers")
+        self.assertEqual(critic_markers.marker_dir().name, "codex-as-critic-guardrail-markers")
         self.assertTrue(critic_markers.marker_path("abc").name.startswith("critic-consulted-"))
+
+    def test_former_marker_directories_are_still_swept(self):
+        # A rename must not strand a previous install's markers in the temp
+        # directory, where nothing would ever clean them up again.
+        legacy = [directory.name for directory in critic_markers.legacy_marker_dirs()]
+        self.assertIn("critic-guardrail-markers", legacy)
+        self.assertNotIn(critic_markers.marker_dir().name, legacy)
+
+    def test_cleanup_sweeps_current_and_legacy_directories(self):
+        swept = []
+        with patch.object(critic_cleanup, "sweep", side_effect=lambda directory, _cutoff: swept.append(directory)):
+            critic_cleanup.main()
+        self.assertIn(critic_markers.marker_dir(), swept)
+        for legacy in critic_markers.legacy_marker_dirs():
+            self.assertIn(legacy, swept)
+
+    def test_session_start_injects_the_protocol_as_utf8(self):
+        """The protocol must reach the session intact, not in the console code page.
+
+        Launched exactly as hooks.json launches it, with stdout piped. On Windows
+        that pipe defaults to cp1252, which turned every em dash in the protocol
+        into a replacement character by the time Claude Code read it.
+        """
+        plugin_root = HOOKS.parent
+        launcher = (
+            "import os,sys,runpy; d=os.path.join(os.environ['CLAUDE_PLUGIN_ROOT'],'hooks'); "
+            "sys.path.insert(0,d); runpy.run_path(os.path.join(d,'critic_context.py'),run_name='__main__')"
+        )
+        completed = subprocess.run(
+            [sys.executable, "-c", launcher],
+            env={**os.environ, "CLAUDE_PLUGIN_ROOT": str(plugin_root)},
+            capture_output=True, timeout=60, check=False,
+        )
+        self.assertEqual(completed.returncode, 0, completed.stderr.decode("utf-8", "replace"))
+        emitted = completed.stdout.decode("utf-8")  # strict: mojibake would raise here
+        self.assertIn("Critic Protocol", emitted)
+        self.assertIn("target 2–3 per task", emitted)
+        self.assertNotIn("�", emitted)
 
     def test_hooks_match_claude_write_and_critic_surfaces(self):
         config = json.loads((HOOKS / "hooks.json").read_text(encoding="utf-8"))
