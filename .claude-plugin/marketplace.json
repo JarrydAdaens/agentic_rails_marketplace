@@ -42,6 +42,13 @@
       "keywords": ["critic", "guardrail", "hooks", "actor-critic", "codex", "cross-vendor"]
     },
     {
+      "name": "cursor-as-critic-guardrail",
+      "source": "./plugins/cursor-as-critic-guardrail",
+      "description": "Cross-vendor actor-critic guardrail for Claude Code: executor sessions must consult an antagonistic, read-only critic through the local Cursor Agent CLI before their first write. The critic model is selectable and remembered per project. Claude Code only.",
+      "category": "guardrail",
+      "keywords": ["critic", "guardrail", "hooks", "actor-critic", "cursor", "cross-vendor", "model-selection"]
+    },
+    {
       "name": "python-uv-guardrail",
       "source": "./plugins/python-uv-guardrail",
       "description": "Deterministic PreToolUse guardrail: any Bash command that invokes python/pip directly instead of through uv is denied with a retry instruction, keeping Python work inside isolated, uv-managed environments. Pure pattern match. Claude Code only.",
