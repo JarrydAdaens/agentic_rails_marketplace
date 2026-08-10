@@ -81,7 +81,10 @@ class AdvisorServerTests(unittest.TestCase):
 
     def test_missing_project_config_uses_builtin_default(self):
         with tempfile.TemporaryDirectory() as root:
-            self.assertEqual(server.read_project_default(root), ("composer-2.5", False))
+            self.assertEqual(
+                server.read_project_default(root),
+                (server.BUILTIN_DEFAULT_MODEL, False),
+            )
             self.assertFalse(server.config_path(root).exists())
 
     def test_project_default_is_written_in_plugin_harness_seam(self):

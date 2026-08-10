@@ -37,7 +37,10 @@ supply these five fields:
 The optional sixth field, `model`, selects an exact Cursor model ID. A
 successful call remembers that model in this project's
 `harness/cursor-as-advisor-guardrail/config.json`. Omit it to reuse the saved
-project default; a project with no saved default starts with `composer-2.5`.
+project default; a project with no saved default starts with
+`cursor-grok-4.5-high` (Cursor Grok 4.5, high reasoning, standard speed).
+Exact IDs come from `agent models`; the plugin's
+`docs/cursor-model-ids.md` maps informal names to them.
 
 A thin payload produces poor advice. Include concrete paths, errors, test
 results, and constraints rather than asking the advisor to guess.

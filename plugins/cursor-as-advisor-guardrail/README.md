@@ -19,7 +19,7 @@ from the Codex marketplace catalog.
 | Piece | Mechanism |
 | --- | --- |
 | Advisor | `consult_advisor(task, stage, approach, evidence, question, model?)` MCP tool, Cursor Agent ask mode, constructive persona |
-| Model default | Built-in first-run default `composer-2.5`; successful calls remember the chosen model at project level |
+| Model default | Built-in first-run default `cursor-grok-4.5-high`; successful calls remember the chosen model at project level |
 | Write gate | `PreToolUse` on `Write`, `Edit`, `MultiEdit`, `NotebookEdit` — denied until one consult has occurred this session |
 | Consult marker | `PostToolUse` on `consult_advisor` — a completed consult unlocks writes for the session |
 | Protocol | `SessionStart` injects the consult protocol into context; stale markers are cleaned |
@@ -49,12 +49,13 @@ harness/cursor-as-advisor-guardrail/config.json
 
 ```json
 {
-  "default_model": "composer-2.5"
+  "default_model": "cursor-grok-4.5-high"
 }
 ```
 
 Calls that omit `model` reuse this file. If the file does not exist, the plugin
-uses `composer-2.5` and creates the file after the first successful consult.
+uses `cursor-grok-4.5-high` and creates the file after the first successful
+consult.
 Changing one project's default never changes another project. A failed model
 selection is not persisted. The file may also be edited directly; use an exact
 model ID reported by `agent models`.
@@ -62,6 +63,12 @@ model ID reported by `agent models`.
 Available IDs are account- and version-dependent. The independent value comes
 from the Cursor execution stack and selected model, so choose a model that
 meaningfully complements the Claude Opus executor.
+
+`docs/setting-the-advisor-model.md` is the deep reference for choosing and
+verifying a model, including the reasoning-effort and Fast variants and the
+traps around inexact IDs. `docs/cursor-model-ids.md` is the companion catalog
+that maps informal names ("the latest Grok") to exact IDs. Both are written to
+be handed to an agent as standalone documents.
 
 ## Consult timeout
 
@@ -105,4 +112,4 @@ independent consultations are intentional. Installing this beside
 - A consultation blocks the MCP server until it completes; the server handles
   one consult at a time.
 - The project config is written only after a successful consultation. Until
-  then, a missing config seam silently falls back to `composer-2.5`.
+  then, a missing config seam silently falls back to `cursor-grok-4.5-high`.
