@@ -6,6 +6,12 @@ gated until that consult happens. The advisor is a bundled stdio MCP tool,
 `consult_advisor`, backed by `gpt-5.6-sol` at high reasoning through the user's
 existing Codex login.
 
+The advisor is tenacious by design. A blocker is treated as a routing decision
+rather than an ending condition: every concern arrives with a forward path, a
+repeated approach gets called out, and recommending that the executor stop
+requires a concrete justification — stop reason, evidence, the case for
+continuing, alternatives tried and untried, and why no other work can proceed.
+
 > **Claude Code users:** this plugin is Codex only. The Claude equivalent — an
 > Opus advisor subagent — ships as a separate plugin, `advisor-guardrail`, so
 > neither tool ever loads the other's payload.

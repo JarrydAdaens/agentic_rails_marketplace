@@ -21,6 +21,21 @@ consult has occurred. The deny message tells you what to do; this is expected
 behavior, not an error. Shell commands are not gated — do not use them to bypass
 the consult requirement.
 
+### Tenacity contract
+
+The critic attacks the work to improve it, not to halt it. A blocker is a routing
+decision, not an ending condition.
+
+- Every material objection you get back carries a recommended correction and a
+  statement of whether work can continue meanwhile. An objection without one is
+  incomplete — ask for the correction.
+- Hypothetical risks come back labeled as hypotheses with the test that would
+  confirm them. Run the test rather than treating the hypothesis as a verdict.
+- If you propose stopping, escalating, or waiting for a human, the critic will
+  attack that proposal as hard as it attacks your code — whether the blocker is
+  global or local, what can be isolated, what can proceed, what is reversible.
+  Bring the evidence for it.
+
 ### Consult payload contract
 
 The critic does not see your transcript. Every `consult_critic` call MUST

@@ -5,6 +5,12 @@ an antagonistic, read-only critic at decision points, and the session's first
 write is gated until that consult happens. The critic runs through the user's
 authenticated Cursor Agent CLI (`agent`) in read-only ask mode.
 
+The critic attacks the work to improve it, not to halt it. Every material
+objection carries a recommended correction and a statement of whether work can
+continue meanwhile; hypotheses are labeled and paired with the test that would
+confirm them; and a proposal to stop is attacked as hard as the code, requiring
+the strongest case for continuing, why it fails, and why stopping is justified.
+
 This is a Claude Code-only plugin: its purpose is reaching from Claude Code out
 to Cursor. It intentionally has no `.codex-plugin/` manifest.
 

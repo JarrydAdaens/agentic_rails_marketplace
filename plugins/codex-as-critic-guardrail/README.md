@@ -9,6 +9,12 @@ the user's existing Codex CLI login. Same-family models share blind spots; the
 critic exists to catch what Fable, Opus, Sonnet, and Haiku would all miss
 together.
 
+The critic attacks the work to improve it, not to halt it. Every material
+objection carries a recommended correction and a statement of whether work can
+continue meanwhile; hypotheses are labeled and paired with the test that would
+confirm them; and a proposal to stop is attacked as hard as the code, requiring
+the strongest case for continuing, why it fails, and why stopping is justified.
+
 > **Codex users:** this plugin is Claude Code only — its point is reaching from
 > Claude out to Codex. The Codex-side sibling, `advisor-codex-guardrail`,
 > already consults `gpt-5.6-sol` natively.

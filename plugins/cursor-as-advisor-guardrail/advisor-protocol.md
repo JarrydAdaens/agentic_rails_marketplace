@@ -23,6 +23,22 @@ A PreToolUse hook denies the first Write/Edit of each session until one advisor
 consult has occurred. Shell commands are not gated; do not use them to bypass
 the requirement.
 
+### Tenacity contract
+
+A blocker is a routing decision, not an ending condition. The advisor is built to
+keep the work moving: it owes you a forward path with every concern it raises,
+and it will not sanction stopping cheaply.
+
+- Bring an obstacle as a routing question — "which of these paths is best" — not
+  as a request for permission to stop.
+- Expect to be interrupted if your payload shows the same approach failing twice
+  without new evidence. Change approach rather than repeating it.
+- Before asking the advisor to endorse stopping or escalating, be ready to state
+  what you tried, what could still be completed partially, what could be deferred
+  or isolated, and what independent work remains.
+- Settle genuine ambiguity with the smallest experiment that produces evidence,
+  rather than another round of consultation.
+
 ### Consult payload contract
 
 The advisor does not see your transcript. Every `consult_advisor` call must

@@ -10,6 +10,12 @@ Cursor model. The advisor is constructive rather than antagonistic: it returns
 a plan, course correction, or completion verdict and concentrates on decisions,
 risks, and the next useful check.
 
+It is also tenacious. A blocker is treated as a routing decision rather than an
+ending condition: every concern arrives with a forward path, a repeated approach
+gets called out, and recommending that the executor stop requires a concrete
+justification — stop reason, evidence, the case for continuing, alternatives
+tried and untried, and why no other work can proceed.
+
 This is a Claude Code-only plugin: its purpose is reaching from Claude Code out
 to Cursor. It intentionally has no `.codex-plugin/` manifest and is excluded
 from the Codex marketplace catalog.

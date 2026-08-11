@@ -4,6 +4,12 @@ Actor-critic guardrail for Claude Code. An executor must consult a stronger,
 read-only advisor subagent at decision points, and the session's first write is
 gated until that consult happens. The advisor runs on Opus.
 
+The advisor is tenacious by design. A blocker is treated as a routing decision
+rather than an ending condition: every concern arrives with a forward path, a
+repeated approach gets called out, and recommending that the executor stop
+requires a concrete justification — stop reason, evidence, the case for
+continuing, alternatives tried and untried, and why no other work can proceed.
+
 > **Codex users:** this plugin is Claude Code only. The Codex equivalent — a
 > `consult_advisor` MCP tool backed by `gpt-5.6-sol` — ships as a separate
 > plugin, `advisor-codex-guardrail`, so neither tool ever loads the other's
