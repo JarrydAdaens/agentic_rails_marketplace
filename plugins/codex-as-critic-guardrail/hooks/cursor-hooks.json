@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [{ "matcher": "Write", "command": "python ./hooks/critic_gate.py", "failClosed": true }],
+    "postToolUse": [{ "matcher": "MCP:.*consult_critic", "command": "python ./hooks/critic_marker.py" }],
+    "sessionStart": [
+      { "command": "python ./hooks/critic_cleanup.py" },
+      { "command": "python ./hooks/critic_context.py" }
+    ]
+  }
+}

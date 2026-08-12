@@ -38,7 +38,7 @@ Two design commitments follow from that purpose and explain most of the code:
 | --- | --- |
 | Plugin name | `codex-as-critic-guardrail` (formerly `critic-guardrail`) |
 | Marketplace | `agentic-rails`, category `guardrail` |
-| Host tool | Claude Code only (no `.codex-plugin/` manifest) |
+| Host tool | Claude Code and Cursor (no `.codex-plugin/` manifest) |
 | MCP tool exposed | `consult_critic` |
 | Critic model | `gpt-5.6-sol`, reasoning effort `high` |
 | Transport | stdio JSON-RPC 2.0, UTF-8 |
@@ -605,6 +605,6 @@ ones in place so cleanup keeps sweeping them.
 installed copy. Changes to hooks and `.mcp.json` need `/reload-plugins` or a
 restart to take effect.
 
-**Sibling plugin:** `advisor-codex-guardrail` still carries both encoding
+**Historical sibling plugin:** `advisor-codex-guardrail` carried both encoding
 defects fixed here, including the visible protocol corruption. Port the fixes
 and their mutation-verified tests when next touching it.

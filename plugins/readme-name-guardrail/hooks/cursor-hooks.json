@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {
+        "matcher": "Write",
+        "command": "powershell -NoProfile -ExecutionPolicy Bypass -File ./hooks/block-readme-write.ps1"
+      },
+      {
+        "matcher": "Shell",
+        "command": "powershell -NoProfile -ExecutionPolicy Bypass -File ./hooks/block-readme-git.ps1"
+      }
+    ]
+  }
+}

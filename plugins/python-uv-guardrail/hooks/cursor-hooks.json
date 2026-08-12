@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {
+        "matcher": "Shell",
+        "command": "powershell -NoProfile -ExecutionPolicy Bypass -File ./hooks/enforce-uv-python.ps1"
+      }
+    ]
+  }
+}

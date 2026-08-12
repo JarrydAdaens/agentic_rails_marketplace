@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "codex-as-critic-guardrail": {
+      "command": "python",
+      "args": ["./mcp/critic_server.py"]
+    }
+  }
+}

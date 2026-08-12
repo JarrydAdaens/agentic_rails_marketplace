@@ -2,11 +2,20 @@
 name: marketplace-setup-review
 description: Answers to the seven verification questions in the design doc (section 7), recorded during initial repository setup against current vendor documentation.
 metadata:
-  version: "1.0"
+  version: "1.1"
   date: "2026-07-10"
 ---
 
 # Setup Review — Design §7 Verification Answers
+
+> **2026-08-12 update:** Cursor is now the third supported marketplace host,
+> using `.cursor-plugin/marketplace.json`, per-plugin Cursor manifests, native
+> camel-case hook schemas, plugin-relative commands, and `mcp.json`. The
+> installed Cursor CLI registers Git marketplaces with
+> `agent plugin marketplace add <git-url>`. The advisor pair was consolidated
+> into one portable `advisor-guardrail`; the WPF and game verifiers moved to
+> `jarryds-agent-marketplace`. The original setup notes below remain useful as
+> Claude/Codex history but no longer describe the complete repository.
 
 Verified against the Claude Code docs (code.claude.com/docs, plugins reference
 and plugin-marketplaces pages) and the Codex plugin docs

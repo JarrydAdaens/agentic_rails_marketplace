@@ -1,8 +1,8 @@
 ---
 name: agentic-rails-marketplace-design
-description: Design and purpose document for the agentic_rails_marketplace repository — the source of truth and native plugin marketplace for installable, lifecycle-managed agentic artefacts (evaluations, guardrails, hooks) served to Claude Code and Codex.
+description: Design and purpose document for the agentic_rails_marketplace repository — the source of truth and native plugin marketplace for installable lifecycle guardrails served to Claude Code, Codex, and Cursor.
 metadata:
-  version: "0.1"
+  version: "0.2"
   status: "Draft for review"
   owner: "Jarryd Adaens"
   repo: "agentic_rails_marketplace"
@@ -24,7 +24,7 @@ because the boundaries are the point.
 ## 1. What This Repository Is
 
 `agentic_rails_marketplace` is a **native plugin marketplace**. It is a git
-repository that both Claude Code and Codex can register as a marketplace, and
+repository that Claude Code, Codex, and Cursor can register as a marketplace, and
 from which each tool can natively install, update, enable, disable, and remove
 individual plugins.
 
@@ -112,7 +112,7 @@ Agentic Rails system
 ├── memories               ─┘
 │
 └── agentic_rails_marketplace ── lifecycle artefacts · PULL · native marketplaces
-                                  (Claude Code + Codex install/remove natively)
+                                  (Claude Code + Codex + Cursor install/remove natively)
 ```
 
 - The first three repositories keep their existing discipline and Kung Fu keeps
@@ -137,14 +137,13 @@ Cross-references for the reviewing agent to pull in during setup:
 
 ---
 
-## 4. Repository Layout (dual-layout, one repo serves both tools)
+## 4. Repository Layout (three host layouts, one marketplace)
 
-Claude Code and Codex are structurally similar but **not** interchangeable:
-different manifest files, different install paths, different CLIs. A single repo
-can serve both, but only by carrying **both manifest layouts side by side**.
-This is an established pattern, not an invention — each plugin ships both a
-Claude manifest folder and a Codex manifest folder, and each tool fetches
-natively using its own mechanism.
+Claude Code, Codex, and Cursor are structurally similar but **not**
+interchangeable: they use different manifests, hook event names, response
+schemas, install paths, and CLIs. A single repository serves all three by
+carrying their manifest layouts side by side and selecting host adapters inside
+one stable plugin.
 
 The shared artefact logic (the actual eval/guardrail scripts) should be authored
 **once**; only the thin per-tool registration manifests are duplicated.
@@ -166,24 +165,17 @@ agentic_rails_marketplace/
 │
 └── plugins/
     └── <plugin-name>/                # one folder per independently installable plugin
-        ├── shared/                   # authored ONCE — the real payload
-        │   ├── hooks/                #   hook scripts (e.g. Python, stdlib only)
-        │   ├── agents/               #   agent/sub-agent definitions
-        │   └── ...                   #   eval logic, protocol text, assets
-        │
+        ├── hooks/ · mcp/ · agents/   # shared payload plus host adapters
         ├── .claude-plugin/
-        │   └── plugin.json           # Claude registration → points at ../shared/...
-        │
-        └── .codex-plugin/
-            └── plugin.json           # Codex registration → points at ../shared/...
+        ├── .codex-plugin/
+        └── .cursor-plugin/           # thin host registrations
 ```
 
 Key points:
 
-- **`plugins/<plugin-name>/shared/`** holds the payload once. The two
-  `plugin.json` manifests are thin wrappers that register the same shared files
-  into each tool's hook system. Logic is not duplicated; only registration is.
-- The two top-level `marketplace.json` files are the catalogues each tool reads
+- Default component folders hold shared logic once. Host-specific hook manifests
+  and MCP launch arguments adapt that logic without splitting the capability.
+- The three top-level `marketplace.json` files are the catalogs each tool reads
   to discover what plugins exist.
 - Everything is **plain files and folders** — diffable, reviewable, copyable.
   Do **not** store payloads as zip archives; zips defeat diffing, review, and

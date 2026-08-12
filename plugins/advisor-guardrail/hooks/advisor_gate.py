@@ -27,9 +27,9 @@ from advisor_markers import has_marker
 
 DENY_REASON = (
     "Advisor gate: consult the advisor before the first write of this session. "
-    "Invoke advisor-guardrail:advisor with Task/Agent, using the consult payload "
-    "format from the Advisor Protocol in your context (TASK / STAGE / "
-    "PLAN-APPROACH / EVIDENCE / QUESTION), then retry this edit."
+    "In Claude Code, invoke advisor-guardrail:advisor with Task/Agent. In Codex "
+    "or Cursor, call consult_advisor. Supply the task, stage, approach, evidence, "
+    "and question fields from the Advisor Protocol, then retry this edit."
 )
 
 
@@ -39,17 +39,24 @@ def main() -> None:
     except json.JSONDecodeError:
         sys.exit(0)  # malformed input: fail open rather than block all writes
 
-    session_id = payload.get("session_id", "unknown")
+    session_id = payload.get("session_id") or payload.get("conversation_id") or "unknown"
     if has_marker(session_id):
         sys.exit(0)
 
-    print(json.dumps({
-        "hookSpecificOutput": {
-            "hookEventName": "PreToolUse",
-            "permissionDecision": "deny",
-            "permissionDecisionReason": DENY_REASON,
-        }
-    }))
+    if payload.get("hook_event_name") == "preToolUse":
+        print(json.dumps({
+            "permission": "deny",
+            "user_message": DENY_REASON,
+            "agent_message": DENY_REASON,
+        }))
+    else:
+        print(json.dumps({
+            "hookSpecificOutput": {
+                "hookEventName": "PreToolUse",
+                "permissionDecision": "deny",
+                "permissionDecisionReason": DENY_REASON,
+            }
+        }))
 
 
 if __name__ == "__main__":

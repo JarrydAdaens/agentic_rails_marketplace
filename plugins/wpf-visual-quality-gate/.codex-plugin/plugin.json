@@ -1,8 +1,0 @@
-{
-  "name": "wpf-visual-quality-gate",
-  "version": "1.1.0",
-  "description": "Evaluator-run visual quality gate for WPF desktop apps: independent launch, real-input interaction, and screenshot verification against explicit pass criteria before visible UI work may be declared done.",
-  "author": {
-    "name": "Jarryd Adaens"
-  }
-}

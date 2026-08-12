@@ -1,124 +1,62 @@
 # agentic_rails_marketplace
 
-The native plugin marketplace of the Agentic Rails framework. This repository
-holds the agentic artifacts that have a **lifecycle** — verifiers and
-guardrails, with the hooks that wire them into a tool — and distributes them
-through each tool's own marketplace mechanism rather than by file copy. The
-full rationale, boundaries, and vocabulary live in
-[`context/design.md`](context/design.md); this file covers day-to-day use.
+The native lifecycle-guardrail marketplace for Agentic Rails. It is directly
+registerable by Claude Code, Codex, and Cursor; Kung Fu does not copy or deploy
+anything from this repository.
 
-> **Boundary rule:** Kung Fu never deploys, copies, or otherwise manages this
-> repository. Everything here is installed and removed through the native
-> marketplaces of Claude Code and Codex, full stop.
-
-## Registering the marketplace
-
-Once per machine, per tool:
+## Registering
 
 ```shell
-# Claude Code (interactive session or CLI)
+# Claude Code or Codex interactive command
 /plugin marketplace add <git-url-or-local-path-to-this-repo>
 
-# Codex
-/plugin marketplace add <git-url-or-local-path-to-this-repo>
+# Cursor CLI (Git URL)
+agent plugin marketplace add <git-url-to-this-repo>
 ```
 
-Both tools accept a local clone path (e.g. `D:\Code Projects\agentic_rails\agentic_rails_marketplace`),
-which is the recommended form while the repo is private — it sidesteps
-credential handling entirely, is instant to update (`/plugin marketplace update agentic-rails`
-after a pull), and stays diffable. Git URLs also work; Claude Code uses your
-existing git credential helpers for manual installs and needs a `GITHUB_TOKEN`
-in the environment only for background auto-updates of private marketplaces.
-
-Then install per plugin, per machine, as the work requires:
-
-```shell
-/plugin install game-golden-screenshot-verifier@agentic-rails
-/plugin install wpf-visual-quality-gate@agentic-rails
-/plugin install advisor-guardrail@agentic-rails
-/plugin install jobs-done-guardrail@agentic-rails
-```
-
-Update, enable, disable, and remove through the same `/plugin` surface. On
-install, each tool asks you to review and trust any hooks a plugin registers —
-that prompt is the expected, deliberate trust gate for guardrail plugins.
+Cursor installs registered plugins through **Customize → Marketplace**. During
+local development, load one plugin with `agent --plugin-dir <plugin-path>`.
 
 ## Plugins
 
-| Plugin | Kind | Tools | What it does |
-| --- | --- | --- | --- |
-| `game-golden-screenshot-verifier` | verifier | Claude Code, Codex | Launches a game, drives a deterministic scene, compares an OS-level screenshot against a versioned golden. Exit 0/1. |
-| `wpf-visual-quality-gate` | verifier | Claude Code, Codex | Independent evaluator launches a WPF app, performs the changed interaction with real input, screenshot-verifies against packet criteria. |
-| `advisor-guardrail` | guardrail | Claude Code only | Ships an `advisor` subagent plus hooks that deny the session's first write until the advisor has been consulted. |
-| `advisor-codex-guardrail` | guardrail | Codex only | Ships a `consult_advisor` MCP tool (GPT-5.6-Sol) plus hooks that deny the session's first `apply_patch` until the advisor has been consulted. |
-| `jobs-done-guardrail` | guardrail | Claude Code only | Stop hook that requires the project's build and unit tests to pass before an agent with relevant code changes may hand back to the human. |
+| Plugin | Hosts | Purpose |
+| --- | --- | --- |
+| `advisor-guardrail` | Claude Code, Codex, Cursor | Requires a read-only advisor consult before the first session write. Uses Opus High, GPT-5.6 Sol High, or Cursor Grok 4.5 High according to the host. |
+| `jobs-done-guardrail` | Claude Code, Cursor | Runs configured build and test gates at completion and requests bounded repairs on failure. |
+| `codex-as-critic-guardrail` | Claude Code, Cursor | Requires an antagonistic GPT-5.6 Sol High review before writing. |
+| `cursor-as-critic-guardrail` | Claude Code, Cursor | Requires an antagonistic Cursor Grok 4.5 High review before writing. |
+| `cursor-as-advisor-guardrail` | Claude Code, Cursor | Configurable advisor backed by Cursor Agent CLI. |
+| `python-uv-guardrail` | Claude Code, Cursor | Blocks direct Python/pip commands in favor of uv. |
+| `readme-name-guardrail` | Claude Code, Cursor | Reserves README.md for the project root. |
 
-`advisor-guardrail` (Claude Code) and `advisor-codex-guardrail` (Codex) are the
-same guard rail split per tool — one plugin each so neither tool ever loads the
-other's payload, and each appears only in its own tool's catalog.
-`jobs-done-guardrail` is Claude-only and absent from the Codex catalog: it
-awaits verification of Codex's plugin-root variable for hook commands.
+Technology-specific WPF and game screenshot checks live in
+`jarryds-agent-marketplace`, which is deliberately opinionated about stacks.
 
-## Repository layout
+## Layout
 
 ```text
 .claude-plugin/marketplace.json    # Claude Code catalog
 .agents/plugins/marketplace.json   # Codex catalog
-plugins/<plugin-name>/             # one folder per independently installable plugin
-├── .claude-plugin/plugin.json     # Claude registration
-├── .codex-plugin/plugin.json      # Codex registration (omitted for Claude-only plugins)
-├── skills/ · agents/ · hooks/     # the payload, authored once
+.cursor-plugin/marketplace.json    # Cursor catalog
+plugins/<plugin-name>/
+├── .claude-plugin/plugin.json
+├── .codex-plugin/plugin.json      # when Codex-compatible
+├── .cursor-plugin/plugin.json     # when Cursor-compatible
+├── hooks/ · mcp/ · agents/ · skills/
 └── README.md
-context/                           # design doc and setup review for this repo
 ```
 
-**Project seams live in `harness/`.** A plugin ships the stable engine; the
-consuming project owns one folder per adopted plugin —
-`harness/<plugin-name>/` — holding everything project-specific (config,
-goldens, drivers, defaults) plus git-ignored runtime output (`runs/`,
-`last-run/`, `state/`). The same folder convention holds a project's local,
-not-yet-promoted checks, so a check keeps its home as it graduates from
-project experiment to installed plugin. The layer is defined in the
-`agentic_rails_context_starter` repo's `harness/` template; each plugin's
-README states exactly what its seam folder must contain.
+Host manifests may select different hook files or MCP launch arguments, but a
+portable capability keeps one stable plugin name and one shared protocol.
 
-One deliberate adjustment from the design doc's proposed shape (validated
-against both vendors' docs, July 2026): there is no `shared/` payload folder.
-Both tools natively discover `skills/` and `hooks/hooks.json` at the plugin
-root, so those default component directories **are** the shared payload — a
-`shared/` indirection would add pointer manifests without removing any
-duplication. Details in [`context/setup-review.md`](context/setup-review.md).
+## Publishing
 
-## Naming convention
-
-`<domain>-<subject>-<kind>`, all kebab-case, where **domain** is the surface
-the plugin applies to (`game-`, `wpf-`…) so related plugins cluster in the
-plugin browsers, and **kind** is the artifact type: `-verifier` for pass/fail
-acceptance checks, `-gate` for evaluator-run gates, `-guardrail` for
-hook-enforced behavioral rails. Domain-neutral plugins that apply to every
-session omit the domain prefix (`advisor-guardrail`) — never invent one, and
-never prefix with `rails-`: the marketplace already namespaces every install
-(`<plugin>@agentic-rails`). A plugin's `name` is its stable identifier —
-renaming later requires a `renames` migration entry in the Claude catalog, so
-choose carefully.
-
-## Publishing a new plugin
-
-1. Author the payload under `plugins/<name>/` using the default component
-   directories (`skills/`, `agents/`, `hooks/hooks.json`). Hook commands must
-   reference their scripts via `${CLAUDE_PLUGIN_ROOT}` — installed plugins run
-   from a cache, never from this repo, and cannot reference files outside
-   their own plugin folder.
-2. Add `.claude-plugin/plugin.json` (name only; **omit `version`** — plugins
-   here are versioned by commit SHA, so every push is an update) and, for
-   Codex-compatible plugins, `.codex-plugin/plugin.json` (name, version, and
-   description are required there).
-3. Register the plugin in `.claude-plugin/marketplace.json` and, if
-   Codex-compatible, `.agents/plugins/marketplace.json`.
-4. Validate with `claude plugin validate .`, then commit and push. The commit
-   history is the version record.
-
-## License
+1. Keep every plugin self-contained; installed copies cannot reach outside the
+   plugin folder.
+2. Add the compatible per-host manifests and catalog entries.
+3. Use `${CLAUDE_PLUGIN_ROOT}`/`${PLUGIN_ROOT}` in Claude/Codex hook launchers;
+   Cursor hook and MCP paths are plugin-relative.
+4. Validate with `claude plugin validate .`, test host adapters, and confirm
+   every catalog source resolves before committing.
 
 This repository is licensed under the [Apache License 2.0](LICENSE).
-See [NOTICE](NOTICE) for attribution details.

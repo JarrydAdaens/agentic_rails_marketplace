@@ -107,12 +107,21 @@ function Get-SuggestedName($AbsPath) {
     return "$slug-readme.md"
 }
 
-function Deny-PreToolUse($Reason) {
-    $output = [pscustomobject]@{
-        hookSpecificOutput = [pscustomobject]@{
-            hookEventName            = "PreToolUse"
-            permissionDecision       = "deny"
-            permissionDecisionReason = $Reason
+function Deny-PreToolUse($Reason, $Hook) {
+    if ($Hook.hook_event_name -ceq "preToolUse") {
+        $output = [pscustomobject]@{
+            permission    = "deny"
+            user_message  = $Reason
+            agent_message = $Reason
+        }
+    }
+    else {
+        $output = [pscustomobject]@{
+            hookSpecificOutput = [pscustomobject]@{
+                hookEventName            = "PreToolUse"
+                permissionDecision       = "deny"
+                permissionDecisionReason = $Reason
+            }
         }
     }
     Write-Output ($output | ConvertTo-Json -Depth 4 -Compress)

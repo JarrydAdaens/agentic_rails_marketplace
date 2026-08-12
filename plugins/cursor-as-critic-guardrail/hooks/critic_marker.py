@@ -37,7 +37,7 @@ def main() -> None:
     if not (tool_name == "consult_critic" or tool_name.endswith("consult_critic")):
         sys.exit(0)
 
-    session_id = payload.get("session_id", "unknown")
+    session_id = payload.get("session_id") or payload.get("conversation_id", "unknown")
     marker_dir().mkdir(parents=True, exist_ok=True)
     marker_path(session_id).touch()
 

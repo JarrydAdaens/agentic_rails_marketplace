@@ -1,6 +1,6 @@
 # codex-as-critic-guardrail
 
-Cross-vendor actor-critic guardrail for Claude Code. The executor must consult
+Cross-vendor actor-critic guardrail for Claude Code and Cursor. The executor must consult
 an antagonistic, read-only critic at decision points, and the session's first
 write is gated until that consult happens. Unlike `advisor-guardrail`, the
 second opinion comes from *outside* the Claude model family: a bundled stdio
@@ -15,9 +15,8 @@ continue meanwhile; hypotheses are labeled and paired with the test that would
 confirm them; and a proposal to stop is attacked as hard as the code, requiring
 the strongest case for continuing, why it fails, and why stopping is justified.
 
-> **Codex users:** this plugin is Claude Code only — its point is reaching from
-> Claude out to Codex. The Codex-side sibling, `advisor-codex-guardrail`,
-> already consults `gpt-5.6-sol` natively.
+Codex users who want a constructive checkpoint use the unified
+`advisor-guardrail`, which consults `gpt-5.6-sol` natively.
 
 > Formerly published as `critic-guardrail`. Existing installs migrate
 > automatically through the marketplace `renames` map.

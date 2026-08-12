@@ -1,46 +1,42 @@
 # advisor-guardrail
 
-Actor-critic guardrail for Claude Code. An executor must consult a stronger,
-read-only advisor subagent at decision points, and the session's first write is
-gated until that consult happens. The advisor runs on Opus.
+A single portable advisor gate for Claude Code, Codex, and Cursor. Each host
+must complete one structured consultation before its first write in a session.
 
-The advisor is tenacious by design. A blocker is treated as a routing decision
-rather than an ending condition: every concern arrives with a forward path, a
-repeated approach gets called out, and recommending that the executor stop
-requires a concrete justification — stop reason, evidence, the case for
-continuing, alternatives tried and untried, and why no other work can proceed.
+| Host | Advisor | Invocation |
+| --- | --- | --- |
+| Claude Code | Opus, high effort | `advisor-guardrail:advisor` subagent |
+| Codex | GPT-5.6 Sol, high reasoning | `consult_advisor` MCP tool |
+| Cursor | Cursor Grok 4.5 High | `consult_advisor` MCP tool |
 
-> **Codex users:** this plugin is Claude Code only. The Codex equivalent — a
-> `consult_advisor` MCP tool backed by `gpt-5.6-sol` — ships as a separate
-> plugin, `advisor-codex-guardrail`, so neither tool ever loads the other's
-> payload.
+Claude Code uses the bundled read-only subagent. Codex and Cursor use the same
+bundled stdio MCP server with a host argument, so model selection is fixed by
+the plugin rather than left to the executor. The MCP advisors run their CLI in
+read-only/ask mode and return advice; they do not edit files.
 
-## How it works
+The hooks inject `advisor-protocol.md`, deny the first write until a consult,
+and mark the session after the matching subagent or MCP tool completes. Cursor
+uses its native camel-case hook events and response schema; Claude Code and
+Codex use the compatible `PreToolUse` schema.
 
-| Piece | Mechanism |
-| --- | --- |
-| Advisor | Task/Agent subagent `advisor-guardrail:advisor`, model Opus, read-only (`Read`, `Grep`, `Glob`) |
-| Write gate | `PreToolUse` on `Write`, `Edit`, `MultiEdit`, `NotebookEdit` — denied until one consult has occurred this session |
-| Consult marker | `PostToolUse` on `Task`/`Agent` — an advisor consult unlocks writes for the session |
-| Protocol | `SessionStart` injects the consult protocol into context; stale markers are cleaned |
+Markers live under `<temp>/advisor-guardrail-markers/`. Markers from the two
+pre-consolidation plugins are recognized during migration and cleared at
+session start.
 
-On install, review and trust the hooks. This trust prompt is expected: the
-plugin executes bundled Python at tool-use and session-start time. Only the
-standard library is used; no network access and no API key.
+## Requirements
 
-The first completed consultation creates a neutral marker under
-`<temp>/advisor-guardrail-markers/` and unlocks writes for that session. Legacy
-`<temp>/claude-advisor-markers/` markers are recognized during migration. A
-fresh session remains locked.
+- Claude Code: a version supporting plugin agents, hooks, `model: opus`, and
+  `effort: high`.
+- Codex: the `codex` CLI installed and authenticated with access to
+  `gpt-5.6-sol`.
+- Cursor: the `agent` CLI installed and authenticated with access to
+  `cursor-grok-4.5-high`.
+- Python 3 on `PATH` for hook and MCP scripts.
 
 ## Known limitations
 
-- Shell commands are advisory-only. Reliably parsing shell writes is too
-  fragile, so Bash and shell-command surfaces are intentionally ungated.
-- Gating is per session, not per task; a long multi-task session forces only
-  its first consultation.
-- The advisor sees the structured payload and the readable workspace, not the
-  executor transcript. Thin evidence produces poor advice.
-- The advisor runs on Opus. The capability lift is greatest with a Sonnet
-  executor; an Opus executor gets a same-tier second opinion rather than a
-  stronger one.
+- Shell writes are advisory-only; reliably classifying arbitrary shell
+  commands is outside this gate.
+- Gating is per session, not per task.
+- MCP advisors receive the structured payload and readable workspace, not the
+  executor's entire transcript.

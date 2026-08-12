@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {
+        "matcher": "Write",
+        "command": "python ./hooks/advisor_gate.py",
+        "failClosed": true
+      }
+    ],
+    "postToolUse": [
+      {
+        "matcher": "MCP:.*consult_advisor",
+        "command": "python ./hooks/advisor_marker.py"
+      }
+    ],
+    "sessionStart": [
+      {
+        "command": "python ./hooks/advisor_cleanup.py"
+      },
+      {
+        "command": "python ./hooks/advisor_context.py"
+      }
+    ]
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "cursor-as-advisor-guardrail": {
+      "command": "python",
+      "args": ["./mcp/advisor_server.py"]
+    }
+  }
+}

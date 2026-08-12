@@ -1,0 +1,8 @@
+{
+  "name": "cursor-as-advisor-guardrail",
+  "description": "Requires an executor to consult a helpful Cursor advisor before its first write, with project-level model selection.",
+  "author": { "name": "Jarryd Adaens" },
+  "hooks": "./hooks/cursor-hooks.json",
+  "mcpServers": "./mcp.json",
+  "keywords": ["guardrail", "advisor", "cursor"]
+}

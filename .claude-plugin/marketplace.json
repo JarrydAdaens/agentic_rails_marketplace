@@ -7,65 +7,51 @@
   "description": "Agentic Rails marketplace: installable, lifecycle-managed verifiers and guardrails for agentic coding tools.",
   "plugins": [
     {
-      "name": "game-golden-screenshot-verifier",
-      "source": "./plugins/game-golden-screenshot-verifier",
-      "description": "Runtime smoke verifier for games: launches the game, drives it into a deterministic state, captures a screenshot, and compares it against a versioned golden. Exit 0 pass / 1 fail.",
-      "category": "verifier",
-      "keywords": ["game", "screenshot", "golden", "smoke-test", "verifier"]
-    },
-    {
-      "name": "wpf-visual-quality-gate",
-      "source": "./plugins/wpf-visual-quality-gate",
-      "description": "Evaluator-run visual quality gate for WPF desktop apps: an independent evaluator launches the app, drives the changed interaction with real input, and screenshot-verifies the result against explicit pass criteria.",
-      "category": "verifier",
-      "keywords": ["wpf", "ui", "screenshot", "quality-gate", "verifier"]
-    },
-    {
       "name": "jobs-done-guardrail",
       "source": "./plugins/jobs-done-guardrail",
-      "description": "Deterministic Stop-hook guardrail: an agent finishing a turn with relevant code changes must pass the project's build and unit tests before handing back to the human. Fingerprint-skips already-validated states. Claude Code only.",
+      "description": "Deterministic completion guardrail: an agent finishing a turn with relevant code changes must pass the project's build and unit tests before handing back to the human. Fingerprint-skips already-validated states. Supports Claude Code and Cursor.",
       "category": "guardrail",
       "keywords": ["build", "test", "stop-hook", "guardrail", "jobs-done"]
     },
     {
       "name": "advisor-guardrail",
       "source": "./plugins/advisor-guardrail",
-      "description": "Actor-critic guardrail for Claude Code: executor sessions must consult a stronger read-only advisor subagent before their first write, enforced deterministically by a PreToolUse hook. Claude Code only.",
+      "description": "Portable advisor guardrail for Claude Code, Codex, and Cursor. It requires consultation before the first write and selects Opus High, GPT-5.6 Sol High, or Cursor Grok 4.5 High for the host IDE.",
       "category": "guardrail",
       "keywords": ["advisor", "guardrail", "hooks", "actor-critic", "consult"]
     },
     {
       "name": "codex-as-critic-guardrail",
       "source": "./plugins/codex-as-critic-guardrail",
-      "description": "Cross-vendor actor-critic guardrail for Claude Code: executor sessions must consult an antagonistic, read-only GPT-5.6-Sol critic (via the local Codex CLI) before their first write, enforced deterministically by a PreToolUse hook. Claude Code only.",
+      "description": "Cross-vendor actor-critic guardrail for Claude Code and Cursor: executor sessions must consult an antagonistic, read-only GPT-5.6 Sol critic via the local Codex CLI before their first write.",
       "category": "guardrail",
       "keywords": ["critic", "guardrail", "hooks", "actor-critic", "codex", "cross-vendor"]
     },
     {
       "name": "cursor-as-critic-guardrail",
       "source": "./plugins/cursor-as-critic-guardrail",
-      "description": "Cross-vendor actor-critic guardrail for Claude Code: executor sessions must consult an antagonistic, read-only critic through the local Cursor Agent CLI before their first write. The critic model is selectable and remembered per project. Claude Code only.",
+      "description": "Cross-vendor actor-critic guardrail for Claude Code and Cursor: executor sessions must consult an antagonistic, read-only Cursor Grok 4.5 High critic before their first write.",
       "category": "guardrail",
       "keywords": ["critic", "guardrail", "hooks", "actor-critic", "cursor", "cross-vendor", "model-selection"]
     },
     {
       "name": "python-uv-guardrail",
       "source": "./plugins/python-uv-guardrail",
-      "description": "Deterministic PreToolUse guardrail: any Bash command that invokes python/pip directly instead of through uv is denied with a retry instruction, keeping Python work inside isolated, uv-managed environments. Pure pattern match. Claude Code only.",
+      "description": "Deterministic pre-tool guardrail for Claude Code and Cursor: direct python/pip commands are denied with a uv-based retry instruction.",
       "category": "guardrail",
       "keywords": ["python", "uv", "pip", "guardrail", "pre-tool-use"]
     },
     {
       "name": "readme-name-guardrail",
       "source": "./plugins/readme-name-guardrail",
-      "description": "Deterministic PreToolUse guardrail: denies creating a 'readme.md' (any capitalization) anywhere but the project root, and denies git add/commit of one, keeping the repository to a single unambiguous README instead of dozens of same-named files. Rename with a descriptive prefix. Pure pattern match. Claude Code only.",
+      "description": "Deterministic pre-tool guardrail for Claude Code and Cursor: nested README.md writes and Git staging/commits are denied in favor of descriptive filenames.",
       "category": "guardrail",
       "keywords": ["readme", "naming", "guardrail", "pre-tool-use", "git"]
     },
     {
       "name": "cursor-as-advisor-guardrail",
       "source": "./plugins/cursor-as-advisor-guardrail",
-      "description": "Cross-vendor advisor guardrail for Claude Code: executor sessions must consult a helpful, read-only advisor through the local Cursor Agent CLI before their first write. The advisor model is selectable and remembered per project. Claude Code only.",
+      "description": "Cross-vendor advisor guardrail for Claude Code and Cursor: executor sessions must consult a helpful, read-only advisor through the local Cursor Agent CLI before their first write.",
       "category": "guardrail",
       "keywords": ["advisor", "guardrail", "hooks", "actor-critic", "cursor", "cross-vendor", "model-selection"]
     }

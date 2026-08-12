@@ -240,7 +240,12 @@ function Save-State($Path, $State) {
     $State | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $Path -Encoding UTF8
 }
 
-function Write-BlockingOutput($Text) {
+function Write-BlockingOutput($Text, $Hook) {
+    if ($Hook.hook_event_name -ceq "stop") {
+        Write-Output ([pscustomobject]@{ followup_message = $Text } | ConvertTo-Json -Compress)
+        return
+    }
+
     # Claude's Stop hook reads stderr on a blocking exit; Codex reads stdout.
     # Emit to both so one script serves both vendors.
     Write-Output $Text
@@ -296,6 +301,9 @@ try {
     }
     elseif ($null -ne $hook.session_id) {
         $turnId = $hook.session_id.ToString()
+    }
+    elseif ($null -ne $hook.conversation_id) {
+        $turnId = $hook.conversation_id.ToString()
     }
 
     $attemptCount = 0
@@ -392,7 +400,8 @@ try {
             commands = $commands
             fullRunPath = Normalize-Path $runPath.Substring($repoRoot.Length + 1)
         })
-        Write-BlockingOutput $message
+        Write-BlockingOutput $message $hook
+        if ($hook.hook_event_name -ceq "stop") { exit 0 }
         exit 2
     }
 
@@ -409,10 +418,12 @@ try {
         fullRunPath = Normalize-Path $runPath.Substring($repoRoot.Length + 1)
     })
 
-    Write-BlockingOutput $repairPrompt
+    Write-BlockingOutput $repairPrompt $hook
+    if ($hook.hook_event_name -ceq "stop") { exit 0 }
     exit 2
 }
 catch {
-    Write-BlockingOutput "jobs-done-guardrail internal error: $($_.Exception.Message)"
+    Write-BlockingOutput "jobs-done-guardrail internal error: $($_.Exception.Message)" $hook
+    if ($hook.hook_event_name -ceq "stop") { exit 0 }
     exit 2
 }

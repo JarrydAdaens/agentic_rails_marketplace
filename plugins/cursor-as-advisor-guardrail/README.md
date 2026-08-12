@@ -1,6 +1,6 @@
 # cursor-as-advisor-guardrail
 
-Cross-vendor advisor guardrail for Claude Code. The executor must consult a
+Cross-vendor advisor guardrail for Claude Code and Cursor. The executor must consult a
 helpful, read-only advisor at decision points, and the session's first write is
 gated until that consult happens. The advisor runs through the user's
 authenticated Cursor Agent CLI (`agent`) in read-only ask mode.

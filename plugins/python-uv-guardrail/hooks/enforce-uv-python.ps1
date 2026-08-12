@@ -132,17 +132,26 @@ function Find-BareInterpreter($Command, $BlockedPattern) {
     return $null
 }
 
-function Deny($Executable) {
+function Deny($Executable, $Hook) {
     $reason = "python-uv-guardrail: '$Executable' was invoked directly, without uv. " +
         "Re-run it through uv so it uses an isolated, project-scoped environment instead " +
         "of mutating a shared global interpreter. For example: 'uv run python <args>', " +
         "'uv run <script>.py', 'uv pip install <pkg>', or 'uvx <tool>'. Then retry."
 
-    $output = [pscustomobject]@{
-        hookSpecificOutput = [pscustomobject]@{
-            hookEventName            = "PreToolUse"
-            permissionDecision       = "deny"
-            permissionDecisionReason = $reason
+    if ($Hook.hook_event_name -ceq "preToolUse") {
+        $output = [pscustomobject]@{
+            permission    = "deny"
+            user_message  = $reason
+            agent_message = $reason
+        }
+    }
+    else {
+        $output = [pscustomobject]@{
+            hookSpecificOutput = [pscustomobject]@{
+                hookEventName            = "PreToolUse"
+                permissionDecision       = "deny"
+                permissionDecisionReason = $reason
+            }
         }
     }
 
@@ -184,7 +193,7 @@ try {
 
     $offender = Find-BareInterpreter $command $blockedPattern
     if ($null -ne $offender) {
-        Deny $offender
+        Deny $offender $hook
     }
 
     exit 0

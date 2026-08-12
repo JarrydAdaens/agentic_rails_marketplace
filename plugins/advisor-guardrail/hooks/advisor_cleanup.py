@@ -21,14 +21,14 @@ older than 24 hours can never belong to a live session and is removed.
 import sys
 import time
 
-from advisor_markers import legacy_marker_dir, marker_dir
+from advisor_markers import legacy_marker_dirs, marker_dir
 
 MAX_AGE_SECONDS = 24 * 60 * 60
 
 
 def main() -> None:
     cutoff = time.time() - MAX_AGE_SECONDS
-    for directory in (marker_dir(), legacy_marker_dir()):
+    for directory in (marker_dir(), *legacy_marker_dirs()):
         if not directory.is_dir():
             continue
         for marker in directory.glob("advisor-consulted-*"):

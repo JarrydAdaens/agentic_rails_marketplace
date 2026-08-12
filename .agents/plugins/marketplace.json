@@ -5,26 +5,10 @@
   },
   "plugins": [
     {
-      "name": "game-golden-screenshot-verifier",
+      "name": "advisor-guardrail",
       "source": {
         "source": "local",
-        "path": "./plugins/game-golden-screenshot-verifier"
-      },
-      "category": "verifier"
-    },
-    {
-      "name": "wpf-visual-quality-gate",
-      "source": {
-        "source": "local",
-        "path": "./plugins/wpf-visual-quality-gate"
-      },
-      "category": "verifier"
-    },
-    {
-      "name": "advisor-codex-guardrail",
-      "source": {
-        "source": "local",
-        "path": "./plugins/advisor-codex-guardrail"
+        "path": "./plugins/advisor-guardrail"
       },
       "policy": {
         "installation": "AVAILABLE",

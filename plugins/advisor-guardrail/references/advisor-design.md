@@ -1,19 +1,19 @@
 ---
 name: advisor-design
 description: >-
-  Design history for the advisor guard rail: the native advisor-tool behavior
-  being replicated inside Claude Code, accepted trade-offs, architecture,
+  Design history for the portable advisor guard rail: the native advisor-tool
+  behavior replicated across Claude Code, Codex, and Cursor, architecture,
   cost controls, risks, and the v2 backlog.
 metadata:
-  version: "1.1"
+  version: "2.0"
 ---
 
 # Advisor Guardrail — Design Document
 
 **Status:** Draft for implementation
-**Target:** Claude Code on Claude Max
+**Target:** Claude Code, Codex, and Cursor
 **Implementer:** Claude Fable 5 via Claude Code
-**Author context:** Replicates the advisor pattern inside Claude Code. Executors consult an Opus advisor subagent. (The Codex counterpart — a bundled stdio MCP advisor backed by `gpt-5.6-sol` — is a separate plugin, `advisor-codex-guardrail`.)
+**Author context:** Replicates the advisor pattern with one host-aware plugin. Claude Code uses an Opus high-effort subagent; Codex and Cursor use a bundled stdio MCP server backed by GPT-5.6 Sol High and Cursor Grok 4.5 High respectively.
 
 **Primary reference:** https://platform.claude.com/docs/en/agents-and-tools/tool-use/advisor-tool
 Secondary reference (subagents): https://code.claude.com/docs/en/sub-agents
@@ -73,8 +73,9 @@ Claude Code session (executor: opus or sonnet)
 The PostToolUse marker recognizes the advisor subagent (plain or
 plugin-namespaced); the PreToolUse gate matches the Claude write surfaces.
 Markers live in the system temp directory, with temporary recognition of
-legacy `claude-advisor-markers`. Shell writes remain advisory-only. The Codex
-counterpart lives in the separate `advisor-codex-guardrail` plugin.
+legacy `claude-advisor-markers` and `advisor-codex-guardrail-markers`. Shell
+writes remain advisory-only. Codex and Cursor use the bundled host-aware MCP
+server in this same plugin.
 
 ## 5. Components
 

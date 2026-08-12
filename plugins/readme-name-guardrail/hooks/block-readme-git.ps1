@@ -188,7 +188,7 @@ try {
         "project-root README; extra files with that exact name crowd terminal file references. " +
         "Rename each with a descriptive prefix - e.g. 'creatures-readme.md' - and 'git restore " +
         "--staged <path>' any that are already staged, then retry."
-    Deny-PreToolUse $reason
+    Deny-PreToolUse $reason $hook
     exit 0
 }
 catch {

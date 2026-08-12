@@ -8,9 +8,9 @@ through `uv`. The denial carries a retry instruction, so the agent self-corrects
 to `uv run ...` / `uv pip install ...` rather than mutating a shared global
 interpreter. It spends no LLM judgment: the decision is a pure pattern match.
 
-**Claude Code only.** The payload is built on Claude Code's PreToolUse
-permission-decision schema, so this plugin ships no Codex manifest and is absent
-from the Codex catalog.
+Supports Claude Code and Cursor with host-native pre-tool deny responses. It is
+absent from the Codex catalog because Codex does not expose Cursor's Shell tool
+surface.
 
 **Why PowerShell, not Python?** A Python-interpreted hook for a guardrail whose
 entire purpose is "never invoke bare python" is a bootstrap paradox — if the
@@ -27,7 +27,7 @@ command into simple-command segments on shell control operators (`;`, `&&`,
 assignments and wrapper commands (`sudo`, `env`, `time`, `nice`, `command`,
 `exec`), and inspects the leading executable of each segment. A segment led by
 `uv` or `uvx` is allowed; a segment led by a blocked interpreter is denied via a
-`permissionDecision: "deny"` with an instructive reason. On install, Claude Code
+the host's native deny response with an instructive reason. On install, the host
 asks you to review and trust the hook — that prompt is the point of the guardrail
 being a plugin.
 

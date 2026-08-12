@@ -1,0 +1,8 @@
+{
+  "name": "cursor-as-critic-guardrail",
+  "description": "Requires an executor to consult an antagonistic Cursor Grok 4.5 High critic before its first write.",
+  "author": { "name": "Jarryd Adaens" },
+  "hooks": "./hooks/cursor-hooks.json",
+  "mcpServers": "./mcp.json",
+  "keywords": ["guardrail", "critic", "cursor", "grok"]
+}

@@ -32,17 +32,19 @@ def marker_dir() -> Path:
     return Path(tempfile.gettempdir()) / "advisor-guardrail-markers"
 
 
-def legacy_marker_dir() -> Path:
-    return Path(tempfile.gettempdir()) / "claude-advisor-markers"
+def legacy_marker_dirs() -> tuple[Path, ...]:
+    return (
+        Path(tempfile.gettempdir()) / "claude-advisor-markers",
+        Path(tempfile.gettempdir()) / "advisor-codex-guardrail-markers",
+    )
 
 
 def marker_path(session_id: str) -> Path:
     return marker_dir() / f"advisor-consulted-{session_id}"
 
 
-def legacy_marker_path(session_id: str) -> Path:
-    return legacy_marker_dir() / f"advisor-consulted-{session_id}"
-
-
 def has_marker(session_id: str) -> bool:
-    return marker_path(session_id).exists() or legacy_marker_path(session_id).exists()
+    return marker_path(session_id).exists() or any(
+        (directory / f"advisor-consulted-{session_id}").exists()
+        for directory in legacy_marker_dirs()
+    )

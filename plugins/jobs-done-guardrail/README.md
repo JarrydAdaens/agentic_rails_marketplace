@@ -8,10 +8,10 @@ the human. It spends no LLM judgment: pass/fail is the exit code of the
 project's own build and test commands, and a SHA-256 fingerprint of the dirty
 worktree skips re-validation of states that already passed.
 
-**Claude Code only for now.** The hook script itself already tolerates Claude-
-and Codex-shaped hook payloads (it was dual-wired in its origin project), but
-Codex's equivalent of `${CLAUDE_PLUGIN_ROOT}` for plugin hook commands is
-unverified, so this plugin ships no Codex manifest yet.
+Supports Claude Code and Cursor. Claude blocks Stop by exit status; Cursor uses
+its native `followup_message` response to continue the repair loop. The plugin
+remains absent from the Codex catalog because Codex Stop-hook packaging has not
+been adopted here.
 
 ## What the plugin registers
 

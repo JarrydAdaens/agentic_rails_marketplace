@@ -1,0 +1,7 @@
+{
+  "name": "jobs-done-guardrail",
+  "description": "Runs a project's configured build and test gates when an agent tries to stop, then supplies a bounded repair prompt when either gate fails.",
+  "author": { "name": "Jarryd Adaens" },
+  "hooks": "./hooks/cursor-hooks.json",
+  "keywords": ["guardrail", "build", "test", "stop"]
+}

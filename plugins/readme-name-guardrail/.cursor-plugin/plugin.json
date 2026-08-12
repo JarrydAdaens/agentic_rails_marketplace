@@ -1,0 +1,7 @@
+{
+  "name": "readme-name-guardrail",
+  "description": "Reserves README.md for the project root and blocks writes or Git commands that introduce nested files with that name.",
+  "author": { "name": "Jarryd Adaens" },
+  "hooks": "./hooks/cursor-hooks.json",
+  "keywords": ["guardrail", "readme", "naming"]
+}

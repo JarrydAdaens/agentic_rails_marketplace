@@ -104,7 +104,8 @@ Structured consultation:
 
 
 def project_root(workspace: str | None = None) -> Path:
-    selected = workspace or os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd()
+    selected = (workspace or os.environ.get("CURSOR_PROJECT_DIR") or
+                os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd())
     return Path(selected).resolve()
 
 

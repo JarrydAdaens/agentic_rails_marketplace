@@ -35,9 +35,17 @@ def main() -> None:
     except (json.JSONDecodeError, UnicodeDecodeError):
         sys.exit(0)
 
-    session_id = payload.get("session_id", "unknown")
+    session_id = payload.get("session_id") or payload.get("conversation_id", "unknown")
     if has_marker(session_id):
         sys.exit(0)
+
+    if payload.get("hook_event_name") == "preToolUse":
+        print(json.dumps({
+            "permission": "deny",
+            "user_message": DENY_REASON,
+            "agent_message": DENY_REASON,
+        }))
+        return
 
     print(json.dumps({
         "hookSpecificOutput": {

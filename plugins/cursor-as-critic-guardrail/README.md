@@ -1,6 +1,6 @@
 # cursor-as-critic-guardrail
 
-Cross-vendor actor-critic guardrail for Claude Code. The executor must consult
+Cross-vendor actor-critic guardrail for Claude Code and Cursor. The executor must consult
 an antagonistic, read-only critic at decision points, and the session's first
 write is gated until that consult happens. The critic runs through the user's
 authenticated Cursor Agent CLI (`agent`) in read-only ask mode.
@@ -19,7 +19,7 @@ to Cursor. It intentionally has no `.codex-plugin/` manifest.
 | Piece | Mechanism |
 | --- | --- |
 | Critic | `consult_critic(task, stage, approach, evidence, question, model?)` MCP tool, Cursor Agent ask mode, adversarial persona |
-| Model default | Built-in first-run default `composer-2.5`; successful calls remember the chosen model at project level |
+| Model default | Built-in first-run default `cursor-grok-4.5-high`; successful calls remember the chosen model at project level |
 | Write gate | `PreToolUse` on `Write`, `Edit`, `MultiEdit`, `NotebookEdit` — denied until one consult has occurred this session |
 | Consult marker | `PostToolUse` on `consult_critic` — a completed consult unlocks writes for the session |
 | Protocol | `SessionStart` injects the consult protocol into context; stale markers are cleaned |
@@ -48,12 +48,12 @@ harness/cursor-as-critic-guardrail/config.json
 
 ```json
 {
-  "default_model": "composer-2.5"
+  "default_model": "cursor-grok-4.5-high"
 }
 ```
 
 Calls that omit `model` reuse this file. If the file does not exist, the plugin
-uses `composer-2.5` and creates the file after the first successful consult.
+uses `cursor-grok-4.5-high` and creates the file after the first successful consult.
 Changing one project's default never changes another project. A failed model
 selection is not persisted, so an unavailable model cannot poison a working
 default. The file may also be edited directly; use an exact model ID reported
@@ -103,4 +103,4 @@ gates and therefore requires multiple consultations.
 - A consultation blocks the MCP server until it completes; the server handles
   one consult at a time.
 - The project config is written only after a successful consultation. Until
-  then, a missing config seam silently falls back to `composer-2.5`.
+  then, a missing config seam silently falls back to `cursor-grok-4.5-high`.

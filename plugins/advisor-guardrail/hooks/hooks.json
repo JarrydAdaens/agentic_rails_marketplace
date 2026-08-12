@@ -2,7 +2,7 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "^(Write|Edit|MultiEdit|NotebookEdit)$",
+        "matcher": "^(Write|Edit|MultiEdit|NotebookEdit|apply_patch)$",
         "hooks": [
           {
             "type": "command",
@@ -13,7 +13,7 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "^(Task|Agent)$",
+        "matcher": "^(Task|Agent|.*consult_advisor)$",
         "hooks": [
           {
             "type": "command",

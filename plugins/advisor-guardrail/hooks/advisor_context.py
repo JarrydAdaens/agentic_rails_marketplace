@@ -19,6 +19,7 @@ the installer-era step of appending the protocol to the target project's
 CLAUDE.md. Missing protocol file exits silently — never block startup.
 """
 
+import json
 import sys
 from pathlib import Path
 
@@ -26,7 +27,15 @@ from pathlib import Path
 def main() -> None:
     protocol = Path(__file__).resolve().parent.parent / "advisor-protocol.md"
     try:
-        print(protocol.read_text(encoding="utf-8"))
+        content = protocol.read_text(encoding="utf-8")
+        try:
+            payload = json.load(sys.stdin)
+        except (json.JSONDecodeError, OSError):
+            payload = {}
+        if payload.get("hook_event_name") == "sessionStart":
+            print(json.dumps({"additional_context": content}))
+        else:
+            print(content)
     except OSError:
         pass
 

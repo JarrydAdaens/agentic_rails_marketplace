@@ -32,7 +32,7 @@ from pathlib import Path
 from typing import Any, TextIO
 
 PLUGIN_NAME = "cursor-as-critic-guardrail"
-BUILTIN_DEFAULT_MODEL = "composer-2.5"
+BUILTIN_DEFAULT_MODEL = "cursor-grok-4.5-high"
 CONFIG_RELATIVE_PATH = Path("harness") / PLUGIN_NAME / "config.json"
 CONFIG_MODEL_KEY = "default_model"
 
@@ -106,7 +106,8 @@ Structured consultation:
 
 def project_root(workspace: str | None = None) -> Path:
     """Return the target project root used for both the config and Cursor run."""
-    selected = workspace or os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd()
+    selected = (workspace or os.environ.get("CURSOR_PROJECT_DIR") or
+                os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd())
     return Path(selected).resolve()
 
 

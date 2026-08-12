@@ -1,0 +1,7 @@
+{
+  "name": "python-uv-guardrail",
+  "description": "Blocks direct Python and pip invocations so Python tooling stays in uv-managed environments.",
+  "author": { "name": "Jarryd Adaens" },
+  "hooks": "./hooks/cursor-hooks.json",
+  "keywords": ["guardrail", "python", "uv"]
+}

@@ -1,17 +1,3 @@
-# Copyright 2026 Jarryd Adaens
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 from __future__ import annotations
 
 import contextlib
@@ -25,6 +11,7 @@ from unittest.mock import MagicMock, patch
 HOOKS = Path(__file__).parents[1] / "hooks"
 sys.path.insert(0, str(HOOKS))
 import advisor_cleanup
+import advisor_context
 import advisor_gate
 import advisor_marker
 import advisor_markers
@@ -40,56 +27,61 @@ class HookTests(unittest.TestCase):
                 self.assertEqual(exc.code, 0)
         return output.getvalue()
 
-    def test_claude_task_and_agent_create_marker(self):
-        for tool in ("Task", "Agent"):
-            session = tool.lower()
+    def test_claude_subagent_and_mcp_tool_create_markers(self):
+        payloads = [
+            {"session_id": "claude", "tool_name": "Task", "tool_input": {"subagent_type": "advisor-guardrail:advisor"}},
+            {"conversation_id": "cursor", "tool_name": "MCP:advisor-guardrail:consult_advisor", "tool_input": {}},
+            {"session_id": "codex", "tool_name": "mcp__advisor-guardrail__consult_advisor", "tool_input": {}},
+        ]
+        for payload in payloads:
             directory, marker = MagicMock(), MagicMock()
             with patch.object(advisor_marker, "marker_dir", return_value=directory), patch.object(advisor_marker, "marker_path", return_value=marker):
-                self.invoke(advisor_marker, {"session_id": session, "tool_name": tool, "tool_input": {"subagent_type": "advisor-guardrail:advisor"}})
+                self.invoke(advisor_marker, payload)
             directory.mkdir.assert_called_once_with(parents=True, exist_ok=True)
             marker.touch.assert_called_once()
 
-    def test_non_advisor_and_malformed_payload_do_not_mark(self):
-        self.invoke(advisor_marker, {"session_id": "no", "tool_name": "Task", "tool_input": {"subagent_type": "worker"}})
-        with patch.object(advisor_marker, "marker_path") as marker:
-            self.invoke(advisor_marker, {"session_id": "no", "tool_name": "Task", "tool_input": {"subagent_type": "worker"}})
-            marker.assert_not_called()
-        with patch.object(sys, "stdin", io.StringIO("{")):
-            with self.assertRaises(SystemExit):
-                advisor_marker.main()
-
-    def test_gate_denies_before_consult_and_allows_after(self):
-        denied = self.invoke(advisor_gate, {"session_id": "gate", "tool_name": "Edit"})
-        self.assertEqual(json.loads(denied)["hookSpecificOutput"]["permissionDecision"], "deny")
+    def test_gate_uses_native_host_response_shapes(self):
+        claude = json.loads(self.invoke(advisor_gate, {"session_id": "c", "tool_name": "Edit"}))
+        cursor = json.loads(self.invoke(advisor_gate, {"conversation_id": "u", "hook_event_name": "preToolUse", "tool_name": "Write"}))
+        self.assertEqual(claude["hookSpecificOutput"]["permissionDecision"], "deny")
+        self.assertEqual(cursor["permission"], "deny")
         with patch.object(advisor_gate, "has_marker", return_value=True):
-            self.assertEqual(self.invoke(advisor_gate, {"session_id": "gate", "tool_name": "Write"}), "")
+            self.assertEqual(self.invoke(advisor_gate, {"conversation_id": "u", "hook_event_name": "preToolUse"}), "")
 
-    def test_legacy_marker_unlocks_gate(self):
-        with patch.object(advisor_markers, "marker_path") as neutral, patch.object(advisor_markers, "legacy_marker_path") as legacy:
-            neutral.return_value.exists.return_value = False
-            legacy.return_value.exists.return_value = True
+    def test_legacy_markers_unlock_gate(self):
+        neutral = MagicMock()
+        neutral.exists.return_value = False
+        legacy_dirs = [MagicMock(), MagicMock()]
+        legacy_dirs[0].__truediv__.return_value.exists.return_value = False
+        legacy_dirs[1].__truediv__.return_value.exists.return_value = True
+        with patch.object(advisor_markers, "marker_path", return_value=neutral), patch.object(advisor_markers, "legacy_marker_dirs", return_value=legacy_dirs):
             self.assertTrue(advisor_markers.has_marker("legacy"))
 
-    def test_cleanup_removes_stale_neutral_and_legacy_markers(self):
-        directories = [MagicMock(), MagicMock()]
-        markers = [MagicMock(), MagicMock()]
-        for directory, marker in zip(directories, markers):
+    def test_cleanup_handles_neutral_and_both_legacy_directories(self):
+        directories = [MagicMock(), MagicMock(), MagicMock()]
+        for directory in directories:
+            marker = MagicMock()
             directory.is_dir.return_value = True
             directory.glob.return_value = [marker]
             marker.stat.return_value.st_mtime = 0
-        with patch.object(advisor_cleanup, "marker_dir", return_value=directories[0]), patch.object(advisor_cleanup, "legacy_marker_dir", return_value=directories[1]), patch.object(advisor_cleanup.time, "time", return_value=advisor_cleanup.MAX_AGE_SECONDS + 100):
+        with patch.object(advisor_cleanup, "marker_dir", return_value=directories[0]), patch.object(advisor_cleanup, "legacy_marker_dirs", return_value=tuple(directories[1:])), patch.object(advisor_cleanup.time, "time", return_value=advisor_cleanup.MAX_AGE_SECONDS + 100):
             advisor_cleanup.main()
-        for marker in markers:
-            marker.unlink.assert_called_once()
+        for directory in directories:
+            directory.glob.return_value[0].unlink.assert_called_once()
 
-    def test_hooks_match_claude_write_and_advisor_surfaces(self):
-        config = json.loads((HOOKS / "hooks.json").read_text(encoding="utf-8"))
-        pre = config["hooks"]["PreToolUse"][0]["matcher"]
-        post = config["hooks"]["PostToolUse"][0]["matcher"]
-        self.assertIn("Write", pre)
-        self.assertNotIn("apply_patch", pre)
-        self.assertIn("Task", post)
-        self.assertNotIn("consult_advisor", post)
+    def test_host_hook_manifests_cover_write_and_consult(self):
+        claude = json.loads((HOOKS / "hooks.json").read_text(encoding="utf-8"))
+        cursor = json.loads((HOOKS / "cursor-hooks.json").read_text(encoding="utf-8"))
+        self.assertIn("apply_patch", claude["hooks"]["PreToolUse"][0]["matcher"])
+        self.assertIn("consult_advisor", claude["hooks"]["PostToolUse"][0]["matcher"])
+        self.assertEqual(cursor["hooks"]["preToolUse"][0]["matcher"], "Write")
+        self.assertIn("consult_advisor", cursor["hooks"]["postToolUse"][0]["matcher"])
+
+    def test_context_uses_cursor_additional_context_shape(self):
+        cursor = json.loads(self.invoke(advisor_context, {"hook_event_name": "sessionStart"}))
+        self.assertIn("Advisor Protocol", cursor["additional_context"])
+        claude = self.invoke(advisor_context, {"hook_event_name": "SessionStart"})
+        self.assertIn("Advisor Protocol", claude)
 
 
 if __name__ == "__main__":

@@ -45,7 +45,7 @@ try {
         "with that exact name pile up and crowd terminal file references. Give it a " +
         "descriptive prefix instead - e.g. '$suggested' - then retry. A prefixed name like " +
         "that is allowed anywhere."
-    Deny-PreToolUse $reason
+    Deny-PreToolUse $reason $hook
     exit 0
 }
 catch {

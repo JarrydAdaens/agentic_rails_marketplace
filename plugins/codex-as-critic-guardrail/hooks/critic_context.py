@@ -19,6 +19,7 @@ executor knows the consult contract without touching the target project's
 CLAUDE.md. Missing protocol file exits silently — never block startup.
 """
 
+import json
 import sys
 from pathlib import Path
 
@@ -29,9 +30,19 @@ def main() -> None:
     force_utf8()
     protocol = Path(__file__).resolve().parent.parent / "critic-protocol.md"
     try:
-        print(protocol.read_text(encoding="utf-8"))
+        content = protocol.read_text(encoding="utf-8")
     except OSError:
-        pass
+        return
+
+    try:
+        payload = json.load(sys.stdin)
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        payload = {}
+
+    if payload.get("hook_event_name") == "sessionStart":
+        print(json.dumps({"additional_context": content}))
+    else:
+        print(content)
 
 
 if __name__ == "__main__":
