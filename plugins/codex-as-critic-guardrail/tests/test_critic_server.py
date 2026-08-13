@@ -46,6 +46,15 @@ class CriticServerTests(unittest.TestCase):
         self.assertNotIn("cwd", launcher)
         self.assertIn("${CLAUDE_PLUGIN_ROOT}", launcher["args"][0])
 
+    def test_cursor_launcher_is_plugin_rooted_and_windows_safe(self):
+        config = json.loads((SERVER_PATH.parents[1] / "mcp.json").read_text(encoding="utf-8"))
+        launcher = config["mcpServers"]["codex-as-critic-guardrail"]
+        self.assertEqual(launcher["type"], "stdio")
+        self.assertEqual(launcher["cwd"], "${PLUGIN_ROOT}")
+        self.assertEqual(launcher["command"], "powershell.exe")
+        self.assertIn("${PLUGIN_ROOT}/mcp/critic_server.py", launcher["args"])
+        self.assertTrue(all(not arg.startswith("./") for arg in launcher["args"]))
+
     def test_validation_requires_all_nonempty_fields(self):
         with self.assertRaisesRegex(ValueError, "question"):
             server.validate_arguments(payload(question=" "))
@@ -93,6 +102,14 @@ class CriticServerTests(unittest.TestCase):
         self.assertEqual(run.call_args.kwargs["encoding"], "utf-8")
         self.assertIn("TASK: Fix the gate", run.call_args.kwargs["input"])
 
+    @patch.object(server, "command", return_value=["codex"])
+    @patch.object(server.subprocess, "run")
+    def test_cursor_workspace_env_overrides_plugin_launcher_cwd(self, run, _command):
+        run.return_value = MagicMock(returncode=0, stdout="Critique\n", stderr="")
+        with patch.dict(server.os.environ, {"AGENTIC_RAILS_WORKSPACE": "C:/consumer"}):
+            server.consult(payload())
+        self.assertEqual(run.call_args.kwargs["cwd"], "C:/consumer")
+
     def test_timeout_default_clears_observed_consult_latency(self):
         # Real consults measured a p90 of 132s and a longest success of 178s, so
         # the cap has to sit well clear of the distribution, not inside it.
@@ -122,6 +139,18 @@ class CriticServerTests(unittest.TestCase):
     def test_initialize_reports_plugin_server_name(self):
         result = server.dispatch({"id": 1, "method": "initialize"})
         self.assertEqual(result["result"]["serverInfo"]["name"], "codex-as-critic-guardrail")
+        self.assertEqual(result["result"]["serverInfo"]["version"], "1.1.0")
+
+    def test_server_becomes_gate_ready_only_after_cursor_lists_tools(self):
+        with patch.dict(server.os.environ, {
+            "AGENTIC_RAILS_MCP_HOST": "cursor",
+            "AGENTIC_RAILS_WORKSPACE": "C:/repo",
+        }), patch.object(server, "mark_server_ready") as ready:
+            server.dispatch({"id": 1, "method": "initialize"})
+            ready.assert_not_called()
+            listed = server.dispatch({"id": 2, "method": "tools/list"})
+        ready.assert_called_once_with(host="cursor", workspace="C:/repo")
+        self.assertEqual(listed["result"]["tools"][0]["name"], "consult_critic")
 
     def test_initialize_echoes_a_supported_protocol_version(self):
         agreed = server.dispatch({"id": 1, "method": "initialize", "params": {"protocolVersion": "2024-11-05"}})

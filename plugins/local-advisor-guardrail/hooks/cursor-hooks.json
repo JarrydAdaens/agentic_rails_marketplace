@@ -3,23 +3,23 @@
   "hooks": {
     "preToolUse": [
       {
-        "matcher": "Write",
-        "command": "python ./hooks/advisor_gate.py",
-        "failClosed": true
+        "matcher": "Write|StrReplace|Delete|Edit|MultiEdit|NotebookEdit",
+        "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File ./scripts/launch-python.ps1 -Script ./hooks/advisor_gate.py",
+        "failClosed": false
       }
     ],
-    "postToolUse": [
+    "afterMCPExecution": [
       {
-        "matcher": "MCP:.*consult_advisor",
-        "command": "python ./hooks/advisor_marker.py"
+        "matcher": "consult_advisor$",
+        "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File ./scripts/launch-python.ps1 -Script ./hooks/advisor_marker.py"
       }
     ],
     "sessionStart": [
       {
-        "command": "python ./hooks/advisor_cleanup.py"
+        "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File ./scripts/launch-python.ps1 -Script ./hooks/advisor_cleanup.py"
       },
       {
-        "command": "python ./hooks/advisor_context.py"
+        "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File ./scripts/launch-python.ps1 -Script ./hooks/advisor_context.py"
       }
     ]
   }

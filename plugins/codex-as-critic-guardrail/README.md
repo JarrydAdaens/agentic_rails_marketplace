@@ -26,8 +26,8 @@ Codex users who want a constructive checkpoint use the unified
 | Piece | Mechanism |
 | --- | --- |
 | Critic | `consult_critic(task, stage, approach, evidence, question)` MCP tool, model `gpt-5.6-sol`, high reasoning, read-only sandbox, adversarial persona |
-| Write gate | `PreToolUse` on `Write`, `Edit`, `MultiEdit`, `NotebookEdit` — denied until one consult has occurred this session |
-| Consult marker | `PostToolUse` on `consult_critic` — a completed consult unlocks writes for the session |
+| Write gate | Claude `PreToolUse`; Cursor `preToolUse` on `Write`, `StrReplace`, `Delete`, and compatible edit names — denied until one consult has occurred this session |
+| Consult marker | Claude `PostToolUse`; Cursor `afterMCPExecution` on `consult_critic` — a completed consult unlocks writes for the session |
 | Protocol | `SessionStart` injects the consult protocol into context; stale markers are cleaned |
 
 The bundled MCP server runs `codex exec` ephemerally in the executor's
@@ -39,7 +39,24 @@ On install, review and trust the hooks and the local MCP command. This trust
 prompt is expected: the plugin executes bundled Python and, for a consultation,
 starts the locally authenticated Codex CLI. Authentication, unavailable-model,
 missing-executable, and timeout failures are returned as actionable tool
-errors.
+errors. On Cursor, plugin-relative hook commands run through a bundled
+PowerShell/Python launcher, while MCP paths use `${PLUGIN_ROOT}` and an explicit
+plugin-root working directory. This avoids depending on Cursor's project cwd or
+on a bare `python` command.
+
+### Cursor installation
+
+Registering the marketplace or writing `enabled: true` into
+`.cursor/settings.json` does not install this plugin. Install
+`codex-as-critic-guardrail` through Cursor's interactive `/plugin` Marketplace
+screen or **Customize → Marketplace**, choose project or user scope, approve the
+MCP server, and open a fresh session. The expected MCP tool is
+`plugin-codex-as-critic-guardrail-codex-as-critic-guardrail:consult_critic`.
+
+The Cursor gate is deliberately fail-open. It activates only after the live MCP
+server has completed tool registration. If the server, launcher, or hook input
+is unavailable, writes proceed with an actionable diagnostic rather than an
+empty fail-closed denial.
 
 The first completed consultation creates a marker under
 `<temp>/codex-as-critic-guardrail-markers/` and unlocks writes for that session.
@@ -67,8 +84,10 @@ Codex managed to emit before it was cut off.
 
 ## Choosing between local-advisor-guardrail and codex-as-critic-guardrail
 
-Both gate the session's first write behind a consult; install one, not both —
-two gates mean two mandatory consults per session. `local-advisor-guardrail` gives a
+Both gate the session's first write behind a consult. Installing both is
+supported and intentionally requires both consultations before the first
+write; each successful consult unlocks only its own gate. Install one when one
+independent review is enough. `local-advisor-guardrail` gives a
 same-ecosystem senior advisor (Opus) whose advice the executor is told to
 weight heavily. `codex-as-critic-guardrail` gives a cross-vendor antagonist
 whose objections the executor is told to test against evidence, not obey. Prefer

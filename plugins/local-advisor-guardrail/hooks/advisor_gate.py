@@ -23,27 +23,50 @@ advisor_marker.py (PostToolUse on Task/Agent).
 import json
 import sys
 
-from advisor_markers import has_marker
+from advisor_markers import has_live_server, has_marker
 
 DENY_REASON = (
     "Advisor gate: consult the advisor before the first write of this session. "
     "In Claude Code, invoke local-advisor-guardrail:advisor with Task/Agent. In Codex "
-    "or Cursor, call consult_advisor. Supply the task, stage, approach, evidence, "
+    "or Cursor, call consult_advisor from "
+    "plugin-local-advisor-guardrail-local-advisor-guardrail. Supply the task, "
+    "stage, approach, evidence, "
     "and question fields from the Advisor Protocol, then retry this edit."
+)
+MCP_UNAVAILABLE_REASON = (
+    "Local advisor gate is inactive because Cursor has not registered the "
+    "consult_advisor tool from plugin-local-advisor-guardrail-local-advisor-guardrail. "
+    "This write is allowed to avoid a deadlock. Install and enable the plugin from "
+    "Cursor's /plugin Marketplace screen, approve its MCP server, and restart the session."
 )
 
 
 def main() -> None:
     try:
         payload = json.load(sys.stdin)
-    except json.JSONDecodeError:
-        sys.exit(0)  # malformed input: fail open rather than block all writes
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        print("Local advisor hook received invalid Cursor input; allowing the write.", file=sys.stderr)
+        sys.exit(0)
+
+    if not isinstance(payload, dict):
+        print("Local advisor hook received an unexpected Cursor payload; allowing the write.", file=sys.stderr)
+        sys.exit(0)
 
     session_id = payload.get("session_id") or payload.get("conversation_id") or "unknown"
     if has_marker(session_id):
         sys.exit(0)
 
     if payload.get("hook_event_name") == "preToolUse":
+        workspace_roots = payload.get("workspace_roots") or []
+        workspace = workspace_roots[0] if workspace_roots else payload.get("cwd")
+        if not has_live_server("cursor", workspace):
+            print(MCP_UNAVAILABLE_REASON, file=sys.stderr)
+            print(json.dumps({
+                "permission": "allow",
+                "user_message": MCP_UNAVAILABLE_REASON,
+                "agent_message": MCP_UNAVAILABLE_REASON,
+            }))
+            return
         print(json.dumps({
             "permission": "deny",
             "user_message": DENY_REASON,

@@ -9,7 +9,10 @@ Invoke the advisor for this host:
 - Claude Code: use the `local-advisor-guardrail:advisor` Task/Agent subagent (Opus,
   high effort).
 - Codex: call the `consult_advisor` MCP tool (GPT-5.6 Sol, high reasoning).
-- Cursor: call the `consult_advisor` MCP tool (Cursor Grok 4.5 High).
+- Cursor: call `consult_advisor` from
+  `plugin-local-advisor-guardrail-local-advisor-guardrail` (Cursor Grok 4.5
+  High by default). An optional `model` selects and remembers an exact Cursor
+  model ID for this project.
 
 The first Write/Edit attempt is denied until the consultation completes. Do
 not use shell commands to bypass that checkpoint.

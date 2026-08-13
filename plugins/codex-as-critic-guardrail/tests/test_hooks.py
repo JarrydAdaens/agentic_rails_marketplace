@@ -35,11 +35,13 @@ import critic_markers
 class HookTests(unittest.TestCase):
     def invoke(self, module, payload):
         output = io.StringIO()
-        with patch.object(sys, "stdin", io.StringIO(json.dumps(payload))), contextlib.redirect_stdout(output):
+        error = io.StringIO()
+        with patch.object(sys, "stdin", io.StringIO(json.dumps(payload))), contextlib.redirect_stdout(output), contextlib.redirect_stderr(error):
             try:
                 module.main()
             except SystemExit as exc:
                 self.assertEqual(exc.code, 0)
+        self.last_stderr = error.getvalue()
         return output.getvalue()
 
     def test_plain_and_mcp_namespaced_consult_create_marker(self):
@@ -67,6 +69,25 @@ class HookTests(unittest.TestCase):
         with patch.object(critic_gate, "has_marker", return_value=True):
             self.assertEqual(self.invoke(critic_gate, {"session_id": "gate", "tool_name": "Write"}), "")
 
+    def test_cursor_gate_denies_only_while_the_mcp_server_is_registered(self):
+        payload = {
+            "conversation_id": "cursor-gate",
+            "hook_event_name": "preToolUse",
+            "tool_name": "StrReplace",
+        }
+        with patch.object(critic_gate, "has_live_server", return_value=True):
+            denied = json.loads(self.invoke(critic_gate, payload))
+        self.assertEqual(denied["permission"], "deny")
+        self.assertIn(
+            "plugin-codex-as-critic-guardrail-codex-as-critic-guardrail",
+            denied["agent_message"],
+        )
+        with patch.object(critic_gate, "has_live_server", return_value=False):
+            allowed = json.loads(self.invoke(critic_gate, payload))
+        self.assertEqual(allowed["permission"], "allow")
+        self.assertIn("has not registered", allowed["agent_message"])
+        self.assertIn("has not registered", self.last_stderr)
+
     def test_cleanup_removes_stale_markers(self):
         directory, marker = MagicMock(), MagicMock()
         directory.is_dir.return_value = True
@@ -79,6 +100,17 @@ class HookTests(unittest.TestCase):
     def test_marker_paths_are_plugin_specific(self):
         self.assertEqual(critic_markers.marker_dir().name, "codex-as-critic-guardrail-markers")
         self.assertTrue(critic_markers.marker_path("abc").name.startswith("critic-consulted-"))
+
+    def test_mcp_readiness_is_scoped_to_cursor_and_workspace(self):
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as temporary, patch.object(
+            critic_markers, "marker_dir", return_value=Path(temporary)
+        ), patch.object(critic_markers, "_process_is_running", return_value=True):
+            critic_markers.mark_server_ready("cursor", "C:/expected")
+            self.assertTrue(critic_markers.has_live_server("cursor", "C:/expected"))
+            self.assertFalse(critic_markers.has_live_server("claude", "C:/expected"))
+            self.assertFalse(critic_markers.has_live_server("cursor", "C:/other"))
 
     def test_former_marker_directories_are_still_swept(self):
         # A rename must not strand a previous install's markers in the temp
@@ -126,6 +158,15 @@ class HookTests(unittest.TestCase):
         self.assertNotIn("apply_patch", pre)
         self.assertIn("consult_critic", post)
         self.assertNotIn("Task", post)
+
+    def test_cursor_hooks_cover_native_edits_and_mcp_completion_fail_open(self):
+        config = json.loads((HOOKS / "cursor-hooks.json").read_text(encoding="utf-8"))
+        pre = config["hooks"]["preToolUse"][0]
+        for tool in ("Write", "StrReplace", "Delete"):
+            self.assertIn(tool, pre["matcher"])
+        self.assertFalse(pre["failClosed"])
+        self.assertIn("consult_critic", config["hooks"]["afterMCPExecution"][0]["matcher"])
+        self.assertNotIn("postToolUse", config["hooks"])
 
 
 if __name__ == "__main__":

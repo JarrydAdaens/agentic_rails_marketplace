@@ -2,7 +2,8 @@
 
 This session pairs an executor with an antagonistic, read-only critic from
 outside the Claude model family: GPT-5.6-Sol at high reasoning, reached through
-the local Codex CLI. Invoke it with the `consult_critic` MCP tool. Consult it at
+the local Codex CLI. In Cursor, invoke `consult_critic` from
+`plugin-codex-as-critic-guardrail-codex-as-critic-guardrail`. Consult it at
 decision points. The critic's job is to attack your approach, not to reassure
 you — expect objections, and treat "survives attack" as the pass signal.
 Consults are cheap relative to mistakes but expensive relative to silence —
@@ -16,10 +17,12 @@ target 2–3 per task.
 4. On tasks longer than a few steps: at least one consult before committing to an approach and one before declaring done. Short reactive tasks dictated by tool output just read don't need repeat consults.
 5. **Engage with objections seriously.** The critic is adversarial by design; do not dismiss an objection because it is inconvenient, and do not capitulate because it is forceful. Test each objection against the evidence. If evidence contradicts the critique, run one reconcile consult: "I found X, you object Y — which constraint breaks the tie?"
 
-A PreToolUse hook denies the first Write/Edit of each session until one critic
-consult has occurred. The deny message tells you what to do; this is expected
-behavior, not an error. Shell commands are not gated — do not use them to bypass
-the consult requirement.
+A write hook denies the first Write/Edit/StrReplace/Delete of each session until
+one critic consult has occurred. The deny message tells you what to do; this is
+expected behavior, not an error. If Cursor did not register the critic MCP
+server, the hook allows the write and reports the missing tool rather than
+deadlocking the session. Shell commands are not gated — do not use them to
+bypass the consult requirement.
 
 ### Tenacity contract
 

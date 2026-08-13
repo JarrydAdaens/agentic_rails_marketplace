@@ -23,15 +23,24 @@ import os
 import shutil
 import subprocess
 import sys
+import tempfile
+from pathlib import Path
 from typing import Any, TextIO
 
+HOOKS_DIR = Path(__file__).resolve().parent.parent / "hooks"
+sys.path.insert(0, str(HOOKS_DIR))
+from advisor_markers import clear_server_ready, mark_server_ready  # noqa: E402
+
 PLUGIN_NAME = "local-advisor-guardrail"
-PLUGIN_VERSION = "2.1.0"
+PLUGIN_VERSION = "2.2.0"
 CODEX_MODEL = "gpt-5.6-sol"
 CURSOR_MODEL = "cursor-grok-4.5-high"
+CONFIG_RELATIVE_PATH = Path("harness") / PLUGIN_NAME / "config.json"
+CONFIG_MODEL_KEY = "default_model"
 DEFAULT_TIMEOUT_SECONDS = 600
 TIMEOUT_ENV_VAR = "ADVISOR_GUARDRAIL_TIMEOUT_SECONDS"
 FIELDS = ("task", "stage", "approach", "evidence", "question")
+OPTIONAL_FIELDS = ("model",)
 STAGES = ("planning", "stuck", "pivot-check", "completion-review")
 SUPPORTED_PROTOCOL_VERSIONS = ("2025-06-18", "2025-03-26", "2024-11-05")
 
@@ -55,7 +64,11 @@ def validate_arguments(arguments: Any) -> dict[str, str]:
         raise ValueError("missing or empty required field(s): " + ", ".join(missing))
     if arguments["stage"] not in STAGES:
         raise ValueError("stage must be one of: " + ", ".join(STAGES))
-    return {name: arguments[name].strip() for name in FIELDS}
+    model = arguments.get("model")
+    if model is not None and (not isinstance(model, str) or not model.strip()):
+        raise ValueError("model must be a non-empty Cursor model ID when provided")
+    names = FIELDS + OPTIONAL_FIELDS
+    return {name: arguments[name].strip() for name in names if name in arguments}
 
 
 def build_prompt(values: dict[str, str]) -> str:
@@ -80,11 +93,81 @@ Structured consultation:
 def project_root(workspace: str | None = None) -> str:
     selected = (
         workspace
+        or os.environ.get("AGENTIC_RAILS_WORKSPACE")
         or os.environ.get("CURSOR_PROJECT_DIR")
         or os.environ.get("CLAUDE_PROJECT_DIR")
         or os.getcwd()
     )
     return os.path.abspath(selected)
+
+
+def config_path(workspace: str | None = None) -> Path:
+    return Path(project_root(workspace)) / CONFIG_RELATIVE_PATH
+
+
+def read_project_default(workspace: str | None = None) -> tuple[str, bool]:
+    path = config_path(workspace)
+    if not path.is_file():
+        return CURSOR_MODEL, False
+    try:
+        config = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise RuntimeError(f"Could not read local advisor config {path}: {exc}") from exc
+    model = config.get(CONFIG_MODEL_KEY) if isinstance(config, dict) else None
+    if not isinstance(model, str) or not model.strip():
+        raise RuntimeError(
+            f"Local advisor config {path} must contain a non-empty "
+            f"{CONFIG_MODEL_KEY!r} string."
+        )
+    return model.strip(), True
+
+
+def write_project_default(model: str, workspace: str | None = None) -> Path:
+    path = config_path(workspace)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    config: dict[str, Any] = {}
+    if path.is_file():
+        try:
+            existing = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise RuntimeError(f"Could not update local advisor config {path}: {exc}") from exc
+        if not isinstance(existing, dict):
+            raise RuntimeError(f"Local advisor config {path} must contain a JSON object.")
+        config.update(existing)
+    config[CONFIG_MODEL_KEY] = model
+
+    temporary_name: str | None = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            dir=path.parent,
+            prefix=".local-advisor-config-",
+            suffix=".tmp",
+            delete=False,
+        ) as temporary:
+            temporary_name = temporary.name
+            json.dump(config, temporary, indent=2)
+            temporary.write("\n")
+        Path(temporary_name).replace(path)
+    except OSError as exc:
+        if temporary_name:
+            try:
+                Path(temporary_name).unlink(missing_ok=True)
+            except OSError:
+                pass
+        raise RuntimeError(f"Could not remember local advisor model in {path}: {exc}") from exc
+    return path
+
+
+def select_cursor_model(
+    values: dict[str, str], workspace: str | None = None
+) -> tuple[str, bool]:
+    requested = values.get("model")
+    saved, exists = read_project_default(workspace)
+    if requested:
+        return requested, not exists or requested != saved
+    return saved, not exists
 
 
 def codex_command() -> list[str]:
@@ -105,7 +188,7 @@ def codex_command() -> list[str]:
     ]
 
 
-def cursor_command(workspace: str) -> list[str]:
+def cursor_command(workspace: str, model: str = CURSOR_MODEL) -> list[str]:
     executable = shutil.which("agent")
     if not executable:
         raise RuntimeError(
@@ -125,26 +208,26 @@ def cursor_command(workspace: str) -> list[str]:
         "--workspace",
         workspace,
         "--model",
-        CURSOR_MODEL,
+        model,
     ]
 
 
-def command(host: str, workspace: str) -> list[str]:
+def command(host: str, workspace: str, cursor_model: str = CURSOR_MODEL) -> list[str]:
     if host == "codex":
         return codex_command()
     if host == "cursor":
-        return cursor_command(workspace)
+        return cursor_command(workspace, cursor_model)
     raise ValueError(f"unsupported advisor host: {host}")
 
 
-def classify_failure(host: str, stderr: str) -> str:
+def classify_failure(host: str, stderr: str, cursor_model: str = CURSOR_MODEL) -> str:
     detail = stderr.strip() or f"{host.title()} exited without an error message."
     lowered = detail.lower()
     if any(term in lowered for term in ("not logged in", "authentication", "unauthorized", "sign in", "login required")):
         instruction = "sign in with the Codex CLI" if host == "codex" else "run 'agent login'"
         return f"{host.title()} authentication failed; {instruction} and retry. {detail}"
     if any(term in lowered for term in ("model", "not available", "not found", "unsupported")):
-        model = CODEX_MODEL if host == "codex" else CURSOR_MODEL
+        model = CODEX_MODEL if host == "codex" else cursor_model
         return f"Advisor model {model} is unavailable for this account or CLI version. {detail}"
     return f"{host.title()} advisor failed. {detail}"
 
@@ -152,10 +235,13 @@ def classify_failure(host: str, stderr: str) -> str:
 def consult(host: str, arguments: Any, workspace: str | None = None) -> str:
     values = validate_arguments(arguments)
     root = project_root(workspace)
+    cursor_model, remember = (
+        select_cursor_model(values, root) if host == "cursor" else (CURSOR_MODEL, False)
+    )
     limit = timeout_seconds()
     try:
         completed = subprocess.run(
-            command(host, root),
+            command(host, root, cursor_model),
             input=build_prompt(values),
             capture_output=True,
             encoding="utf-8",
@@ -171,15 +257,32 @@ def consult(host: str, arguments: Any, workspace: str | None = None) -> str:
     except OSError as exc:
         raise RuntimeError(f"Could not start the {host.title()} advisor: {exc}") from exc
     if completed.returncode:
-        raise RuntimeError(classify_failure(host, completed.stderr))
+        raise RuntimeError(classify_failure(host, completed.stderr, cursor_model))
     advice = completed.stdout.strip()
     if not advice:
         raise RuntimeError(f"{host.title()} advisor returned no advice.")
+    if host == "cursor" and remember:
+        write_project_default(cursor_model, root)
     return advice
 
 
 def tool(host: str) -> dict[str, Any]:
     model = CODEX_MODEL if host == "codex" else CURSOR_MODEL
+    properties: dict[str, Any] = {
+        "task": {"type": "string"},
+        "stage": {"type": "string", "enum": list(STAGES)},
+        "approach": {"type": "string"},
+        "evidence": {"type": "string"},
+        "question": {"type": "string"},
+    }
+    if host == "cursor":
+        properties["model"] = {
+            "type": "string",
+            "description": (
+                "Optional Cursor model ID. A successful call remembers it in "
+                "harness/local-advisor-guardrail/config.json for this project."
+            ),
+        }
     return {
         "name": "consult_advisor",
         "description": (
@@ -188,13 +291,7 @@ def tool(host: str) -> dict[str, Any]:
         ),
         "inputSchema": {
             "type": "object",
-            "properties": {
-                "task": {"type": "string"},
-                "stage": {"type": "string", "enum": list(STAGES)},
-                "approach": {"type": "string"},
-                "evidence": {"type": "string"},
-                "question": {"type": "string"},
-            },
+            "properties": properties,
             "required": list(FIELDS),
             "additionalProperties": False,
         },
@@ -227,6 +324,10 @@ def dispatch(host: str, message: dict[str, Any]) -> dict[str, Any] | None:
     if method == "ping":
         return response(request_id, {})
     if method == "tools/list":
+        mark_server_ready(
+            host=os.environ.get("AGENTIC_RAILS_MCP_HOST", host),
+            workspace=os.environ.get("AGENTIC_RAILS_WORKSPACE"),
+        )
         return response(request_id, {"tools": [tool(host)]})
     if method == "tools/call":
         if params.get("name") != "consult_advisor":
@@ -254,17 +355,20 @@ def main() -> None:
     parser.add_argument("--host", choices=("codex", "cursor"), required=True)
     args = parser.parse_args()
     stdin, stdout = sys.stdin.buffer, utf8_writer(sys.stdout)
-    for raw in iter(stdin.readline, b""):
-        try:
-            message = json.loads(raw.decode("utf-8"))
-            output = dispatch(args.host, message)
-        except (UnicodeDecodeError, json.JSONDecodeError, TypeError) as exc:
-            output = response(None, error={"code": -32700, "message": str(exc)})
-        except Exception as exc:
-            output = response(None, error={"code": -32603, "message": f"Internal advisor server error: {exc}"})
-        if output is not None:
-            stdout.write(json.dumps(output) + "\n")
-            stdout.flush()
+    try:
+        for raw in iter(stdin.readline, b""):
+            try:
+                message = json.loads(raw.decode("utf-8"))
+                output = dispatch(args.host, message)
+            except (UnicodeDecodeError, json.JSONDecodeError, TypeError) as exc:
+                output = response(None, error={"code": -32700, "message": str(exc)})
+            except Exception as exc:
+                output = response(None, error={"code": -32603, "message": f"Internal advisor server error: {exc}"})
+            if output is not None:
+                stdout.write(json.dumps(output) + "\n")
+                stdout.flush()
+    finally:
+        clear_server_ready()
 
 
 if __name__ == "__main__":

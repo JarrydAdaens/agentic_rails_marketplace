@@ -4,6 +4,7 @@ import contextlib
 import io
 import json
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -20,11 +21,13 @@ import advisor_markers
 class HookTests(unittest.TestCase):
     def invoke(self, module, payload):
         output = io.StringIO()
-        with patch.object(sys, "stdin", io.StringIO(json.dumps(payload))), contextlib.redirect_stdout(output):
+        error = io.StringIO()
+        with patch.object(sys, "stdin", io.StringIO(json.dumps(payload))), contextlib.redirect_stdout(output), contextlib.redirect_stderr(error):
             try:
                 module.main()
             except SystemExit as exc:
                 self.assertEqual(exc.code, 0)
+        self.last_stderr = error.getvalue()
         return output.getvalue()
 
     def test_claude_subagent_and_mcp_tool_create_markers(self):
@@ -42,11 +45,25 @@ class HookTests(unittest.TestCase):
 
     def test_gate_uses_native_host_response_shapes(self):
         claude = json.loads(self.invoke(advisor_gate, {"session_id": "c", "tool_name": "Edit"}))
-        cursor = json.loads(self.invoke(advisor_gate, {"conversation_id": "u", "hook_event_name": "preToolUse", "tool_name": "Write"}))
+        with patch.object(advisor_gate, "has_live_server", return_value=True):
+            cursor = json.loads(self.invoke(advisor_gate, {"conversation_id": "u", "hook_event_name": "preToolUse", "tool_name": "Write"}))
         self.assertEqual(claude["hookSpecificOutput"]["permissionDecision"], "deny")
         self.assertEqual(cursor["permission"], "deny")
+        self.assertIn("plugin-local-advisor-guardrail-local-advisor-guardrail", cursor["agent_message"])
         with patch.object(advisor_gate, "has_marker", return_value=True):
             self.assertEqual(self.invoke(advisor_gate, {"conversation_id": "u", "hook_event_name": "preToolUse"}), "")
+
+    def test_cursor_gate_fails_open_when_mcp_tool_is_not_registered(self):
+        with patch.object(advisor_gate, "has_live_server", return_value=False):
+            decision = json.loads(self.invoke(advisor_gate, {
+                "conversation_id": "missing-mcp",
+                "hook_event_name": "preToolUse",
+                "tool_name": "StrReplace",
+            }))
+        self.assertEqual(decision["permission"], "allow")
+        self.assertIn("has not registered", decision["agent_message"])
+        self.assertIn("/plugin", decision["agent_message"])
+        self.assertIn("has not registered", self.last_stderr)
 
     def test_legacy_markers_unlock_gate(self):
         neutral = MagicMock()
@@ -68,6 +85,15 @@ class HookTests(unittest.TestCase):
             },
         )
 
+    def test_mcp_readiness_is_scoped_to_cursor_and_workspace(self):
+        with tempfile.TemporaryDirectory() as temporary, patch.object(
+            advisor_markers, "marker_dir", return_value=Path(temporary)
+        ), patch.object(advisor_markers, "_process_is_running", return_value=True):
+            advisor_markers.mark_server_ready("cursor", "C:/expected")
+            self.assertTrue(advisor_markers.has_live_server("cursor", "C:/expected"))
+            self.assertFalse(advisor_markers.has_live_server("codex", "C:/expected"))
+            self.assertFalse(advisor_markers.has_live_server("cursor", "C:/other"))
+
     def test_cleanup_handles_neutral_and_both_legacy_directories(self):
         directories = [MagicMock(), MagicMock(), MagicMock()]
         for directory in directories:
@@ -85,8 +111,12 @@ class HookTests(unittest.TestCase):
         cursor = json.loads((HOOKS / "cursor-hooks.json").read_text(encoding="utf-8"))
         self.assertIn("apply_patch", claude["hooks"]["PreToolUse"][0]["matcher"])
         self.assertIn("consult_advisor", claude["hooks"]["PostToolUse"][0]["matcher"])
-        self.assertEqual(cursor["hooks"]["preToolUse"][0]["matcher"], "Write")
-        self.assertIn("consult_advisor", cursor["hooks"]["postToolUse"][0]["matcher"])
+        pre = cursor["hooks"]["preToolUse"][0]
+        for tool in ("Write", "StrReplace", "Delete"):
+            self.assertIn(tool, pre["matcher"])
+        self.assertFalse(pre["failClosed"])
+        self.assertIn("consult_advisor", cursor["hooks"]["afterMCPExecution"][0]["matcher"])
+        self.assertNotIn("postToolUse", cursor["hooks"])
 
     def test_context_uses_cursor_additional_context_shape(self):
         cursor = json.loads(self.invoke(advisor_context, {"hook_event_name": "sessionStart"}))

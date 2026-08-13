@@ -62,8 +62,8 @@ which is what makes each one individually testable and individually failable.
 flowchart TD
     subgraph CC["Claude Code session"]
         SS[SessionStart]
-        PRE[PreToolUse on Write/Edit]
-        POST[PostToolUse on consult_critic]
+        PRE[Host-native preToolUse on writes]
+        POST[Host-native post/after MCP consult]
         LLM[Executor model]
     end
 
@@ -180,20 +180,21 @@ Every flag is load-bearing:
 | `-c model_reasoning_effort="high"` | Critique quality depends on reasoning depth; this is the main latency driver. |
 | `-` | Read the prompt from stdin, avoiding argv length limits and shell quoting. |
 
-The subprocess inherits the **executor's working directory** (`cwd=workspace or
-os.getcwd()`), which is what lets the critic inspect the repository under
-review. `.mcp.json` deliberately sets no `cwd`, and a test asserts that.
+The subprocess inherits the **executor's working directory**. Claude's
+`.mcp.json` deliberately sets no `cwd`; Cursor's plugin-rooted launcher passes
+the consumer workspace through `AGENTIC_RAILS_WORKSPACE`, so an explicit plugin
+cwd never redirects the critic into its own cache.
 
 ### 4.3 The hooks (`hooks/`)
 
-All four are launched by the same one-line `python -c` shim in `hooks.json`,
-which puts the plugin's `hooks/` directory on `sys.path` and then `runpy`s the
-target file. This is what allows the hook modules to import each other.
+Claude launches all four through the one-line `python -c` shim in `hooks.json`.
+Cursor launches them through the bundled PowerShell/Python resolver from the
+plugin root, avoiding a bare `python` dependency while preserving module imports.
 
 | Hook | Event | Matcher | Behavior |
 | --- | --- | --- | --- |
-| `critic_gate.py` | `PreToolUse` | `^(Write\|Edit\|MultiEdit\|NotebookEdit)$` | Denies with instructions unless a marker exists |
-| `critic_marker.py` | `PostToolUse` | `.*consult_critic$` | Touches the session marker |
+| `critic_gate.py` | Claude `PreToolUse`; Cursor `preToolUse` | Host write/edit tools, including Cursor `StrReplace` and `Delete` | Denies only when a workspace-scoped live MCP server exists and no consult marker exists; otherwise fails open |
+| `critic_marker.py` | Claude `PostToolUse`; Cursor `afterMCPExecution` | `.*consult_critic$` | Touches the session marker |
 | `critic_cleanup.py` | `SessionStart` | — | Deletes markers older than 24h, including from former plugin names |
 | `critic_context.py` | `SessionStart` | — | Prints `critic-protocol.md` into session context |
 
@@ -256,12 +257,13 @@ transport — which the encoding test exploits.
 
 **Session start.** Two hooks fire. `critic_cleanup.py` prunes markers older
 than 24 hours (from the current directory and any former one). `critic_context.py`
-prints the protocol to stdout, and Claude Code appends that to session context.
+prints the protocol to stdout, and the host adds it to session context.
 
 **First write attempt.** The executor tries `Write`. `critic_gate.py` reads the
 hook payload, extracts `session_id`, finds no marker, and emits a
-`permissionDecision: deny` whose reason explains exactly what to call. The
-executor reads that and self-corrects.
+host-native denial whose reason names the exact MCP server and tool. On Cursor,
+the gate first proves that this workspace's MCP server completed tool
+registration; otherwise it permits the write and logs installation guidance.
 
 **The consult.** The executor calls `consult_critic`. The server validates,
 builds the prompt, and runs `codex exec` in the executor's working directory.
@@ -269,8 +271,9 @@ Codex reasons — typically 30–130 seconds — optionally reading repository f
 then returns a critique of at most 120 words. The server strips it and returns
 it as a tool result.
 
-**Unlocking.** `critic_marker.py` fires on `PostToolUse`, matches the tool name
-(plain or MCP-namespaced), and touches `critic-consulted-<session_id>`.
+**Unlocking.** `critic_marker.py` fires on Claude `PostToolUse` or Cursor
+`afterMCPExecution`, matches the tool name (plain or MCP-namespaced), and
+touches `critic-consulted-<session_id>`.
 
 **Subsequent writes.** `critic_gate.py` finds the marker and exits 0 silently.
 The gate is **per session, not per task** — one consult unlocks the rest of the
@@ -429,7 +432,7 @@ Stated plainly so nobody mistakes 30 green tests for full coverage:
 
 ```bash
 cd plugins/codex-as-critic-guardrail
-python -m unittest discover -s tests        # 30 tests, ~0.6s
+python -m unittest discover -s tests        # unit + stdio + Cursor adapter tests
 claude plugin validate .                     # from the repo root
 ```
 
@@ -600,10 +603,10 @@ ones in place so cleanup keeps sweeping them.
 **Adding a hook:** it must fail open. Follow the existing pattern —
 `force_utf8()` first, catch payload errors, `sys.exit(0)` on anything unexpected.
 
-**Editing this plugin:** the `agentic-rails` marketplace is registered as a
-`directory` source pointing at this working tree, so this repository *is* the
-installed copy. Changes to hooks and `.mcp.json` need `/reload-plugins` or a
-restart to take effect.
+**Editing this plugin:** use Cursor's `--plugin-dir` local-development path or
+install a committed marketplace revision. Marketplace registration and
+`.cursor/settings.json` enablement do not install a plugin; install it through
+`/plugin` or Customize, approve its MCP server, and start a fresh session.
 
 **Historical sibling plugin:** `advisor-codex-guardrail` carried both encoding
 defects fixed here, including the visible protocol corruption. Port the fixes

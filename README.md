@@ -14,8 +14,12 @@ anything from this repository.
 agent plugin marketplace add <git-url-to-this-repo>
 ```
 
-Cursor installs registered plugins through **Customize → Marketplace**. During
-local development, load one plugin with `agent --plugin-dir <plugin-path>`.
+Registering a Cursor marketplace does **not** install every catalog entry, and
+adding an `enabled: true` entry to `.cursor/settings.json` is not an install.
+Install each plugin through Cursor's interactive `/plugin` Marketplace screen
+or **Customize → Marketplace**, choose project or user scope, approve its MCP
+server, then start a fresh session. During local development, load one plugin
+with `agent --plugin-dir <plugin-path>`.
 
 ## Plugins
 
@@ -54,8 +58,9 @@ portable capability keeps one stable plugin name and one shared protocol.
 1. Keep every plugin self-contained; installed copies cannot reach outside the
    plugin folder.
 2. Add the compatible per-host manifests and catalog entries.
-3. Use `${CLAUDE_PLUGIN_ROOT}`/`${PLUGIN_ROOT}` in Claude/Codex hook launchers;
-   Cursor hook and MCP paths are plugin-relative.
+3. Use `${CLAUDE_PLUGIN_ROOT}` for Claude launchers. Cursor MCP launchers use
+   `${PLUGIN_ROOT}` plus `cwd: "${PLUGIN_ROOT}"`; Cursor hook commands are
+   plugin-relative because plugin hooks execute from the plugin root.
 4. Validate with `claude plugin validate .`, test host adapters, and confirm
    every catalog source resolves before committing.
 

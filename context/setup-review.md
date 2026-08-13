@@ -10,13 +10,20 @@ metadata:
 
 > **2026-08-12 update:** Cursor is now the third supported marketplace host,
 > using `.cursor-plugin/marketplace.json`, per-plugin Cursor manifests, native
-> camel-case hook schemas, plugin-relative commands, and `mcp.json`. The
+> camel-case hook schemas, plugin-rooted MCP commands, and `mcp.json`. The
 > installed Cursor CLI registers Git marketplaces with
 > `agent plugin marketplace add <git-url>`. The advisor pair was consolidated
 > into one portable `local-advisor-guardrail` (originally published as
 > `advisor-guardrail`); the WPF and game verifiers moved to
 > `jarryds-agent-marketplace`. The original setup notes below remain useful as
 > Claude/Codex history but no longer describe the complete repository.
+
+> **2026-08-13 correction:** Cursor marketplace registration, installation, and
+> enablement are separate states. A sparse marketplace checkout contains only
+> installed plugin folders; `.cursor/settings.json` cannot install another
+> catalog entry. Cursor MCP launchers use `${PLUGIN_ROOT}` and an explicit cwd,
+> while plugin hook commands resolve from the plugin root. Consultation gates
+> are fail-open and arm only after their MCP server registers tools.
 
 Verified against the Claude Code docs (code.claude.com/docs, plugins reference
 and plugin-marketplaces pages) and the Codex plugin docs

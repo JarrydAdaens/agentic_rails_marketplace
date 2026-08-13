@@ -27,9 +27,15 @@ import os
 import shutil
 import subprocess
 import sys
+from pathlib import Path
 from typing import Any, TextIO
 
+HOOKS_DIR = Path(__file__).resolve().parent.parent / "hooks"
+sys.path.insert(0, str(HOOKS_DIR))
+from critic_markers import clear_server_ready, mark_server_ready  # noqa: E402
+
 MODEL = "gpt-5.6-sol"
+PLUGIN_VERSION = "1.1.0"
 
 # Measured consult latency on real work: median 51s, p90 132s, longest success
 # 178s. The original 180s cap sat inside that distribution, so consults in large
@@ -136,11 +142,12 @@ def describe_timeout(limit: int, partial: Any) -> str:
 def consult(arguments: Any, workspace: str | None = None) -> str:
     values = validate_arguments(arguments)
     limit = timeout_seconds()
+    root = workspace or os.environ.get("AGENTIC_RAILS_WORKSPACE") or os.getcwd()
     try:
         completed = subprocess.run(
             command(), input=build_prompt(values), capture_output=True,
             encoding="utf-8", errors="replace",
-            cwd=workspace or os.getcwd(), timeout=limit, check=False,
+            cwd=root, timeout=limit, check=False,
         )
     except subprocess.TimeoutExpired as exc:
         raise RuntimeError(describe_timeout(limit, exc.stderr or exc.stdout)) from exc
@@ -196,11 +203,15 @@ def dispatch(message: dict[str, Any]) -> dict[str, Any] | None:
         return response(request_id, {
             "protocolVersion": negotiate_protocol_version(params),
             "capabilities": {"tools": {}},
-            "serverInfo": {"name": "codex-as-critic-guardrail", "version": "1.0.0"},
+            "serverInfo": {"name": "codex-as-critic-guardrail", "version": PLUGIN_VERSION},
         })
     if method == "ping":
         return response(request_id, {})  # the spec requires an empty result here, not an error
     if method == "tools/list":
+        mark_server_ready(
+            host=os.environ.get("AGENTIC_RAILS_MCP_HOST", "unknown"),
+            workspace=os.environ.get("AGENTIC_RAILS_WORKSPACE"),
+        )
         return response(request_id, {"tools": [TOOL]})
     if method == "tools/call":
         if params.get("name") != "consult_critic":
@@ -243,21 +254,24 @@ def main() -> None:
     line at a time gives strictness and recovery at once.
     """
     stdin, stdout = sys.stdin.buffer, utf8_writer(sys.stdout)
-    while True:
-        raw = stdin.readline()
-        if not raw:
-            return  # client closed the transport
-        try:
-            line = raw.decode("utf-8")
-        except UnicodeDecodeError as exc:
-            output = response(None, error={"code": -32700, "message": f"stdin is not valid UTF-8: {exc}"})
-        else:
-            if not line.strip():
-                continue
-            output = handle(line)
-        if output is not None:
-            stdout.write(json.dumps(output) + "\n")
-            stdout.flush()
+    try:
+        while True:
+            raw = stdin.readline()
+            if not raw:
+                return  # client closed the transport
+            try:
+                line = raw.decode("utf-8")
+            except UnicodeDecodeError as exc:
+                output = response(None, error={"code": -32700, "message": f"stdin is not valid UTF-8: {exc}"})
+            else:
+                if not line.strip():
+                    continue
+                output = handle(line)
+            if output is not None:
+                stdout.write(json.dumps(output) + "\n")
+                stdout.flush()
+    finally:
+        clear_server_ready()
 
 
 if __name__ == "__main__":

@@ -24,6 +24,9 @@ keeping markers out of the target project means the guardrail needs no
 
 from __future__ import annotations
 
+import ctypes
+import json
+import os
 import tempfile
 from pathlib import Path
 
@@ -42,6 +45,94 @@ def legacy_marker_dirs() -> tuple[Path, ...]:
 
 def marker_path(session_id: str) -> Path:
     return marker_dir() / f"advisor-consulted-{session_id}"
+
+
+def server_state_path(pid: int | None = None) -> Path:
+    return marker_dir() / f"mcp-server-{pid or os.getpid()}.json"
+
+
+def _normalized_workspace(workspace: str | None) -> str:
+    return os.path.normcase(os.path.abspath(workspace)) if workspace else ""
+
+
+def mark_server_ready(host: str = "unknown", workspace: str | None = None) -> Path:
+    marker_dir().mkdir(parents=True, exist_ok=True)
+    state = server_state_path()
+    state.write_text(
+        json.dumps({
+            "pid": os.getpid(),
+            "host": host,
+            "workspace": _normalized_workspace(workspace),
+        }),
+        encoding="utf-8",
+    )
+    return state
+
+
+def clear_server_ready() -> None:
+    try:
+        server_state_path().unlink()
+    except FileNotFoundError:
+        pass
+
+
+def _process_is_running(pid: int) -> bool:
+    if pid <= 0:
+        return False
+    if pid == os.getpid():
+        return True
+    if os.name == "nt":
+        process_query_limited_information = 0x1000
+        still_active = 259
+        handle = ctypes.windll.kernel32.OpenProcess(
+            process_query_limited_information, False, pid
+        )
+        if not handle:
+            return False
+        try:
+            exit_code = ctypes.c_ulong()
+            return bool(
+                ctypes.windll.kernel32.GetExitCodeProcess(
+                    handle, ctypes.byref(exit_code)
+                )
+                and exit_code.value == still_active
+            )
+        finally:
+            ctypes.windll.kernel32.CloseHandle(handle)
+    try:
+        os.kill(pid, 0)
+    except (OSError, PermissionError):
+        return False
+    return True
+
+
+def has_live_server(host: str, workspace: str | None) -> bool:
+    expected_workspace = _normalized_workspace(workspace)
+    if not expected_workspace:
+        return False
+    directory = marker_dir()
+    if not directory.is_dir():
+        return False
+    for state in directory.glob("mcp-server-*.json"):
+        try:
+            payload = json.loads(state.read_text(encoding="utf-8"))
+            pid = int(payload["pid"])
+            matches = (
+                payload.get("host") == host
+                and payload.get("workspace") == expected_workspace
+            )
+        except (OSError, ValueError, KeyError, TypeError, json.JSONDecodeError):
+            pid = -1
+            matches = False
+        if matches and _process_is_running(pid):
+            return True
+        if _process_is_running(pid):
+            continue
+        try:
+            state.unlink()
+        except OSError:
+            pass
+    return False
 
 
 def has_marker(session_id: str) -> bool:
