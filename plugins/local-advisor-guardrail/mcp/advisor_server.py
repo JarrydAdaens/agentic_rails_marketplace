@@ -20,19 +20,22 @@ import argparse
 import io
 import json
 import os
-import shutil
 import subprocess
 import sys
 import tempfile
 from pathlib import Path
 from typing import Any, TextIO
 
-HOOKS_DIR = Path(__file__).resolve().parent.parent / "hooks"
+MCP_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(MCP_DIR))
+from windows_runtime import resolve_cli  # noqa: E402
+
+HOOKS_DIR = MCP_DIR.parent / "hooks"
 sys.path.insert(0, str(HOOKS_DIR))
 from advisor_markers import clear_server_ready, mark_server_ready  # noqa: E402
 
 PLUGIN_NAME = "local-advisor-guardrail"
-PLUGIN_VERSION = "2.2.0"
+PLUGIN_VERSION = "2.2.2"
 CODEX_MODEL = "gpt-5.6-sol"
 CURSOR_MODEL = "cursor-grok-4.5-high"
 CONFIG_RELATIVE_PATH = Path("harness") / PLUGIN_NAME / "config.json"
@@ -171,11 +174,8 @@ def select_cursor_model(
 
 
 def codex_command() -> list[str]:
-    executable = shutil.which("codex")
-    if not executable:
-        raise RuntimeError("Codex executable not found on PATH; install Codex and sign in, then retry.")
     return [
-        executable,
+        *resolve_cli("codex"),
         "exec",
         "--ephemeral",
         "--sandbox",
@@ -189,14 +189,8 @@ def codex_command() -> list[str]:
 
 
 def cursor_command(workspace: str, model: str = CURSOR_MODEL) -> list[str]:
-    executable = shutil.which("agent")
-    if not executable:
-        raise RuntimeError(
-            "Cursor Agent executable 'agent' not found on PATH; install Cursor Agent "
-            "and sign in, then retry."
-        )
     return [
-        executable,
+        *resolve_cli("agent"),
         "--print",
         "--output-format",
         "text",

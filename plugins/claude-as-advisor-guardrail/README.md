@@ -21,7 +21,9 @@ MCP server, review the bundled hooks with `/hooks`, and start a new thread.
 Both adapters fail open with a diagnostic until their matching MCP server has
 been listed for the current workspace.
 
-Requirements: authenticated `claude` CLI and Python 3 for Codex. The Cursor
-adapter requires `uv` in a standard per-user location or identified by
-`AGENTIC_RAILS_UV`; it never falls back to a global Python command. Override
-the 600-second timeout with `CLAUDE_ADVISOR_TIMEOUT_SECONDS`.
+Requirements: authenticated `claude` CLI and Python 3 for Codex. On Cursor,
+the plugin restores Windows user and machine PATH values from the registry,
+recognizes WinGet's UV shim, and resolves the absolute Claude CLI shim without
+operator PATH changes. `AGENTIC_RAILS_UV` is optional and there is no
+direct-Python fallback. Override the 600-second timeout with
+`CLAUDE_ADVISOR_TIMEOUT_SECONDS`.

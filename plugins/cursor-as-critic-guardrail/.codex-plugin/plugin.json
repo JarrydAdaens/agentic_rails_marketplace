@@ -1,6 +1,6 @@
 {
   "name": "cursor-as-critic-guardrail",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Require an adversarial read-only Cursor Grok 4.6 critic consultation before the first Codex write.",
   "author": { "name": "Jarryd Adaens" },
   "mcpServers": {

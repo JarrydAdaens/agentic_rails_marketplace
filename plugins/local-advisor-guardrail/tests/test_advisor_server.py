@@ -41,18 +41,18 @@ class AdvisorServerTests(unittest.TestCase):
         self.assertEqual(cursor["cwd"], "${PLUGIN_ROOT}")
         self.assertEqual(cursor["command"], r"C:\Windows\System32\cmd.exe")
         self.assertEqual(cursor["args"][:3], ["/d", "/c", "call"])
-        self.assertEqual(cursor["args"][3], "${PLUGIN_ROOT}/scripts/launch-uv.cmd")
+        self.assertEqual(cursor["args"][3], "${PLUGIN_ROOT}/scripts/launch-windows.cmd")
         self.assertTrue(all(not arg.startswith("./") for arg in cursor["args"]))
         self.assertIn("${PLUGIN_ROOT}/mcp/advisor_server.py", cursor["args"])
 
-    @patch.object(server.shutil, "which", return_value="codex")
+    @patch.object(server, "resolve_cli", return_value=["codex"])
     def test_codex_is_sol_read_only_high_reasoning(self, _which):
         command = server.codex_command()
         self.assertIn("gpt-5.6-sol", command)
         self.assertIn("read-only", command)
         self.assertIn('model_reasoning_effort="high"', command)
 
-    @patch.object(server.shutil, "which", return_value="agent")
+    @patch.object(server, "resolve_cli", return_value=["agent"])
     def test_cursor_is_grok_high_in_ask_mode(self, _which):
         command = server.cursor_command("C:/repo")
         self.assertIn("cursor-grok-4.5-high", command)
@@ -122,7 +122,7 @@ class AdvisorServerTests(unittest.TestCase):
             server.validate_arguments({})
         initialized = server.dispatch("cursor", {"id": 1, "method": "initialize"})
         self.assertEqual(initialized["result"]["serverInfo"]["name"], "local-advisor-guardrail")
-        self.assertEqual(initialized["result"]["serverInfo"]["version"], "2.2.0")
+        self.assertEqual(initialized["result"]["serverInfo"]["version"], "2.2.2")
 
     def test_server_becomes_gate_ready_only_after_cursor_lists_tools(self):
         with patch.dict(server.os.environ, {

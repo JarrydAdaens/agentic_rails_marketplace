@@ -24,18 +24,21 @@ from __future__ import annotations
 import io
 import json
 import os
-import shutil
 import subprocess
 import sys
 from pathlib import Path
 from typing import Any, TextIO
 
-HOOKS_DIR = Path(__file__).resolve().parent.parent / "hooks"
+MCP_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(MCP_DIR))
+from windows_runtime import resolve_cli  # noqa: E402
+
+HOOKS_DIR = MCP_DIR.parent / "hooks"
 sys.path.insert(0, str(HOOKS_DIR))
 from critic_markers import clear_server_ready, mark_server_ready  # noqa: E402
 
 MODEL = "gpt-5.6-sol"
-PLUGIN_VERSION = "1.1.0"
+PLUGIN_VERSION = "1.1.1"
 
 # Measured consult latency on real work: median 51s, p90 132s, longest success
 # 178s. The original 180s cap sat inside that distribution, so consults in large
@@ -104,13 +107,10 @@ Structured consultation:
 
 
 def command() -> list[str]:
-    executable = shutil.which("codex")
-    if not executable:
-        raise RuntimeError("Codex executable not found on PATH; install Codex and sign in, then retry.")
     return [
         # --skip-git-repo-check keeps the critic usable in workspaces that are not
         # git repositories; without it Codex refuses to start there at all.
-        executable, "exec", "--ephemeral", "--skip-git-repo-check",
+        *resolve_cli("codex"), "exec", "--ephemeral", "--skip-git-repo-check",
         "--sandbox", "read-only", "--model", MODEL,
         "-c", 'model_reasoning_effort="high"', "-",
     ]

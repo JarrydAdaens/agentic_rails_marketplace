@@ -111,11 +111,14 @@ class AdapterContractTests(unittest.TestCase):
             self.assertEqual(server["cwd"], "${PLUGIN_ROOT}")
             self.assertEqual(server["command"], r"C:\Windows\System32\cmd.exe")
             self.assertEqual(server["args"][:3], ["/d", "/c", "call"])
-            self.assertEqual(server["args"][3], "${PLUGIN_ROOT}/scripts/launch-uv.cmd")
+            self.assertEqual(server["args"][3], "${PLUGIN_ROOT}/scripts/launch-windows.cmd")
             self.assertTrue(any("${PLUGIN_ROOT}/mcp/" in arg for arg in server["args"]))
-            launcher = (ROOT / "plugins" / plugin / "scripts" / "launch-uv.cmd").read_text(encoding="utf-8")
+            launcher = (ROOT / "plugins" / plugin / "scripts" / "launch-windows.cmd").read_text(encoding="utf-8")
             self.assertIn("uv.exe", launcher)
             self.assertIn("run --no-project python %*", launcher)
+            self.assertIn(r"HKCU\Environment", launcher)
+            self.assertIn(r"HKLM\SYSTEM\CurrentControlSet", launcher)
+            self.assertIn(r"Microsoft\WinGet\Links\uv.exe", launcher)
             self.assertNotIn("py.exe", launcher)
             self.assertNotIn("python.exe", launcher)
             hooks = json.loads((ROOT / "plugins" / plugin / "hooks/cursor-hooks.json").read_text(encoding="utf-8"))["hooks"]
@@ -130,8 +133,29 @@ class AdapterContractTests(unittest.TestCase):
                         registration["command"].startswith(r"C:\Windows\System32\cmd.exe "),
                         registration["command"],
                     )
-                    self.assertIn("launch-uv.cmd", registration["command"])
+                    self.assertIn("launch-windows.cmd", registration["command"])
                     self.assertFalse(registration["failClosed"])
+
+    def test_cursor_windows_runtime_payloads_stay_in_sync(self):
+        plugins = (
+            "local-advisor-guardrail",
+            "codex-as-critic-guardrail",
+            "codex-as-advisor-guardrail",
+            "claude-as-advisor-guardrail",
+            "claude-as-critic-guardrail",
+            "cursor-as-advisor-guardrail",
+            "cursor-as-critic-guardrail",
+        )
+        launchers = {
+            (ROOT / "plugins" / plugin / "scripts" / "launch-windows.cmd").read_text(encoding="utf-8")
+            for plugin in plugins
+        }
+        resolvers = {
+            (ROOT / "plugins" / plugin / "mcp" / "windows_runtime.py").read_text(encoding="utf-8")
+            for plugin in plugins
+        }
+        self.assertEqual(len(launchers), 1, "Cursor bootstrap copies drifted")
+        self.assertEqual(len(resolvers), 1, "Cursor CLI resolver copies drifted")
 
     @unittest.skipUnless(os.name == "nt", "Cursor Windows launcher regression")
     def test_cursor_mcp_and_hooks_launch_with_empty_path(self):
@@ -144,7 +168,31 @@ class AdapterContractTests(unittest.TestCase):
             timeout=120, check=False,
         )
         self.assertEqual(completed.returncode, 0, completed.stderr)
-        self.assertIn("7 Cursor MCP launchers and hooks passed", completed.stdout)
+        self.assertIn("7 Cursor adapters passed", completed.stdout)
+
+    @unittest.skipUnless(os.name == "nt", "Cursor Windows child-CLI regression")
+    def test_cursor_child_cli_resolution_is_absolute_and_spawnable(self):
+        cases = (
+            ("local-advisor-guardrail", "advisor_server.py", "cursor"),
+            ("codex-as-critic-guardrail", "critic_server.py", "codex"),
+            ("codex-as-advisor-guardrail", "advisor_server.py", "codex"),
+            ("claude-as-advisor-guardrail", "advisor_server.py", "claude"),
+            ("claude-as-critic-guardrail", "critic_server.py", "claude"),
+            ("cursor-as-advisor-guardrail", "advisor_server.py", "cursor"),
+            ("cursor-as-critic-guardrail", "critic_server.py", "cursor"),
+        )
+        runner = ROOT / "tests" / "cursor-cli-resolution-smoke.py"
+        for plugin, server, provider in cases:
+            completed = subprocess.run(
+                [sys.executable, str(runner), str(ROOT / "plugins" / plugin / "mcp" / server), provider],
+                capture_output=True, encoding="utf-8", cwd=ROOT,
+                timeout=60, check=False,
+            )
+            self.assertEqual(completed.returncode, 0, completed.stderr)
+            result = json.loads(completed.stdout)
+            self.assertTrue(Path(result["command"][0]).is_absolute())
+            if provider == "codex" and Path(result["command"][0]).name.casefold() == "cmd.exe":
+                self.assertTrue(result["node"])
 
     def test_codex_adapters_bundle_mcp_and_hooks(self):
         for plugin in ("claude-as-advisor-guardrail", "claude-as-critic-guardrail", "cursor-as-advisor-guardrail", "cursor-as-critic-guardrail"):

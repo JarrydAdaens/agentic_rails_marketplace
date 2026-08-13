@@ -1,5 +1,6 @@
 {
   "name": "cursor-as-critic-guardrail",
+  "version": "1.1.2",
   "description": "Requires an executor to consult an antagonistic Cursor Grok 4.6 High critic at standard speed before its first write.",
   "author": { "name": "Jarryd Adaens" },
   "hooks": "./hooks/cursor-hooks.json",

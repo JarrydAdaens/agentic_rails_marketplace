@@ -41,11 +41,12 @@ On install, review and trust the hooks and the local MCP command. This trust
 prompt is expected: the plugin executes bundled Python and, for a consultation,
 starts the locally authenticated Codex CLI. Authentication, unavailable-model,
 missing-executable, and timeout failures are returned as actionable tool
-errors. On Cursor, an absolute native `cmd.exe` starts a bundled UV-only
-launcher, while MCP paths use `${PLUGIN_ROOT}` and an explicit plugin-root
-working directory. The launcher accepts `AGENTIC_RAILS_UV`, checks standard UV
-install locations, and fails clearly when UV is unavailable; it has no direct
-Python fallback.
+errors. On Cursor, absolute native `cmd.exe` starts a bundled launcher that
+restores the Windows user and machine PATH values from the registry, recognizes
+WinGet's UV shim, and then starts the server through UV. The server repeats the
+restore before resolving an absolute Codex command and ensures `node.exe` is
+available when Codex is an npm `.cmd` shim. `AGENTIC_RAILS_UV` remains an
+optional override; there is no direct-Python fallback.
 
 ### Cursor installation
 

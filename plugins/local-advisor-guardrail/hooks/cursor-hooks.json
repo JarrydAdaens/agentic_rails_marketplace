@@ -4,24 +4,24 @@
     "preToolUse": [
       {
         "matcher": "Write|StrReplace|Delete|Edit|MultiEdit|NotebookEdit",
-        "command": "C:\\Windows\\System32\\cmd.exe /d /c .\\scripts\\launch-uv.cmd .\\hooks\\advisor_gate.py",
+        "command": "C:\\Windows\\System32\\cmd.exe /d /c .\\scripts\\launch-windows.cmd .\\hooks\\advisor_gate.py",
         "failClosed": false
       }
     ],
     "afterMCPExecution": [
       {
         "matcher": "consult_advisor$",
-        "command": "C:\\Windows\\System32\\cmd.exe /d /c .\\scripts\\launch-uv.cmd .\\hooks\\advisor_marker.py",
+        "command": "C:\\Windows\\System32\\cmd.exe /d /c .\\scripts\\launch-windows.cmd .\\hooks\\advisor_marker.py",
         "failClosed": false
       }
     ],
     "sessionStart": [
       {
-        "command": "C:\\Windows\\System32\\cmd.exe /d /c .\\scripts\\launch-uv.cmd .\\hooks\\advisor_cleanup.py",
+        "command": "C:\\Windows\\System32\\cmd.exe /d /c .\\scripts\\launch-windows.cmd .\\hooks\\advisor_cleanup.py",
         "failClosed": false
       },
       {
-        "command": "C:\\Windows\\System32\\cmd.exe /d /c .\\scripts\\launch-uv.cmd .\\hooks\\advisor_context.py",
+        "command": "C:\\Windows\\System32\\cmd.exe /d /c .\\scripts\\launch-windows.cmd .\\hooks\\advisor_context.py",
         "failClosed": false
       }
     ]

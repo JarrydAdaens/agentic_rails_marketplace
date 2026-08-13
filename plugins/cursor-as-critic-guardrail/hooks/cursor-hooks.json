@@ -1,11 +1,11 @@
 {
   "version": 1,
   "hooks": {
-    "preToolUse": [{ "matcher": "Write|StrReplace|Delete|Edit|MultiEdit|NotebookEdit", "command": "C:\\Windows\\System32\\cmd.exe /d /c .\\scripts\\launch-uv.cmd .\\hooks\\critic_gate.py", "failClosed": false }],
-    "afterMCPExecution": [{ "matcher": "consult_critic$", "command": "C:\\Windows\\System32\\cmd.exe /d /c .\\scripts\\launch-uv.cmd .\\hooks\\critic_marker.py", "failClosed": false }],
+    "preToolUse": [{ "matcher": "Write|StrReplace|Delete|Edit|MultiEdit|NotebookEdit", "command": "C:\\Windows\\System32\\cmd.exe /d /c .\\scripts\\launch-windows.cmd .\\hooks\\critic_gate.py", "failClosed": false }],
+    "afterMCPExecution": [{ "matcher": "consult_critic$", "command": "C:\\Windows\\System32\\cmd.exe /d /c .\\scripts\\launch-windows.cmd .\\hooks\\critic_marker.py", "failClosed": false }],
     "sessionStart": [
-      { "command": "C:\\Windows\\System32\\cmd.exe /d /c .\\scripts\\launch-uv.cmd .\\hooks\\critic_cleanup.py", "failClosed": false },
-      { "command": "C:\\Windows\\System32\\cmd.exe /d /c .\\scripts\\launch-uv.cmd .\\hooks\\critic_context.py", "failClosed": false }
+      { "command": "C:\\Windows\\System32\\cmd.exe /d /c .\\scripts\\launch-windows.cmd .\\hooks\\critic_cleanup.py", "failClosed": false },
+      { "command": "C:\\Windows\\System32\\cmd.exe /d /c .\\scripts\\launch-windows.cmd .\\hooks\\critic_context.py", "failClosed": false }
     ]
   }
 }

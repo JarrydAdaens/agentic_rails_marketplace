@@ -67,7 +67,10 @@ consultation guardrails intentionally creates multiple first-write gates.
 3. Use `${CLAUDE_PLUGIN_ROOT}` for Claude launchers. Cursor MCP launchers use
    `${PLUGIN_ROOT}` plus `cwd: "${PLUGIN_ROOT}"`; Cursor hook commands are
    plugin-relative because plugin hooks execute from the plugin root.
-4. Validate with `claude plugin validate .`, test host adapters, and confirm
+4. Cursor consultation adapters on Windows must start with an absolute native
+   executable, restore user and machine PATH values from the registry, and
+   resolve UV plus child-agent CLI shims without operator environment changes.
+5. Validate with `claude plugin validate .`, test host adapters, and confirm
    every catalog source resolves before committing.
 
 This repository is licensed under the [Apache License 2.0](LICENSE).

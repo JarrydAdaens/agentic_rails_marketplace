@@ -1,6 +1,6 @@
 {
   "name": "local-advisor-guardrail",
-  "version": "2.2.1",
+  "version": "2.2.2",
   "description": "Local advisor guardrail for Codex: require a read-only GPT-5.6 Sol High child-agent consultation inside Codex before the first apply_patch of each session.",
   "author": {
     "name": "Jarryd Adaens"

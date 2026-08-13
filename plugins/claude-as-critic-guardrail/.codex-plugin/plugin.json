@@ -1,6 +1,6 @@
 {
   "name": "claude-as-critic-guardrail",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Require an adversarial read-only Claude Opus critic consultation before the first Codex write.",
   "author": { "name": "Jarryd Adaens" },
   "mcpServers": "./.mcp.json",

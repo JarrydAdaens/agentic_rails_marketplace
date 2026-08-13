@@ -110,7 +110,7 @@ class CriticServerTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "Could not read Cursor critic config"):
                 server.read_project_default(root)
 
-    @patch.object(server.shutil, "which", return_value="agent")
+    @patch.object(server, "resolve_cli", return_value=["agent"])
     def test_command_uses_cursor_read_only_ask_mode_and_selected_model(self, _which):
         self.assertEqual(server.command("composer-2.5"), [
             "agent", "--print", "--output-format", "text", "--mode", "ask",
@@ -118,9 +118,9 @@ class CriticServerTests(unittest.TestCase):
         ])
         self.assertNotIn("--force", server.command("composer-2.5"))
 
-    @patch.object(server.shutil, "which", return_value=None)
+    @patch.object(server, "resolve_cli", side_effect=RuntimeError("Agent executable was not found after restoring PATH"))
     def test_missing_executable_is_actionable(self, _which):
-        with self.assertRaisesRegex(RuntimeError, "not found on PATH"):
+        with self.assertRaisesRegex(RuntimeError, "not found after restoring PATH"):
             server.command("composer-2.5")
 
     @patch.object(server, "command", side_effect=lambda model: ["agent", "--model", model])

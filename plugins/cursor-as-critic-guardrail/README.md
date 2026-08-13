@@ -34,11 +34,12 @@ the Windows command line. On Windows, Cursor's OS sandbox is unavailable, so
 the command explicitly disables that unsupported layer while retaining
 read-only ask mode.
 
-The `agent` executable must be on `PATH`. Cursor-hosted adapters run the bundled
-server and hooks through `uv`, located from `AGENTIC_RAILS_UV` or a standard
-per-user install, and never fall back to the global Python environment. Other
-hosts require Python 3. The plugin uses Cursor's existing login and does not
-read an API key.
+The Cursor Agent CLI must be installed and authenticated. On Cursor-hosted
+Windows adapters, the plugin restores the registry-backed user and machine
+PATH, recognizes WinGet's UV shim, and resolves an absolute `agent.cmd` before
+launch. `AGENTIC_RAILS_UV` is optional; the launcher never falls back to the
+global Python environment. Other hosts require Python 3. The plugin uses
+Cursor's existing login and does not read an API key.
 
 ## Per-project model memory
 

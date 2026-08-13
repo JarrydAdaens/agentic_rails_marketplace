@@ -4,18 +4,21 @@ from __future__ import annotations
 import io
 import json
 import os
-import shutil
 import subprocess
 import sys
 from pathlib import Path
 from typing import Any, TextIO
 
-HOOKS = Path(__file__).resolve().parent.parent / "hooks"
+MCP_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(MCP_DIR))
+from windows_runtime import resolve_cli  # noqa: E402
+
+HOOKS = MCP_DIR.parent / "hooks"
 sys.path.insert(0, str(HOOKS))
 from advisor_markers import clear_server_ready, mark_server_ready  # noqa: E402
 
 MODEL = "gpt-5.6-sol"
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 FIELDS = ("task", "stage", "approach", "evidence", "question")
 STAGES = ("planning", "stuck", "pivot-check", "completion-review")
 PROTOCOLS = ("2025-06-18", "2025-03-26", "2024-11-05")
@@ -53,10 +56,7 @@ Structured consultation:\n{payload}\n"""
 
 
 def command() -> list[str]:
-    executable = shutil.which("codex")
-    if not executable:
-        raise RuntimeError("Codex executable not found on PATH; install Codex and sign in, then retry.")
-    return [executable, "exec", "--ephemeral", "--skip-git-repo-check", "--sandbox", "read-only", "--model", MODEL, "-c", 'model_reasoning_effort="high"', "-"]
+    return [*resolve_cli("codex"), "exec", "--ephemeral", "--skip-git-repo-check", "--sandbox", "read-only", "--model", MODEL, "-c", 'model_reasoning_effort="high"', "-"]
 
 
 def consult(arguments: Any) -> str:

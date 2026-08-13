@@ -118,7 +118,7 @@ class AdvisorServerTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "Could not read Cursor advisor config"):
                 server.read_project_default(root)
 
-    @patch.object(server.shutil, "which", return_value="agent")
+    @patch.object(server, "resolve_cli", return_value=["agent"])
     def test_command_uses_cursor_read_only_ask_mode(self, _which):
         command = server.command("composer-2.5")
         self.assertEqual(command, [
@@ -128,9 +128,9 @@ class AdvisorServerTests(unittest.TestCase):
         for forbidden in ("--force", "--yolo", "--auto-review"):
             self.assertNotIn(forbidden, command)
 
-    @patch.object(server.shutil, "which", return_value=None)
+    @patch.object(server, "resolve_cli", side_effect=RuntimeError("Agent executable was not found after restoring PATH"))
     def test_missing_executable_is_actionable(self, _which):
-        with self.assertRaisesRegex(RuntimeError, "not found on PATH"):
+        with self.assertRaisesRegex(RuntimeError, "not found after restoring PATH"):
             server.command("composer-2.5")
 
     @patch.object(server, "command", side_effect=lambda model: ["agent", "--model", model])

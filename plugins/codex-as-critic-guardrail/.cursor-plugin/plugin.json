@@ -1,5 +1,6 @@
 {
   "name": "codex-as-critic-guardrail",
+  "version": "1.1.1",
   "description": "Requires Cursor agents to consult a read-only GPT-5.6 Sol critic at high reasoning before their first write.",
   "author": { "name": "Jarryd Adaens" },
   "hooks": "./hooks/cursor-hooks.json",

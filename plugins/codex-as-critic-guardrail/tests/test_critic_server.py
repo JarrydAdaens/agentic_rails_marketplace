@@ -53,7 +53,7 @@ class CriticServerTests(unittest.TestCase):
         self.assertEqual(launcher["cwd"], "${PLUGIN_ROOT}")
         self.assertEqual(launcher["command"], r"C:\Windows\System32\cmd.exe")
         self.assertEqual(launcher["args"][:3], ["/d", "/c", "call"])
-        self.assertEqual(launcher["args"][3], "${PLUGIN_ROOT}/scripts/launch-uv.cmd")
+        self.assertEqual(launcher["args"][3], "${PLUGIN_ROOT}/scripts/launch-windows.cmd")
         self.assertIn("${PLUGIN_ROOT}/mcp/critic_server.py", launcher["args"])
         self.assertTrue(all(not arg.startswith("./") for arg in launcher["args"]))
 
@@ -76,22 +76,22 @@ class CriticServerTests(unittest.TestCase):
         for field in server.FIELDS:
             self.assertTrue(properties[field].get("description"), f"{field} needs a description")
 
-    @patch.object(server.shutil, "which", return_value="codex")
+    @patch.object(server, "resolve_cli", return_value=["codex"])
     def test_command_is_fixed_read_only_high_reasoning(self, _which):
         self.assertEqual(server.command(), [
             "codex", "exec", "--ephemeral", "--skip-git-repo-check", "--sandbox",
             "read-only", "--model", "gpt-5.6-sol", "-c", 'model_reasoning_effort="high"', "-",
         ])
 
-    @patch.object(server.shutil, "which", return_value="codex")
+    @patch.object(server, "resolve_cli", return_value=["codex"])
     def test_command_runs_outside_git_repositories(self, _which):
         # Without this flag Codex refuses to start in a non-git workspace, which
         # made the critic unusable in whole projects.
         self.assertIn("--skip-git-repo-check", server.command())
 
-    @patch.object(server.shutil, "which", return_value=None)
+    @patch.object(server, "resolve_cli", side_effect=RuntimeError("Codex executable was not found after restoring PATH"))
     def test_missing_executable_is_actionable(self, _which):
-        with self.assertRaisesRegex(RuntimeError, "not found on PATH"):
+        with self.assertRaisesRegex(RuntimeError, "not found after restoring PATH"):
             server.command()
 
     @patch.object(server, "command", return_value=["codex"])
@@ -141,7 +141,7 @@ class CriticServerTests(unittest.TestCase):
     def test_initialize_reports_plugin_server_name(self):
         result = server.dispatch({"id": 1, "method": "initialize"})
         self.assertEqual(result["result"]["serverInfo"]["name"], "codex-as-critic-guardrail")
-        self.assertEqual(result["result"]["serverInfo"]["version"], "1.1.0")
+        self.assertEqual(result["result"]["serverInfo"]["version"], "1.1.1")
 
     def test_server_becomes_gate_ready_only_after_cursor_lists_tools(self):
         with patch.dict(server.os.environ, {

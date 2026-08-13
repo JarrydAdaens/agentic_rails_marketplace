@@ -1,5 +1,6 @@
 {
   "name": "claude-as-advisor-guardrail",
+  "version": "1.0.2",
   "description": "Requires Cursor executors to consult a constructive, read-only Claude Opus advisor at high effort before their first write.",
   "author": { "name": "Jarryd Adaens" },
   "hooks": "./hooks/cursor-hooks.json",

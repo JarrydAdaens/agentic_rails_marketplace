@@ -3,7 +3,7 @@
     "cursor-as-advisor-guardrail": {
       "type": "stdio",
       "command": "C:\\Windows\\System32\\cmd.exe",
-      "args": ["/d", "/c", "call", "${PLUGIN_ROOT}/scripts/launch-uv.cmd", "${PLUGIN_ROOT}/mcp/advisor_server.py"],
+      "args": ["/d", "/c", "call", "${PLUGIN_ROOT}/scripts/launch-windows.cmd", "${PLUGIN_ROOT}/mcp/advisor_server.py"],
       "env": { "AGENTIC_RAILS_MCP_HOST": "cursor", "AGENTIC_RAILS_WORKSPACE": "${workspaceFolder}" },
       "cwd": "${PLUGIN_ROOT}"
     }

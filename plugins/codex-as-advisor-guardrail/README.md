@@ -25,8 +25,9 @@ a missing server from deadlocking all edits.
 Install multiple consultation plugins only when multiple independent consults
 are intentional; every installed gate must be satisfied.
 
-Requirements: authenticated `codex` CLI and Python 3 for Claude Code. The
-Cursor adapter requires `uv` in a standard per-user location or identified by
-`AGENTIC_RAILS_UV`; it never falls back to a global Python command. Set
-`CODEX_ADVISOR_TIMEOUT_SECONDS` to override the default 600-second consultation
-timeout.
+Requirements: authenticated `codex` CLI and Python 3 for Claude Code. On
+Cursor, the plugin restores Windows user and machine PATH values from the
+registry, recognizes WinGet's UV shim, and resolves Codex plus `node.exe`
+without operator PATH changes. `AGENTIC_RAILS_UV` is optional and there is no
+direct-Python fallback. Set `CODEX_ADVISOR_TIMEOUT_SECONDS` to override the
+default 600-second consultation timeout.

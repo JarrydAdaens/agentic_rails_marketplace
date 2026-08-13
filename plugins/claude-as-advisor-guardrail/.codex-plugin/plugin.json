@@ -1,6 +1,6 @@
 {
   "name": "claude-as-advisor-guardrail",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Require a constructive read-only Claude Opus advisor consultation before the first Codex write.",
   "author": { "name": "Jarryd Adaens" },
   "mcpServers": "./.mcp.json",

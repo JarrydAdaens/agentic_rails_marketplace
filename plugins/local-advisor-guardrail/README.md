@@ -38,11 +38,13 @@ creates a cache entry and exposes
 fresh Agent session.
 
 The Cursor MCP launcher is rooted with `${PLUGIN_ROOT}` and starts through the
-absolute Windows `cmd.exe` path, so it does not depend on Cursor's stripped
-`PATH` or chosen working directory. Its bundled bootstrap is UV-only: it honors
-an absolute `AGENTIC_RAILS_UV`, checks standard per-user UV locations, and then
-checks inherited `PATH`. It never falls back to `python`, `python.exe`, or
-`py.exe`; a missing UV installation produces an explicit startup error.
+absolute Windows `cmd.exe` path. Cursor's MCP and hook processes may omit the
+user `PATH`, so the bundled bootstrap restores the user and machine PATH values
+from the Windows registry before resolving UV. It also recognizes the WinGet
+Links shim and standard per-user UV locations. It never falls back to
+`python`, `python.exe`, or `py.exe`; a genuinely missing UV installation
+produces an explicit startup error. The MCP server repeats the environment
+restore before resolving the absolute `agent.cmd` child command.
 
 Markers live under `<temp>/local-advisor-guardrail-markers/`. Markers from the
 former `advisor-guardrail`, `advisor-codex-guardrail`, and legacy Claude setup
@@ -54,14 +56,21 @@ are recognized during migration and cleared at session start.
 - Codex: the `codex` CLI authenticated with access to `gpt-5.6-sol`.
 - Cursor: the `agent` CLI authenticated with access to
   `cursor-grok-4.5-high`.
-- Cursor on Windows: `uv` in a standard per-user location or identified by
-  `AGENTIC_RAILS_UV`; Python 3 for other hosts.
+- Cursor on Windows: `uv` installed normally, including through WinGet. The
+  plugin restores the standard registry PATH; `AGENTIC_RAILS_UV` is an optional
+  override, not an installation requirement. Python 3 is required by other hosts.
 
 ## Migration
 
 Claude Code migrates `advisor-guardrail` through the marketplace rename map.
 Codex and Cursor users should remove the old plugin identity and install
 `local-advisor-guardrail`; legacy session markers remain compatible.
+
+Cursor does not apply Claude's marketplace rename map to an already cached hook
+bundle. Before enabling `local-advisor-guardrail`, uninstall or disable the old
+`advisor-guardrail` entry through Cursor's `/plugin` screen (or **Customize →
+Plugins**). Its historical Cursor hook used a bare Python command with
+`failClosed: true` and can otherwise continue blocking writes from the cache.
 
 ## Known limitations
 

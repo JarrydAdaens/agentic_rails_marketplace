@@ -5,7 +5,7 @@
       "command": "C:\\Windows\\System32\\cmd.exe",
       "args": [
         "/d", "/c", "call",
-        "${PLUGIN_ROOT}/scripts/launch-uv.cmd",
+        "${PLUGIN_ROOT}/scripts/launch-windows.cmd",
         "${PLUGIN_ROOT}/mcp/advisor_server.py"
       ],
       "env": {

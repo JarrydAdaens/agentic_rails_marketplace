@@ -24,18 +24,22 @@ from __future__ import annotations
 import io
 import json
 import os
-import shutil
 import subprocess
 import sys
 import tempfile
 from pathlib import Path
 from typing import Any, TextIO
 
-HOOKS_DIR = Path(__file__).resolve().parent.parent / "hooks"
+MCP_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(MCP_DIR))
+from windows_runtime import resolve_cli  # noqa: E402
+
+HOOKS_DIR = MCP_DIR.parent / "hooks"
 sys.path.insert(0, str(HOOKS_DIR))
 from critic_markers import clear_server_ready, mark_server_ready  # noqa: E402
 
 PLUGIN_NAME = "cursor-as-critic-guardrail"
+PLUGIN_VERSION = "1.1.2"
 BUILTIN_DEFAULT_MODEL = "cursor-grok-4.6-high"
 CONFIG_RELATIVE_PATH = Path("harness") / PLUGIN_NAME / "config.json"
 CONFIG_MODEL_KEY = "default_model"
@@ -180,11 +184,8 @@ def select_model(values: dict[str, str], workspace: str | None = None) -> tuple[
 
 
 def command(model: str) -> list[str]:
-    executable = shutil.which("agent")
-    if not executable:
-        raise RuntimeError("Cursor Agent executable 'agent' not found on PATH; install Cursor Agent and sign in, then retry.")
     return [
-        executable,
+        *resolve_cli("agent"),
         "--print",
         "--output-format", "text",
         "--mode", "ask",
@@ -289,7 +290,7 @@ def dispatch(message: dict[str, Any]) -> dict[str, Any] | None:
         return response(request_id, {
             "protocolVersion": negotiate_protocol_version(params),
             "capabilities": {"tools": {}},
-            "serverInfo": {"name": PLUGIN_NAME, "version": "1.0.0"},
+            "serverInfo": {"name": PLUGIN_NAME, "version": PLUGIN_VERSION},
         })
     if method == "ping":
         return response(request_id, {})

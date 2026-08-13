@@ -3,17 +3,20 @@ from __future__ import annotations
 import io
 import json
 import os
-import shutil
 import subprocess
 import sys
 from pathlib import Path
 from typing import Any, TextIO
 
-HOOKS = Path(__file__).resolve().parent.parent / "hooks"
+MCP_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(MCP_DIR))
+from windows_runtime import resolve_cli  # noqa: E402
+
+HOOKS = MCP_DIR.parent / "hooks"
 sys.path.insert(0, str(HOOKS))
 from advisor_markers import clear_server_ready, mark_server_ready  # noqa: E402
 
-VERSION = "1.0.0"
+VERSION = "1.0.2"
 MODEL = "opus"
 FIELDS = ("task", "stage", "approach", "evidence", "question")
 STAGES = ("planning", "stuck", "pivot-check", "completion-review")
@@ -47,9 +50,7 @@ Structured consultation:\n{payload}\n"""
 
 
 def command():
-    executable = shutil.which("claude")
-    if not executable: raise RuntimeError("Claude executable not found on PATH; install Claude Code and sign in, then retry.")
-    return [executable, "-p", "--model", MODEL, "--effort", "high", "--permission-mode", "plan", "--tools", "Read,Grep,Glob", "--safe-mode", "--no-session-persistence", "--output-format", "text"]
+    return [*resolve_cli("claude"), "-p", "--model", MODEL, "--effort", "high", "--permission-mode", "plan", "--tools", "Read,Grep,Glob", "--safe-mode", "--no-session-persistence", "--output-format", "text"]
 
 
 def consult(arguments):
