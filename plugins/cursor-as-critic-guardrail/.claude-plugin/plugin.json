@@ -1,6 +1,6 @@
 {
   "name": "cursor-as-critic-guardrail",
-  "description": "Cross-vendor actor-critic guardrail for Claude Code: executor sessions must consult an antagonistic, read-only critic through the local Cursor Agent CLI before their first write. The consult model is selectable and remembered per project.",
+  "description": "Cross-vendor actor-critic guardrail for Claude Code: executor sessions must consult an antagonistic, read-only critic through the local Cursor Agent CLI before their first write. Defaults to Cursor Grok 4.6 High at standard speed; model selection is remembered per project.",
   "author": {
     "name": "Jarryd Adaens"
   }

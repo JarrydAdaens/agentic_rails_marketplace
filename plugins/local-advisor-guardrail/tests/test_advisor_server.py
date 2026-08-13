@@ -18,10 +18,22 @@ def payload():
 
 
 class AdvisorServerTests(unittest.TestCase):
+    def test_all_host_manifests_use_local_plugin_identity(self):
+        root = SERVER_PATH.parents[1]
+        for manifest in (
+            root / ".claude-plugin" / "plugin.json",
+            root / ".codex-plugin" / "plugin.json",
+            root / ".cursor-plugin" / "plugin.json",
+        ):
+            self.assertEqual(
+                json.loads(manifest.read_text(encoding="utf-8"))["name"],
+                "local-advisor-guardrail",
+            )
+
     def test_manifests_select_same_server_with_host_argument(self):
         root = SERVER_PATH.parents[1]
-        codex = json.loads((root / ".codex-mcp.json").read_text(encoding="utf-8"))["mcpServers"]["advisor-guardrail"]
-        cursor = json.loads((root / "mcp.json").read_text(encoding="utf-8"))["mcpServers"]["advisor-guardrail"]
+        codex = json.loads((root / ".codex-mcp.json").read_text(encoding="utf-8"))["mcpServers"]["local-advisor-guardrail"]
+        cursor = json.loads((root / "mcp.json").read_text(encoding="utf-8"))["mcpServers"]["local-advisor-guardrail"]
         self.assertEqual(codex["args"][-2:], ["--host", "codex"])
         self.assertEqual(cursor["args"][-2:], ["--host", "cursor"])
 
@@ -48,7 +60,8 @@ class AdvisorServerTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             server.validate_arguments({})
         initialized = server.dispatch("cursor", {"id": 1, "method": "initialize"})
-        self.assertEqual(initialized["result"]["serverInfo"]["name"], "advisor-guardrail")
+        self.assertEqual(initialized["result"]["serverInfo"]["name"], "local-advisor-guardrail")
+        self.assertEqual(initialized["result"]["serverInfo"]["version"], "2.1.0")
 
 
 if __name__ == "__main__":

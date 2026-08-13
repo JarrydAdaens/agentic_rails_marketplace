@@ -6,7 +6,7 @@ declaring non-trivial work complete.
 
 Invoke the advisor for this host:
 
-- Claude Code: use the `advisor-guardrail:advisor` Task/Agent subagent (Opus,
+- Claude Code: use the `local-advisor-guardrail:advisor` Task/Agent subagent (Opus,
   high effort).
 - Codex: call the `consult_advisor` MCP tool (GPT-5.6 Sol, high reasoning).
 - Cursor: call the `consult_advisor` MCP tool (Cursor Grok 4.5 High).

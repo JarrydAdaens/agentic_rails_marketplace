@@ -5,10 +5,10 @@
   },
   "plugins": [
     {
-      "name": "advisor-guardrail",
+      "name": "local-advisor-guardrail",
       "source": {
         "source": "local",
-        "path": "./plugins/advisor-guardrail"
+        "path": "./plugins/local-advisor-guardrail"
       },
       "policy": {
         "installation": "AVAILABLE",

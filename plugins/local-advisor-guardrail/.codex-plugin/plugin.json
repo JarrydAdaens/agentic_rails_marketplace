@@ -1,13 +1,13 @@
 {
-  "name": "advisor-guardrail",
-  "version": "2.0.0",
-  "description": "Actor-critic guardrail for Codex: require a read-only GPT-5.6-Sol advisor consultation at high reasoning before the first apply_patch of each session.",
+  "name": "local-advisor-guardrail",
+  "version": "2.1.0",
+  "description": "Local advisor guardrail for Codex: require a read-only GPT-5.6 Sol High child-agent consultation inside Codex before the first apply_patch of each session.",
   "author": {
     "name": "Jarryd Adaens"
   },
   "mcpServers": "./.codex-mcp.json",
   "interface": {
-    "displayName": "Advisor Guardrail",
+    "displayName": "Local Advisor Guardrail",
     "shortDescription": "Require strategic advice before the first write.",
     "longDescription": "Adds a read-only GPT-5.6-Sol advisor consultation tool and gates the first apply_patch in each session until the advisor has been consulted.",
     "developerName": "Jarryd Adaens",

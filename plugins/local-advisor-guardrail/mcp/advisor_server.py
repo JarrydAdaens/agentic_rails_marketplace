@@ -25,7 +25,8 @@ import subprocess
 import sys
 from typing import Any, TextIO
 
-PLUGIN_NAME = "advisor-guardrail"
+PLUGIN_NAME = "local-advisor-guardrail"
+PLUGIN_VERSION = "2.1.0"
 CODEX_MODEL = "gpt-5.6-sol"
 CURSOR_MODEL = "cursor-grok-4.5-high"
 DEFAULT_TIMEOUT_SECONDS = 600
@@ -221,7 +222,7 @@ def dispatch(host: str, message: dict[str, Any]) -> dict[str, Any] | None:
         return response(request_id, {
             "protocolVersion": negotiate_protocol_version(params),
             "capabilities": {"tools": {}},
-            "serverInfo": {"name": PLUGIN_NAME, "version": "2.0.0"},
+            "serverInfo": {"name": PLUGIN_NAME, "version": PLUGIN_VERSION},
         })
     if method == "ping":
         return response(request_id, {})

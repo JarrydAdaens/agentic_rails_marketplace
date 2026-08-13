@@ -13,7 +13,8 @@ metadata:
 > camel-case hook schemas, plugin-relative commands, and `mcp.json`. The
 > installed Cursor CLI registers Git marketplaces with
 > `agent plugin marketplace add <git-url>`. The advisor pair was consolidated
-> into one portable `advisor-guardrail`; the WPF and game verifiers moved to
+> into one portable `local-advisor-guardrail` (originally published as
+> `advisor-guardrail`); the WPF and game verifiers moved to
 > `jarryds-agent-marketplace`. The original setup notes below remain useful as
 > Claude/Codex history but no longer describe the complete repository.
 
@@ -73,7 +74,7 @@ recommended registration form on every machine.
 
 Both tools treat plugin hooks and MCP servers as high-trust and require the
 user to review/approve them at install; they are not automatically trusted.
-Users installing `advisor-guardrail` approve three Python hooks
+Users installing `local-advisor-guardrail` approve three Python hooks
 (PreToolUse gate, PostToolUse marker, SessionStart cleanup/context). This
 prompt is the deliberate trust gate — plugin READMEs say what will be asked.
 
@@ -92,7 +93,7 @@ commit; running it is part of the publishing checklist.
 (`game-`, `wpf-`), kind = `-verifier` (pass/fail acceptance check),
 `-gate` (evaluator-run gate), or `-guardrail` (hook-enforced rail).
 Domain-neutral plugins omit the domain prefix — the advisor guardrail applies
-to every session, so it is `advisor-guardrail`, not `quota-advisor-guardrail`
+to every session, so it is `local-advisor-guardrail`, not `quota-advisor-guardrail`
 (its origin name) or `rails-advisor-guardrail` (the marketplace already
 namespaces installs as `<plugin>@agentic-rails`). Existing verifier names
 already complied and were kept. Applied identically in both catalogs. Version fields: omitted in Claude manifests (commit-SHA versioning,
@@ -100,7 +101,7 @@ every push is an update); required and maintained in Codex manifests.
 
 ## Conversion notes (first three plugins)
 
-- **`advisor-guardrail`** replaces the `rails-advisor-setup` installer
+- **`local-advisor-guardrail`** replaces the `rails-advisor-setup` installer
   skill from `agentic_rails_tooling`. The installer's copy/merge steps
   (settings.json merge, CLAUDE.md append, .gitignore merge) are all replaced
   by native mechanisms: hooks register via `hooks/hooks.json`, the agent ships

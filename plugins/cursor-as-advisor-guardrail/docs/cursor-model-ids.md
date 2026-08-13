@@ -5,7 +5,7 @@ phrase — "that latest Grok one", "Opus with max thinking" — into the exact
 string that goes into `harness/cursor-as-advisor-guardrail/config.json` or the
 `model` argument of `consult_advisor`.
 
-Captured from `agent models` on 10 August 2026. **Availability is account- and
+Captured from `agent models` on 13 August 2026. **Availability is account- and
 version-dependent**: always confirm the chosen ID appears in that machine's own
 `agent models` output before using it. If the two disagree, `agent models` wins.
 
@@ -48,9 +48,9 @@ Worked examples:
 
 | Human says | Correct ID |
 | --- | --- |
-| "that latest Grok one" | `cursor-grok-4.5-high` |
-| "Grok, but quick" | `cursor-grok-4.5-high-fast` |
-| "cheap Grok for smoke tests" | `cursor-grok-4.5-low` |
+| "that latest Grok one" | `cursor-grok-4.6-high` |
+| "Grok, but quick" | `cursor-grok-4.6-high-fast` |
+| "cheap Grok for smoke tests" | `cursor-grok-4.6-low` |
 | "latest Opus" | `claude-opus-5-high` |
 | "Opus with max thinking" | `claude-opus-5-thinking-max` |
 | "Opus 4.8, extra high" | `claude-opus-4-8-xhigh` |
@@ -65,15 +65,17 @@ Worked examples:
 
 | ID | Display name |
 | --- | --- |
-| `cursor-grok-4.5-low` | Cursor Grok 4.5 Low |
-| `cursor-grok-4.5-low-fast` | Cursor Grok 4.5 Low Fast |
-| `cursor-grok-4.5-medium` | Cursor Grok 4.5 Medium |
-| `cursor-grok-4.5-medium-fast` | Cursor Grok 4.5 Medium Fast |
-| **`cursor-grok-4.5-high`** | **Cursor Grok 4.5** — the plugin's default advisor |
-| `cursor-grok-4.5-high-fast` | Cursor Grok 4.5 Fast |
+| `cursor-grok-4.6-low` | Cursor Grok 4.6 Low |
+| `cursor-grok-4.6-low-fast` | Cursor Grok 4.6 Low Fast |
+| `cursor-grok-4.6-medium` | Cursor Grok 4.6 Medium |
+| `cursor-grok-4.6-medium-fast` | Cursor Grok 4.6 Medium Fast |
+| **`cursor-grok-4.6-high`** | **Cursor Grok 4.6** — the plugin's default advisor |
+| `cursor-grok-4.6-high-fast` | Cursor Grok 4.6 Fast |
+| `cursor-grok-4.6-xhigh` | Cursor Grok 4.6 Extra High |
+| `cursor-grok-4.6-xhigh-fast` | Cursor Grok 4.6 Extra High Fast |
 
-Note there is no bare `cursor-grok-4.5` and no `grok-4.5-high`. The alias
-`grok-4.5` is *accepted* by Cursor without error, but what it maps to is
+Note there is no bare `cursor-grok-4.6` and no `grok-4.6-high`. A shorthand
+such as `grok-4.6` may be accepted by Cursor, but what it maps to is
 undocumented — do not use it.
 
 ## Cursor Composer

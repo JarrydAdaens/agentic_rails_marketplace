@@ -25,7 +25,7 @@ from the Codex marketplace catalog.
 | Piece | Mechanism |
 | --- | --- |
 | Advisor | `consult_advisor(task, stage, approach, evidence, question, model?)` MCP tool, Cursor Agent ask mode, constructive persona |
-| Model default | Built-in first-run default `cursor-grok-4.5-high`; successful calls remember the chosen model at project level |
+| Model default | Built-in first-run default `cursor-grok-4.6-high` (high reasoning, standard speed); successful calls remember the chosen model at project level |
 | Write gate | `PreToolUse` on `Write`, `Edit`, `MultiEdit`, `NotebookEdit` — denied until one consult has occurred this session |
 | Consult marker | `PostToolUse` on `consult_advisor` — a completed consult unlocks writes for the session |
 | Protocol | `SessionStart` injects the consult protocol into context; stale markers are cleaned |
@@ -55,12 +55,12 @@ harness/cursor-as-advisor-guardrail/config.json
 
 ```json
 {
-  "default_model": "cursor-grok-4.5-high"
+  "default_model": "cursor-grok-4.6-high"
 }
 ```
 
 Calls that omit `model` reuse this file. If the file does not exist, the plugin
-uses `cursor-grok-4.5-high` and creates the file after the first successful
+uses `cursor-grok-4.6-high` and creates the file after the first successful
 consult.
 Changing one project's default never changes another project. A failed model
 selection is not persisted. The file may also be edited directly; use an exact
@@ -101,7 +101,7 @@ session. A fresh session remains locked.
 
 Install only one first-write consultation guardrail at a time unless multiple
 independent consultations are intentional. Installing this beside
-`advisor-guardrail`, `cursor-as-critic-guardrail`, or
+`local-advisor-guardrail`, `cursor-as-critic-guardrail`, or
 `codex-as-critic-guardrail` creates independent gates.
 
 ## Known limitations
@@ -118,4 +118,4 @@ independent consultations are intentional. Installing this beside
 - A consultation blocks the MCP server until it completes; the server handles
   one consult at a time.
 - The project config is written only after a successful consultation. Until
-  then, a missing config seam silently falls back to `cursor-grok-4.5-high`.
+  then, a missing config seam silently falls back to `cursor-grok-4.6-high`.

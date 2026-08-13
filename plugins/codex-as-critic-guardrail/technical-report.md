@@ -575,7 +575,7 @@ fixes are mutation-verified.
   concurrently.
 - **Codex quota is consumed** on every consult, against the user's existing
   ChatGPT/Codex plan.
-- **Install one guardrail, not two.** Running this alongside `advisor-guardrail`
+- **Install one guardrail, not two.** Running this alongside `local-advisor-guardrail`
   means two mandatory consults per session.
 - **The marker directory is not a security boundary** (§9).
 

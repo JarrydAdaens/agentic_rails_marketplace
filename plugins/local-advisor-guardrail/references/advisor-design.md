@@ -1,14 +1,14 @@
 ---
-name: advisor-design
+name: local-advisor-design
 description: >-
   Design history for the portable advisor guard rail: the native advisor-tool
   behavior replicated across Claude Code, Codex, and Cursor, architecture,
   cost controls, risks, and the v2 backlog.
 metadata:
-  version: "2.0"
+  version: "2.1"
 ---
 
-# Advisor Guardrail — Design Document
+# Local Advisor Guardrail — Design Document
 
 **Status:** Draft for implementation
 **Target:** Claude Code, Codex, and Cursor

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Shared marker-path helper for the advisor-guardrail hooks.
+"""Shared marker-path helper for the local-advisor-guardrail hooks.
 
 Consult markers are per-session flags: advisor_marker.py creates one when the
 advisor subagent is consulted, advisor_gate.py checks for it before allowing
@@ -29,12 +29,13 @@ from pathlib import Path
 
 
 def marker_dir() -> Path:
-    return Path(tempfile.gettempdir()) / "advisor-guardrail-markers"
+    return Path(tempfile.gettempdir()) / "local-advisor-guardrail-markers"
 
 
 def legacy_marker_dirs() -> tuple[Path, ...]:
     return (
         Path(tempfile.gettempdir()) / "claude-advisor-markers",
+        Path(tempfile.gettempdir()) / "advisor-guardrail-markers",
         Path(tempfile.gettempdir()) / "advisor-codex-guardrail-markers",
     )
 

@@ -1,0 +1,7 @@
+{
+  "name": "local-advisor-guardrail",
+  "description": "Local actor-advisor guardrail: executor sessions must consult a read-only Opus High subagent inside Claude Code before their first write.",
+  "author": {
+    "name": "Jarryd Adaens"
+  }
+}

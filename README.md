@@ -21,10 +21,10 @@ local development, load one plugin with `agent --plugin-dir <plugin-path>`.
 
 | Plugin | Hosts | Purpose |
 | --- | --- | --- |
-| `advisor-guardrail` | Claude Code, Codex, Cursor | Requires a read-only advisor consult before the first session write. Uses Opus High, GPT-5.6 Sol High, or Cursor Grok 4.5 High according to the host. |
+| `local-advisor-guardrail` | Claude Code, Codex, Cursor | Requires a read-only child agent within the current IDE before the first session write. Uses Opus High, GPT-5.6 Sol High, or Cursor Grok 4.5 High according to the host. |
 | `jobs-done-guardrail` | Claude Code, Cursor | Runs configured build and test gates at completion and requests bounded repairs on failure. |
 | `codex-as-critic-guardrail` | Claude Code, Cursor | Requires an antagonistic GPT-5.6 Sol High review before writing. |
-| `cursor-as-critic-guardrail` | Claude Code, Cursor | Requires an antagonistic Cursor Grok 4.5 High review before writing. |
+| `cursor-as-critic-guardrail` | Claude Code, Cursor | Requires an antagonistic Cursor Grok 4.6 High review at standard speed before writing. |
 | `cursor-as-advisor-guardrail` | Claude Code, Cursor | Configurable advisor backed by Cursor Agent CLI. |
 | `python-uv-guardrail` | Claude Code, Cursor | Blocks direct Python/pip commands in favor of uv. |
 | `readme-name-guardrail` | Claude Code, Cursor | Reserves README.md for the project root. |

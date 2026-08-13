@@ -41,6 +41,10 @@ def payload(**overrides):
 
 
 class CriticServerTests(unittest.TestCase):
+    def test_builtin_default_is_grok_46_high_at_standard_speed(self):
+        self.assertEqual(server.BUILTIN_DEFAULT_MODEL, "cursor-grok-4.6-high")
+        self.assertNotIn("fast", server.BUILTIN_DEFAULT_MODEL)
+
     def test_mcp_launcher_keeps_executor_workspace(self):
         config = json.loads((SERVER_PATH.parents[1] / ".mcp.json").read_text(encoding="utf-8"))
         launcher = config["mcpServers"]["cursor-as-critic-guardrail"]
@@ -72,7 +76,7 @@ class CriticServerTests(unittest.TestCase):
 
     def test_missing_project_config_uses_builtin_default(self):
         with tempfile.TemporaryDirectory() as root:
-            self.assertEqual(server.read_project_default(root), ("cursor-grok-4.5-high", False))
+            self.assertEqual(server.read_project_default(root), ("cursor-grok-4.6-high", False))
             self.assertFalse(server.config_path(root).exists())
 
     def test_project_default_is_written_in_the_harness_seam(self):

@@ -27,7 +27,7 @@ from advisor_markers import has_marker
 
 DENY_REASON = (
     "Advisor gate: consult the advisor before the first write of this session. "
-    "In Claude Code, invoke advisor-guardrail:advisor with Task/Agent. In Codex "
+    "In Claude Code, invoke local-advisor-guardrail:advisor with Task/Agent. In Codex "
     "or Cursor, call consult_advisor. Supply the task, stage, approach, evidence, "
     "and question fields from the Advisor Protocol, then retry this edit."
 )

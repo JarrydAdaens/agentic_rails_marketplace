@@ -2,7 +2,7 @@
 
 Cross-vendor actor-critic guardrail for Claude Code and Cursor. The executor must consult
 an antagonistic, read-only critic at decision points, and the session's first
-write is gated until that consult happens. Unlike `advisor-guardrail`, the
+write is gated until that consult happens. Unlike `local-advisor-guardrail`, the
 second opinion comes from *outside* the Claude model family: a bundled stdio
 MCP tool, `consult_critic`, backed by `gpt-5.6-sol` at high reasoning through
 the user's existing Codex CLI login. Same-family models share blind spots; the
@@ -16,7 +16,7 @@ confirm them; and a proposal to stop is attacked as hard as the code, requiring
 the strongest case for continuing, why it fails, and why stopping is justified.
 
 Codex users who want a constructive checkpoint use the unified
-`advisor-guardrail`, which consults `gpt-5.6-sol` natively.
+`local-advisor-guardrail`, which consults `gpt-5.6-sol` locally.
 
 > Formerly published as `critic-guardrail`. Existing installs migrate
 > automatically through the marketplace `renames` map.
@@ -65,10 +65,10 @@ that applies. Raise it for very large repositories:
 A timeout error reports the limit, names the variable, and includes whatever
 Codex managed to emit before it was cut off.
 
-## Choosing between advisor-guardrail and codex-as-critic-guardrail
+## Choosing between local-advisor-guardrail and codex-as-critic-guardrail
 
 Both gate the session's first write behind a consult; install one, not both —
-two gates mean two mandatory consults per session. `advisor-guardrail` gives a
+two gates mean two mandatory consults per session. `local-advisor-guardrail` gives a
 same-ecosystem senior advisor (Opus) whose advice the executor is told to
 weight heavily. `codex-as-critic-guardrail` gives a cross-vendor antagonist
 whose objections the executor is told to test against evidence, not obey. Prefer

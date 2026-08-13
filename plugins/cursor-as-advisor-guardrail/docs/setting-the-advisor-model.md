@@ -1,7 +1,7 @@
 # Setting the Cursor advisor model
 
 How to point the `cursor-as-advisor-guardrail` plugin's advisor at a specific
-Cursor model — worked through with **Cursor Grok 4.5 at high reasoning, not the
+Cursor model — worked through with **Cursor Grok 4.6 at high reasoning, not the
 Fast variant**.
 
 This document is self-contained. It is meant to be handed to an agent working
@@ -13,7 +13,7 @@ signed-in Cursor Agent CLI.
 The model ID you want is:
 
 ```text
-cursor-grok-4.5-high
+cursor-grok-4.6-high
 ```
 
 This is also the plugin's built-in default, so a project with no configuration
@@ -29,11 +29,11 @@ with exactly this content:
 
 ```json
 {
-  "default_model": "cursor-grok-4.5-high"
+  "default_model": "cursor-grok-4.6-high"
 }
 ```
 
-Every `consult_advisor` call from that project now runs on Cursor Grok 4.5 at
+Every `consult_advisor` call from that project now runs on Cursor Grok 4.6 at
 high reasoning. Nothing else needs changing — no plugin edit, no environment
 variable, no Claude Code setting.
 
@@ -44,14 +44,14 @@ with a distinct `-fast` sibling for each:
 
 | ID | Display name | Use it? |
 | --- | --- | --- |
-| `cursor-grok-4.5-high` | Cursor Grok 4.5 | **Yes** — high reasoning, not Fast |
-| `cursor-grok-4.5-high-fast` | Cursor Grok 4.5 Fast | No — this is the Fast variant |
-| `cursor-grok-4.5-medium` / `-medium-fast` | Cursor Grok 4.5 Medium | No — lower reasoning |
-| `cursor-grok-4.5-low` / `-low-fast` | Cursor Grok 4.5 Low | No — lower reasoning |
+| `cursor-grok-4.6-high` | Cursor Grok 4.6 | **Yes** — high reasoning, not Fast |
+| `cursor-grok-4.6-high-fast` | Cursor Grok 4.6 Fast | No — this is the Fast variant |
+| `cursor-grok-4.6-medium` / `-medium-fast` | Cursor Grok 4.6 Medium | No — lower reasoning |
+| `cursor-grok-4.6-low` / `-low-fast` | Cursor Grok 4.6 Low | No — lower reasoning |
 
 Reasoning effort and Fast-versus-standard are **encoded in the ID itself**.
 There is no separate effort setting to turn up and no Fast toggle to turn off —
-picking `cursor-grok-4.5-high` is how you say "high reasoning, standard speed".
+picking `cursor-grok-4.6-high` is how you say "high reasoning, standard speed".
 
 Model IDs are account- and version-dependent. Confirm the ID exists on the
 machine before relying on it:
@@ -60,7 +60,7 @@ machine before relying on it:
 agent models
 ```
 
-Look for the line `cursor-grok-4.5-high - Cursor Grok 4.5`. If the Grok IDs are
+Look for the line `cursor-grok-4.6-high - Cursor Grok 4.6`. If the Grok IDs are
 absent or spelled differently in that listing, use what the listing actually
 says — it is the only authority.
 
@@ -72,10 +72,10 @@ Resolution order, highest priority first:
 2. `default_model` in `harness/cursor-as-advisor-guardrail/config.json`, read
    from the project root (`CLAUDE_PROJECT_DIR`, otherwise the working
    directory).
-3. The plugin's built-in fallback, `cursor-grok-4.5-high`, when no config file
+3. The plugin's built-in fallback, `cursor-grok-4.6-high`, when no config file
    exists.
 
-Because the built-in fallback is already Cursor Grok 4.5 at high reasoning, a
+Because the built-in fallback is already Cursor Grok 4.6 at high reasoning, a
 project that wants exactly that needs **no config file at all**. Write the file
 anyway when you want the choice pinned and visible in the repository, or when
 you want a different model.
@@ -102,10 +102,10 @@ switch models.
 Call `consult_advisor` with the usual five fields plus:
 
 ```json
-"model": "cursor-grok-4.5-high"
+"model": "cursor-grok-4.6-high"
 ```
 
-If the call succeeds, the plugin remembers `cursor-grok-4.5-high` as this
+If the call succeeds, the plugin remembers `cursor-grok-4.6-high` as this
 project's default and later calls may omit `model`. A **failed** model selection
 is not persisted.
 
@@ -114,10 +114,10 @@ is not persisted.
 Two checks, both cheap:
 
 1. Read back the config file — it should contain exactly
-   `"default_model": "cursor-grok-4.5-high"`.
+   `"default_model": "cursor-grok-4.6-high"`.
 2. Make one consult with **no** `model` argument and set `question` to:
    *"Reply with only the name of the underlying model you are running as."*
-   A correctly configured project answers `Cursor Grok 4.5`.
+   A correctly configured project answers `Cursor Grok 4.6`.
 
 Both checks were run against this plugin and passed; the second is the one that
 proves the config file is actually being honored rather than merely existing.
@@ -125,8 +125,8 @@ proves the config file is actually being honored rather than merely existing.
 ## Two traps that will bite you
 
 **A wrong-but-accepted alias silently overwrites your config.** Passing
-`model: "grok-4.5"` does *not* error. Cursor accepts it, the consult returns
-normally, and the plugin dutifully persists `"default_model": "grok-4.5"` —
+`model: "grok-4.6"` does *not* error. Cursor may accept it, the consult returns
+normally, and the plugin would persist `"default_model": "grok-4.6"` —
 after which the reasoning level and Fast-versus-standard behavior are whatever
 that alias happens to map to, which is not documented and not what you asked
 for. Only ever use an exact ID copied from `agent models` output.
@@ -134,7 +134,7 @@ for. Only ever use an exact ID copied from `agent models` output.
 **The parameterized bracket syntax does not work here.** `agent models` ends
 its output with a tip advertising overrides like
 `--model 'claude-opus-4-8[context=1m,effort=high,fast=false]'`. Passing the
-equivalent Grok form, `cursor-grok-4.5[effort=high,fast=false]`, is **rejected**
+equivalent Grok form, `cursor-grok-4.6[effort=high,fast=false]`, is **rejected**
 — the consult fails with "model is unavailable for this account or Cursor Agent
 version". Use the plain `-high` ID instead.
 

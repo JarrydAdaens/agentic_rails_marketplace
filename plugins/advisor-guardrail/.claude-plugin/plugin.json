@@ -1,7 +1,0 @@
-{
-  "name": "advisor-guardrail",
-  "description": "Actor-critic guardrail: executor sessions must consult a stronger read-only advisor subagent before their first write, enforced deterministically by a PreToolUse hook. Ships the advisor agent, the enforcement hooks, and SessionStart injection of the consult protocol.",
-  "author": {
-    "name": "Jarryd Adaens"
-  }
-}

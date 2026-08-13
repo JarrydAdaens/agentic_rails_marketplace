@@ -27,7 +27,7 @@ from pathlib import Path
 from typing import Any, TextIO
 
 PLUGIN_NAME = "cursor-as-advisor-guardrail"
-BUILTIN_DEFAULT_MODEL = "cursor-grok-4.5-high"
+BUILTIN_DEFAULT_MODEL = "cursor-grok-4.6-high"
 CONFIG_RELATIVE_PATH = Path("harness") / PLUGIN_NAME / "config.json"
 CONFIG_MODEL_KEY = "default_model"
 

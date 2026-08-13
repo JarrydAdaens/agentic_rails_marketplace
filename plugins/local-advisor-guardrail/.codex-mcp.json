@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "advisor-guardrail": {
+    "local-advisor-guardrail": {
       "command": "python",
       "args": ["${PLUGIN_ROOT}/mcp/advisor_server.py", "--host", "codex"]
     }

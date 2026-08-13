@@ -51,7 +51,7 @@ supply these five fields:
 The optional sixth field, `model`, selects an exact Cursor model ID. A
 successful call remembers that model in this project's
 `harness/cursor-as-critic-guardrail/config.json`. Omit it to reuse the saved
-project default; a project with no saved default starts with `cursor-grok-4.5-high`.
+project default; a project with no saved default starts with `cursor-grok-4.6-high`.
 
 A thin payload produces a poor critique. Include concrete paths, errors, and
 constraints rather than asking the critic to guess.

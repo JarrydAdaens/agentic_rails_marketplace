@@ -29,9 +29,9 @@ class HookTests(unittest.TestCase):
 
     def test_claude_subagent_and_mcp_tool_create_markers(self):
         payloads = [
-            {"session_id": "claude", "tool_name": "Task", "tool_input": {"subagent_type": "advisor-guardrail:advisor"}},
-            {"conversation_id": "cursor", "tool_name": "MCP:advisor-guardrail:consult_advisor", "tool_input": {}},
-            {"session_id": "codex", "tool_name": "mcp__advisor-guardrail__consult_advisor", "tool_input": {}},
+            {"session_id": "claude", "tool_name": "Task", "tool_input": {"subagent_type": "local-advisor-guardrail:advisor"}},
+            {"conversation_id": "cursor", "tool_name": "MCP:local-advisor-guardrail:consult_advisor", "tool_input": {}},
+            {"session_id": "codex", "tool_name": "mcp__local-advisor-guardrail__consult_advisor", "tool_input": {}},
         ]
         for payload in payloads:
             directory, marker = MagicMock(), MagicMock()
@@ -56,6 +56,17 @@ class HookTests(unittest.TestCase):
         legacy_dirs[1].__truediv__.return_value.exists.return_value = True
         with patch.object(advisor_markers, "marker_path", return_value=neutral), patch.object(advisor_markers, "legacy_marker_dirs", return_value=legacy_dirs):
             self.assertTrue(advisor_markers.has_marker("legacy"))
+
+    def test_marker_directories_preserve_pre_rename_sessions(self):
+        self.assertEqual(advisor_markers.marker_dir().name, "local-advisor-guardrail-markers")
+        self.assertEqual(
+            {path.name for path in advisor_markers.legacy_marker_dirs()},
+            {
+                "claude-advisor-markers",
+                "advisor-guardrail-markers",
+                "advisor-codex-guardrail-markers",
+            },
+        )
 
     def test_cleanup_handles_neutral_and_both_legacy_directories(self):
         directories = [MagicMock(), MagicMock(), MagicMock()]

@@ -14,9 +14,9 @@
       "keywords": ["build", "test", "stop-hook", "guardrail", "jobs-done"]
     },
     {
-      "name": "advisor-guardrail",
-      "source": "./plugins/advisor-guardrail",
-      "description": "Portable advisor guardrail for Claude Code, Codex, and Cursor. It requires consultation before the first write and selects Opus High, GPT-5.6 Sol High, or Cursor Grok 4.5 High for the host IDE.",
+      "name": "local-advisor-guardrail",
+      "source": "./plugins/local-advisor-guardrail",
+      "description": "Local advisor guardrail for Claude Code, Codex, and Cursor. It requires consultation with a child agent inside the current IDE before the first write and selects Opus High, GPT-5.6 Sol High, or Cursor Grok 4.5 High for that host.",
       "category": "guardrail",
       "keywords": ["advisor", "guardrail", "hooks", "actor-critic", "consult"]
     },
@@ -30,7 +30,7 @@
     {
       "name": "cursor-as-critic-guardrail",
       "source": "./plugins/cursor-as-critic-guardrail",
-      "description": "Cross-vendor actor-critic guardrail for Claude Code and Cursor: executor sessions must consult an antagonistic, read-only Cursor Grok 4.5 High critic before their first write.",
+      "description": "Cross-vendor actor-critic guardrail for Claude Code and Cursor: executor sessions must consult an antagonistic, read-only Cursor Grok 4.6 High critic at standard speed before their first write.",
       "category": "guardrail",
       "keywords": ["critic", "guardrail", "hooks", "actor-critic", "cursor", "cross-vendor", "model-selection"]
     },
@@ -51,12 +51,13 @@
     {
       "name": "cursor-as-advisor-guardrail",
       "source": "./plugins/cursor-as-advisor-guardrail",
-      "description": "Cross-vendor advisor guardrail for Claude Code and Cursor: executor sessions must consult a helpful, read-only advisor through the local Cursor Agent CLI before their first write.",
+      "description": "Cross-vendor advisor guardrail for Claude Code and Cursor: executor sessions must consult a helpful, read-only advisor through the local Cursor Agent CLI before their first write. Defaults to Cursor Grok 4.6 High at standard speed.",
       "category": "guardrail",
       "keywords": ["advisor", "guardrail", "hooks", "actor-critic", "cursor", "cross-vendor", "model-selection"]
     }
   ],
   "renames": {
-    "critic-guardrail": "codex-as-critic-guardrail"
+    "critic-guardrail": "codex-as-critic-guardrail",
+    "advisor-guardrail": "local-advisor-guardrail"
   }
 }
