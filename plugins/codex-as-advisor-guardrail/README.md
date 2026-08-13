@@ -25,6 +25,8 @@ a missing server from deadlocking all edits.
 Install multiple consultation plugins only when multiple independent consults
 are intentional; every installed gate must be satisfied.
 
-Requirements: authenticated `codex` CLI, Python 3, and Windows PowerShell for
-the Cursor adapter. Set `CODEX_ADVISOR_TIMEOUT_SECONDS` to override the default
-600-second consultation timeout.
+Requirements: authenticated `codex` CLI and Python 3 for Claude Code. The
+Cursor adapter requires `uv` in a standard per-user location or identified by
+`AGENTIC_RAILS_UV`; it never falls back to a global Python command. Set
+`CODEX_ADVISOR_TIMEOUT_SECONDS` to override the default 600-second consultation
+timeout.

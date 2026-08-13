@@ -4,19 +4,20 @@
     "preToolUse": [
       {
         "matcher": "Write|StrReplace|Delete|Edit|MultiEdit|NotebookEdit",
-        "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File ./scripts/launch-python.ps1 -Script ./hooks/critic_gate.py",
+        "command": "C:\\Windows\\System32\\cmd.exe /d /c .\\scripts\\launch-uv.cmd .\\hooks\\critic_gate.py",
         "failClosed": false
       }
     ],
     "afterMCPExecution": [
       {
         "matcher": "consult_critic$",
-        "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File ./scripts/launch-python.ps1 -Script ./hooks/critic_marker.py"
+        "command": "C:\\Windows\\System32\\cmd.exe /d /c .\\scripts\\launch-uv.cmd .\\hooks\\critic_marker.py",
+        "failClosed": false
       }
     ],
     "sessionStart": [
-      { "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File ./scripts/launch-python.ps1 -Script ./hooks/critic_cleanup.py" },
-      { "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File ./scripts/launch-python.ps1 -Script ./hooks/critic_context.py" }
+      { "command": "C:\\Windows\\System32\\cmd.exe /d /c .\\scripts\\launch-uv.cmd .\\hooks\\critic_cleanup.py", "failClosed": false },
+      { "command": "C:\\Windows\\System32\\cmd.exe /d /c .\\scripts\\launch-uv.cmd .\\hooks\\critic_context.py", "failClosed": false }
     ]
   }
 }

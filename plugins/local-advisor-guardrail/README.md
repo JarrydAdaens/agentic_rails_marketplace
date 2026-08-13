@@ -37,10 +37,12 @@ creates a cache entry and exposes
 `plugin-local-advisor-guardrail-local-advisor-guardrail:consult_advisor` in a
 fresh Agent session.
 
-The Cursor MCP launcher is rooted with `${PLUGIN_ROOT}` and uses the bundled
-PowerShell launcher, so it does not depend on Cursor choosing the plugin as its
-working directory or on a bare `python` command. The launcher honors
-`AGENTIC_RAILS_PYTHON`, then tries `py.exe`, `python`, and `uv`.
+The Cursor MCP launcher is rooted with `${PLUGIN_ROOT}` and starts through the
+absolute Windows `cmd.exe` path, so it does not depend on Cursor's stripped
+`PATH` or chosen working directory. Its bundled bootstrap is UV-only: it honors
+an absolute `AGENTIC_RAILS_UV`, checks standard per-user UV locations, and then
+checks inherited `PATH`. It never falls back to `python`, `python.exe`, or
+`py.exe`; a missing UV installation produces an explicit startup error.
 
 Markers live under `<temp>/local-advisor-guardrail-markers/`. Markers from the
 former `advisor-guardrail`, `advisor-codex-guardrail`, and legacy Claude setup
@@ -52,8 +54,8 @@ are recognized during migration and cleared at session start.
 - Codex: the `codex` CLI authenticated with access to `gpt-5.6-sol`.
 - Cursor: the `agent` CLI authenticated with access to
   `cursor-grok-4.5-high`.
-- Windows PowerShell plus Python 3 through `AGENTIC_RAILS_PYTHON`, `py.exe`,
-  `python`, or `uv` for Cursor hooks and MCP; Python 3 for other hosts.
+- Cursor on Windows: `uv` in a standard per-user location or identified by
+  `AGENTIC_RAILS_UV`; Python 3 for other hosts.
 
 ## Migration
 

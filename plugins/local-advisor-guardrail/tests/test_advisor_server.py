@@ -33,13 +33,15 @@ class AdvisorServerTests(unittest.TestCase):
 
     def test_manifests_select_same_server_with_host_argument(self):
         root = SERVER_PATH.parents[1]
-        codex = json.loads((root / ".codex-mcp.json").read_text(encoding="utf-8"))["mcpServers"]["local-advisor-guardrail"]
+        codex = json.loads((root / ".mcp.json").read_text(encoding="utf-8"))["mcpServers"]["local-advisor-guardrail"]
         cursor = json.loads((root / "mcp.json").read_text(encoding="utf-8"))["mcpServers"]["local-advisor-guardrail"]
         self.assertEqual(codex["args"][-2:], ["--host", "codex"])
         self.assertEqual(cursor["args"][-2:], ["--host", "cursor"])
         self.assertEqual(cursor["type"], "stdio")
         self.assertEqual(cursor["cwd"], "${PLUGIN_ROOT}")
-        self.assertEqual(cursor["command"], "powershell.exe")
+        self.assertEqual(cursor["command"], r"C:\Windows\System32\cmd.exe")
+        self.assertEqual(cursor["args"][:3], ["/d", "/c", "call"])
+        self.assertEqual(cursor["args"][3], "${PLUGIN_ROOT}/scripts/launch-uv.cmd")
         self.assertTrue(all(not arg.startswith("./") for arg in cursor["args"]))
         self.assertIn("${PLUGIN_ROOT}/mcp/advisor_server.py", cursor["args"])
 

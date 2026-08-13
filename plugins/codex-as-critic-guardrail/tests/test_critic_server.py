@@ -51,7 +51,9 @@ class CriticServerTests(unittest.TestCase):
         launcher = config["mcpServers"]["codex-as-critic-guardrail"]
         self.assertEqual(launcher["type"], "stdio")
         self.assertEqual(launcher["cwd"], "${PLUGIN_ROOT}")
-        self.assertEqual(launcher["command"], "powershell.exe")
+        self.assertEqual(launcher["command"], r"C:\Windows\System32\cmd.exe")
+        self.assertEqual(launcher["args"][:3], ["/d", "/c", "call"])
+        self.assertEqual(launcher["args"][3], "${PLUGIN_ROOT}/scripts/launch-uv.cmd")
         self.assertIn("${PLUGIN_ROOT}/mcp/critic_server.py", launcher["args"])
         self.assertTrue(all(not arg.startswith("./") for arg in launcher["args"]))
 

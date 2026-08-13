@@ -2,10 +2,10 @@
   "mcpServers": {
     "codex-as-advisor-guardrail": {
       "type": "stdio",
-      "command": "powershell.exe",
+      "command": "C:\\Windows\\System32\\cmd.exe",
       "args": [
-        "-NoProfile", "-ExecutionPolicy", "Bypass", "-File",
-        "${PLUGIN_ROOT}/scripts/launch-python.ps1", "-Script",
+        "/d", "/c", "call",
+        "${PLUGIN_ROOT}/scripts/launch-uv.cmd",
         "${PLUGIN_ROOT}/mcp/advisor_server.py"
       ],
       "env": {

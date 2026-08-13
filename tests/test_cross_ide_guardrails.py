@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import subprocess
 import sys
 import unittest
@@ -98,18 +99,52 @@ class AdapterContractTests(unittest.TestCase):
         self.assertIn('"--sandbox", "read-only"', source)
 
     def test_cursor_adapters_are_rooted_native_and_fail_open(self):
-        plugins = tuple(self.NEW) + ("cursor-as-advisor-guardrail", "cursor-as-critic-guardrail")
+        plugins = tuple(self.NEW) + (
+            "local-advisor-guardrail",
+            "codex-as-critic-guardrail",
+            "cursor-as-advisor-guardrail",
+            "cursor-as-critic-guardrail",
+        )
         for plugin in plugins:
             mcp = json.loads((ROOT / "plugins" / plugin / "mcp.json").read_text(encoding="utf-8"))
             server = next(iter(mcp["mcpServers"].values()))
             self.assertEqual(server["cwd"], "${PLUGIN_ROOT}")
+            self.assertEqual(server["command"], r"C:\Windows\System32\cmd.exe")
+            self.assertEqual(server["args"][:3], ["/d", "/c", "call"])
+            self.assertEqual(server["args"][3], "${PLUGIN_ROOT}/scripts/launch-uv.cmd")
             self.assertTrue(any("${PLUGIN_ROOT}/mcp/" in arg for arg in server["args"]))
+            launcher = (ROOT / "plugins" / plugin / "scripts" / "launch-uv.cmd").read_text(encoding="utf-8")
+            self.assertIn("uv.exe", launcher)
+            self.assertIn("run --no-project python %*", launcher)
+            self.assertNotIn("py.exe", launcher)
+            self.assertNotIn("python.exe", launcher)
             hooks = json.loads((ROOT / "plugins" / plugin / "hooks/cursor-hooks.json").read_text(encoding="utf-8"))["hooks"]
             gate = hooks["preToolUse"][0]
             for tool in ("Write", "StrReplace", "Delete"):
                 self.assertIn(tool, gate["matcher"])
             self.assertFalse(gate["failClosed"])
             self.assertIn("afterMCPExecution", hooks)
+            for registrations in hooks.values():
+                for registration in registrations:
+                    self.assertTrue(
+                        registration["command"].startswith(r"C:\Windows\System32\cmd.exe "),
+                        registration["command"],
+                    )
+                    self.assertIn("launch-uv.cmd", registration["command"])
+                    self.assertFalse(registration["failClosed"])
+
+    @unittest.skipUnless(os.name == "nt", "Cursor Windows launcher regression")
+    def test_cursor_mcp_and_hooks_launch_with_empty_path(self):
+        node = shutil.which("node")
+        if not node:
+            self.skipTest("Node.js is required to reproduce Cursor's process spawning")
+        completed = subprocess.run(
+            [node, str(ROOT / "tests" / "cursor-sparse-path-smoke.mjs")],
+            capture_output=True, encoding="utf-8", cwd=ROOT,
+            timeout=120, check=False,
+        )
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertIn("7 Cursor MCP launchers and hooks passed", completed.stdout)
 
     def test_codex_adapters_bundle_mcp_and_hooks(self):
         for plugin in ("claude-as-advisor-guardrail", "claude-as-critic-guardrail", "cursor-as-advisor-guardrail", "cursor-as-critic-guardrail"):

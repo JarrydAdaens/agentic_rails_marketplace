@@ -1,6 +1,6 @@
 {
   "name": "cursor-as-advisor-guardrail",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Require a constructive read-only Cursor Grok 4.6 advisor consultation before the first Codex write.",
   "author": { "name": "Jarryd Adaens" },
   "mcpServers": {

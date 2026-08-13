@@ -33,16 +33,19 @@ Codex users who want a constructive checkpoint use the unified
 The bundled MCP server runs `codex exec` ephemerally in the executor's
 workspace with a read-only sandbox, so the critic can inspect repository files
 but cannot modify them. It uses the installed CLI login; no API key is read or
-required. Python's standard library and the `codex` executable must be on PATH.
+required. The `codex` executable must be on `PATH`. Claude Code requires Python
+3; Cursor runs the bundled server and hooks through `uv` without invoking the
+global Python environment directly.
 
 On install, review and trust the hooks and the local MCP command. This trust
 prompt is expected: the plugin executes bundled Python and, for a consultation,
 starts the locally authenticated Codex CLI. Authentication, unavailable-model,
 missing-executable, and timeout failures are returned as actionable tool
-errors. On Cursor, plugin-relative hook commands run through a bundled
-PowerShell/Python launcher, while MCP paths use `${PLUGIN_ROOT}` and an explicit
-plugin-root working directory. This avoids depending on Cursor's project cwd or
-on a bare `python` command.
+errors. On Cursor, an absolute native `cmd.exe` starts a bundled UV-only
+launcher, while MCP paths use `${PLUGIN_ROOT}` and an explicit plugin-root
+working directory. The launcher accepts `AGENTIC_RAILS_UV`, checks standard UV
+install locations, and fails clearly when UV is unavailable; it has no direct
+Python fallback.
 
 ### Cursor installation
 
