@@ -1,6 +1,6 @@
 ## Cursor Advisor Protocol
 
-This session pairs the Claude Code executor with a helpful, read-only advisor
+This session pairs the Claude Code or Codex executor with a helpful, read-only advisor
 reached through the local Cursor Agent CLI. Invoke it with the
 `consult_advisor` MCP tool. The advisor's job is to improve the work: clarify
 the plan, surface material risks, suggest course corrections, and give a candid

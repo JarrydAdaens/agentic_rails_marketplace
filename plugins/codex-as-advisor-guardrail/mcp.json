@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "codex-as-advisor-guardrail": {
+      "type": "stdio",
+      "command": "powershell.exe",
+      "args": [
+        "-NoProfile", "-ExecutionPolicy", "Bypass", "-File",
+        "${PLUGIN_ROOT}/scripts/launch-python.ps1", "-Script",
+        "${PLUGIN_ROOT}/mcp/advisor_server.py"
+      ],
+      "env": {
+        "AGENTIC_RAILS_MCP_HOST": "cursor",
+        "AGENTIC_RAILS_WORKSPACE": "${workspaceFolder}"
+      },
+      "cwd": "${PLUGIN_ROOT}"
+    }
+  }
+}

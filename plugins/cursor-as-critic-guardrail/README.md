@@ -1,6 +1,6 @@
 # cursor-as-critic-guardrail
 
-Cross-vendor actor-critic guardrail for Claude Code and Cursor. The executor must consult
+Cross-vendor actor-critic guardrail for Claude Code and Codex. The executor must consult
 an antagonistic, read-only critic at decision points, and the session's first
 write is gated until that consult happens. The critic runs through the user's
 authenticated Cursor Agent CLI (`agent`) in read-only ask mode.
@@ -11,8 +11,8 @@ continue meanwhile; hypotheses are labeled and paired with the test that would
 confirm them; and a proposal to stop is attacked as hard as the code, requiring
 the strongest case for continuing, why it fails, and why stopping is justified.
 
-This is a Claude Code-only plugin: its purpose is reaching from Claude Code out
-to Cursor. It intentionally has no `.codex-plugin/` manifest.
+Claude Code and Codex can use this plugin to reach out to Cursor. Cursor itself
+is not a consumer because that would not provide a cross-vendor perspective.
 
 ## How it works
 
@@ -77,10 +77,11 @@ managed to emit before it was stopped.
 
 ## Installation and trust
 
-Install through the Agentic Rails Claude marketplace. Review and trust the
-hooks and local MCP command when prompted. Authentication, unavailable-model,
-missing-executable, malformed-config, and timeout failures return actionable
-tool errors.
+Install through the Agentic Rails marketplace for Claude Code or Codex. Review
+and trust the hooks and local MCP command when prompted. In Codex, use `/hooks`
+to trust the bundled lifecycle hooks and enable the plugin MCP server before
+starting a fresh thread. Authentication, unavailable-model, missing-executable,
+malformed-config, and timeout failures return actionable tool errors.
 
 The first completed consultation creates a marker under
 `<temp>/cursor-as-critic-guardrail-markers/` and unlocks writes for that

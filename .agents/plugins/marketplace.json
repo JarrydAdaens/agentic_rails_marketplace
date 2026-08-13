@@ -15,6 +15,30 @@
         "authentication": "ON_INSTALL"
       },
       "category": "Productivity"
+    },
+    {
+      "name": "cursor-as-advisor-guardrail",
+      "source": { "source": "local", "path": "./plugins/cursor-as-advisor-guardrail" },
+      "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" },
+      "category": "Productivity"
+    },
+    {
+      "name": "cursor-as-critic-guardrail",
+      "source": { "source": "local", "path": "./plugins/cursor-as-critic-guardrail" },
+      "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" },
+      "category": "Productivity"
+    },
+    {
+      "name": "claude-as-advisor-guardrail",
+      "source": { "source": "local", "path": "./plugins/claude-as-advisor-guardrail" },
+      "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" },
+      "category": "Productivity"
+    },
+    {
+      "name": "claude-as-critic-guardrail",
+      "source": { "source": "local", "path": "./plugins/claude-as-critic-guardrail" },
+      "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" },
+      "category": "Productivity"
     }
   ]
 }

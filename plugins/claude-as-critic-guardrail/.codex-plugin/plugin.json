@@ -1,0 +1,16 @@
+{
+  "name": "claude-as-critic-guardrail",
+  "version": "1.0.0",
+  "description": "Require an adversarial read-only Claude Opus critic consultation before the first Codex write.",
+  "author": { "name": "Jarryd Adaens" },
+  "mcpServers": "./.mcp.json",
+  "interface": {
+    "displayName": "Claude as Critic Guardrail",
+    "shortDescription": "Consult a Claude Opus critic before writing.",
+    "longDescription": "Adds a read-only Claude Opus critic at high effort and gates the first write until consultation.",
+    "developerName": "Jarryd Adaens",
+    "category": "Productivity",
+    "capabilities": ["MCP", "Hooks", "Read-only critic"],
+    "defaultPrompt": ["Consult the Claude critic before implementing this task."]
+  }
+}

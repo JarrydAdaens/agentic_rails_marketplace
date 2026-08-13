@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [{
+      "matcher": "Write|StrReplace|Delete|Edit|MultiEdit|NotebookEdit",
+      "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File ./scripts/launch-python.ps1 -Script ./hooks/advisor_gate.py",
+      "failClosed": false
+    }],
+    "afterMCPExecution": [{
+      "matcher": "consult_advisor$",
+      "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File ./scripts/launch-python.ps1 -Script ./hooks/advisor_marker.py",
+      "failClosed": false
+    }],
+    "sessionStart": [
+      { "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File ./scripts/launch-python.ps1 -Script ./hooks/advisor_cleanup.py", "failClosed": false },
+      { "command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File ./scripts/launch-python.ps1 -Script ./hooks/advisor_context.py", "failClosed": false }
+    ]
+  }
+}

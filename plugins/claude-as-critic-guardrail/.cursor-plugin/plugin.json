@@ -1,0 +1,8 @@
+{
+  "name": "claude-as-critic-guardrail",
+  "description": "Requires Cursor executors to consult an adversarial, read-only Claude Opus critic at high effort before their first write.",
+  "author": { "name": "Jarryd Adaens" },
+  "hooks": "./hooks/cursor-hooks.json",
+  "mcpServers": "./mcp.json",
+  "keywords": ["guardrail", "critic", "claude", "opus", "cross-vendor"]
+}

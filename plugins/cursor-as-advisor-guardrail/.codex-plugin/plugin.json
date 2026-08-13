@@ -1,0 +1,22 @@
+{
+  "name": "cursor-as-advisor-guardrail",
+  "version": "1.1.0",
+  "description": "Require a constructive read-only Cursor Grok 4.6 advisor consultation before the first Codex write.",
+  "author": { "name": "Jarryd Adaens" },
+  "mcpServers": {
+    "cursor-as-advisor-guardrail": {
+      "command": "python",
+      "args": ["${PLUGIN_ROOT}/mcp/advisor_server.py"],
+      "env": { "AGENTIC_RAILS_MCP_HOST": "codex" }
+    }
+  },
+  "interface": {
+    "displayName": "Cursor as Advisor Guardrail",
+    "shortDescription": "Consult Cursor before the first write.",
+    "longDescription": "Adds a configurable read-only Cursor advisor and deterministically gates the first Codex write until consultation.",
+    "developerName": "Jarryd Adaens",
+    "category": "Productivity",
+    "capabilities": ["MCP", "Hooks", "Read-only advisor"],
+    "defaultPrompt": ["Consult the Cursor advisor before implementing this task."]
+  }
+}

@@ -1,12 +1,12 @@
 # cursor-as-advisor-guardrail
 
-Cross-vendor advisor guardrail for Claude Code and Cursor. The executor must consult a
+Cross-vendor advisor guardrail for Claude Code and Codex. The executor must consult a
 helpful, read-only advisor at decision points, and the session's first write is
 gated until that consult happens. The advisor runs through the user's
 authenticated Cursor Agent CLI (`agent`) in read-only ask mode.
 
-The intended pairing is a Claude Code Opus executor supported by an independent
-Cursor model. The advisor is constructive rather than antagonistic: it returns
+The intended pairing is a Claude Code or Codex executor supported by an
+independent Cursor model. The advisor is constructive rather than antagonistic: it returns
 a plan, course correction, or completion verdict and concentrates on decisions,
 risks, and the next useful check.
 
@@ -16,9 +16,8 @@ gets called out, and recommending that the executor stop requires a concrete
 justification — stop reason, evidence, the case for continuing, alternatives
 tried and untried, and why no other work can proceed.
 
-This is a Claude Code-only plugin: its purpose is reaching from Claude Code out
-to Cursor. It intentionally has no `.codex-plugin/` manifest and is excluded
-from the Codex marketplace catalog.
+Claude Code and Codex can use this plugin to reach out to Cursor. Cursor itself
+is not a consumer; use `local-advisor-guardrail` for a Cursor child advisor.
 
 ## How it works
 
@@ -90,10 +89,11 @@ managed to emit before it was stopped.
 
 ## Installation and trust
 
-Install through the Agentic Rails Claude marketplace. Review and trust the
-hooks and local MCP command when prompted. Authentication, unavailable-model,
-missing-executable, malformed-config, and timeout failures return actionable
-tool errors.
+Install through the Agentic Rails marketplace for Claude Code or Codex. Review
+and trust the hooks and local MCP command when prompted. In Codex, use `/hooks`
+to trust the bundled lifecycle hooks and enable the plugin MCP server before
+starting a fresh thread. Authentication, unavailable-model, missing-executable,
+malformed-config, and timeout failures return actionable tool errors.
 
 The first completed consultation creates a marker under
 `<temp>/cursor-as-advisor-guardrail-markers/` and unlocks writes for that

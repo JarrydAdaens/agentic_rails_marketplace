@@ -28,9 +28,16 @@
       "keywords": ["critic", "guardrail", "hooks", "actor-critic", "codex", "cross-vendor"]
     },
     {
+      "name": "codex-as-advisor-guardrail",
+      "source": "./plugins/codex-as-advisor-guardrail",
+      "description": "Cross-vendor advisor guardrail for Claude Code and Cursor: consult a constructive, read-only GPT-5.6 Sol advisor via the local Codex CLI before the first write.",
+      "category": "guardrail",
+      "keywords": ["advisor", "guardrail", "hooks", "codex", "cross-vendor"]
+    },
+    {
       "name": "cursor-as-critic-guardrail",
       "source": "./plugins/cursor-as-critic-guardrail",
-      "description": "Cross-vendor actor-critic guardrail for Claude Code and Cursor: executor sessions must consult an antagonistic, read-only Cursor Grok 4.6 High critic at standard speed before their first write.",
+      "description": "Cross-vendor actor-critic guardrail for Claude Code and Codex: executor sessions must consult an antagonistic, read-only Cursor Grok 4.6 High critic at standard speed before their first write.",
       "category": "guardrail",
       "keywords": ["critic", "guardrail", "hooks", "actor-critic", "cursor", "cross-vendor", "model-selection"]
     },
@@ -51,7 +58,7 @@
     {
       "name": "cursor-as-advisor-guardrail",
       "source": "./plugins/cursor-as-advisor-guardrail",
-      "description": "Cross-vendor advisor guardrail for Claude Code and Cursor: executor sessions must consult a helpful, read-only advisor through the local Cursor Agent CLI before their first write. Defaults to Cursor Grok 4.6 High at standard speed.",
+      "description": "Cross-vendor advisor guardrail for Claude Code and Codex: executor sessions must consult a helpful, read-only advisor through the local Cursor Agent CLI before their first write. Defaults to Cursor Grok 4.6 High at standard speed.",
       "category": "guardrail",
       "keywords": ["advisor", "guardrail", "hooks", "actor-critic", "cursor", "cross-vendor", "model-selection"]
     }

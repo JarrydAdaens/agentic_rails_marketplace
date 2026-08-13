@@ -27,9 +27,12 @@ with `agent --plugin-dir <plugin-path>`.
 | --- | --- | --- |
 | `local-advisor-guardrail` | Claude Code, Codex, Cursor | Requires a read-only child agent within the current IDE before the first session write. Uses Opus High, GPT-5.6 Sol High, or Cursor Grok 4.5 High according to the host. |
 | `jobs-done-guardrail` | Claude Code, Cursor | Runs configured build and test gates at completion and requests bounded repairs on failure. |
+| `codex-as-advisor-guardrail` | Claude Code, Cursor | Requires constructive GPT-5.6 Sol High advice before writing. |
 | `codex-as-critic-guardrail` | Claude Code, Cursor | Requires an antagonistic GPT-5.6 Sol High review before writing. |
-| `cursor-as-critic-guardrail` | Claude Code, Cursor | Requires an antagonistic Cursor Grok 4.6 High review at standard speed before writing. |
-| `cursor-as-advisor-guardrail` | Claude Code, Cursor | Configurable advisor backed by Cursor Agent CLI. |
+| `claude-as-advisor-guardrail` | Codex, Cursor | Requires constructive advice from the latest Claude Opus alias at high effort before writing. |
+| `claude-as-critic-guardrail` | Codex, Cursor | Requires an antagonistic review from the latest Claude Opus alias at high effort before writing. |
+| `cursor-as-advisor-guardrail` | Claude Code, Codex | Configurable advisor backed by Cursor Grok 4.6 High at standard speed. |
+| `cursor-as-critic-guardrail` | Claude Code, Codex | Requires an antagonistic Cursor Grok 4.6 High review at standard speed before writing. |
 | `python-uv-guardrail` | Claude Code, Cursor | Blocks direct Python/pip commands in favor of uv. |
 | `readme-name-guardrail` | Claude Code, Cursor | Reserves README.md for the project root. |
 
@@ -52,6 +55,9 @@ plugins/<plugin-name>/
 
 Host manifests may select different hook files or MCP launch arguments, but a
 portable capability keeps one stable plugin name and one shared protocol.
+Each lead can choose either role from either independent provider. Existing
+same-IDE child-agent options remain available where useful. Installing multiple
+consultation guardrails intentionally creates multiple first-write gates.
 
 ## Publishing
 

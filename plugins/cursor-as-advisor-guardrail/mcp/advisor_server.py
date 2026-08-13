@@ -26,6 +26,10 @@ import tempfile
 from pathlib import Path
 from typing import Any, TextIO
 
+HOOKS_DIR = Path(__file__).resolve().parent.parent / "hooks"
+sys.path.insert(0, str(HOOKS_DIR))
+from advisor_markers import clear_server_ready, mark_server_ready  # noqa: E402
+
 PLUGIN_NAME = "cursor-as-advisor-guardrail"
 BUILTIN_DEFAULT_MODEL = "cursor-grok-4.6-high"
 CONFIG_RELATIVE_PATH = Path("harness") / PLUGIN_NAME / "config.json"
@@ -90,7 +94,7 @@ def build_prompt(values: dict[str, str]) -> str:
         f"PLAN/APPROACH: {values['approach']}\nEVIDENCE: {values['evidence']}\n"
         f"QUESTION: {values['question']}"
     )
-    return f"""You are a senior reviewer and planner advising a Claude Code coding agent from a different vendor. Be constructive, candid, and practical. Your job is to improve the executor's decisions, not to implement the task and not to manufacture objections. Return exactly one of: a plan, a course correction, or a completion verdict. Do not modify files. Inspect repository files only when useful to verify a claim.
+    return f"""You are a senior reviewer and planner advising a coding agent from a different vendor. Be constructive, candid, and practical. Your job is to improve the executor's decisions, not to implement the task and not to manufacture objections. Return exactly one of: a plan, a course correction, or a completion verdict. Do not modify files. Inspect repository files only when useful to verify a claim.
 
 Work like a pair-programming partner who intends to finish. Your instinct on seeing a problem is "what else can we try?", never "who can we escalate this to?". Never raise a concern without a forward path: pair it with a mitigation, an experiment, a narrower scope, a fallback, a decomposition, or a deferral boundary. Label speculation as speculation and name the cheap check that would settle it instead of treating it as a reason to halt. If the executor is circling the same approach without new evidence, say so plainly and give two to four concrete options in the order you would try them.
 
@@ -104,7 +108,7 @@ Structured consultation:
 
 
 def project_root(workspace: str | None = None) -> Path:
-    selected = (workspace or os.environ.get("CURSOR_PROJECT_DIR") or
+    selected = (workspace or os.environ.get("AGENTIC_RAILS_WORKSPACE") or os.environ.get("CURSOR_PROJECT_DIR") or
                 os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd())
     return Path(selected).resolve()
 
@@ -301,6 +305,7 @@ def dispatch(message: dict[str, Any]) -> dict[str, Any] | None:
     if method == "ping":
         return response(request_id, {})
     if method == "tools/list":
+        mark_server_ready(os.environ.get("AGENTIC_RAILS_MCP_HOST", "unknown"), os.environ.get("AGENTIC_RAILS_WORKSPACE") or os.getcwd())
         return response(request_id, {"tools": [TOOL]})
     if method == "tools/call":
         if params.get("name") != "consult_advisor":
@@ -337,24 +342,24 @@ def handle(line: str) -> dict[str, Any] | None:
 
 def main() -> None:
     stdin, stdout = sys.stdin.buffer, utf8_writer(sys.stdout)
-    while True:
-        raw = stdin.readline()
-        if not raw:
-            return
-        try:
-            line = raw.decode("utf-8")
-        except UnicodeDecodeError as exc:
-            output = response(None, error={
-                "code": -32700,
-                "message": f"stdin is not valid UTF-8: {exc}",
-            })
-        else:
-            if not line.strip():
-                continue
-            output = handle(line)
-        if output is not None:
-            stdout.write(json.dumps(output) + "\n")
-            stdout.flush()
+    try:
+        while True:
+            raw = stdin.readline()
+            if not raw:
+                return
+            try:
+                line = raw.decode("utf-8")
+            except UnicodeDecodeError as exc:
+                output = response(None, error={"code": -32700, "message": f"stdin is not valid UTF-8: {exc}"})
+            else:
+                if not line.strip():
+                    continue
+                output = handle(line)
+            if output is not None:
+                stdout.write(json.dumps(output) + "\n")
+                stdout.flush()
+    finally:
+        clear_server_ready()
 
 
 if __name__ == "__main__":

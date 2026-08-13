@@ -1,8 +1,11 @@
 {
   "mcpServers": {
     "cursor-as-critic-guardrail": {
-      "command": "python",
-      "args": ["./mcp/critic_server.py"]
+      "type": "stdio",
+      "command": "powershell.exe",
+      "args": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-File", "${PLUGIN_ROOT}/scripts/launch-python.ps1", "-Script", "${PLUGIN_ROOT}/mcp/critic_server.py"],
+      "env": { "AGENTIC_RAILS_MCP_HOST": "cursor", "AGENTIC_RAILS_WORKSPACE": "${workspaceFolder}" },
+      "cwd": "${PLUGIN_ROOT}"
     }
   }
 }

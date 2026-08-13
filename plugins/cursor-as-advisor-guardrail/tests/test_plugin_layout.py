@@ -38,11 +38,14 @@ class PluginLayoutTests(unittest.TestCase):
         self.assertEqual(entry["source"], f"./plugins/{NAME}")
         self.assertEqual(entry["category"], "guardrail")
 
-    def test_claude_only_plugin_is_excluded_from_codex_catalog(self):
-        self.assertFalse((PLUGIN / ".codex-plugin").exists())
+    def test_codex_adapter_is_manifested_and_cataloged(self):
+        manifest = json.loads((PLUGIN / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8"))
+        self.assertEqual(manifest["name"], NAME)
+        self.assertIn(NAME, manifest["mcpServers"])
+        self.assertTrue((PLUGIN / "hooks" / "hooks.json").is_file())
         catalog = json.loads((MARKETPLACE / ".agents" / "plugins" / "marketplace.json").read_text(encoding="utf-8"))
         names = [entry["name"] for entry in catalog["plugins"]]
-        self.assertNotIn(NAME, names)
+        self.assertEqual(names.count(NAME), 1)
 
     def test_mcp_and_hook_payloads_stay_inside_plugin(self):
         mcp = json.loads((PLUGIN / ".mcp.json").read_text(encoding="utf-8"))

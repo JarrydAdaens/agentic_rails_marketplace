@@ -31,6 +31,10 @@ import tempfile
 from pathlib import Path
 from typing import Any, TextIO
 
+HOOKS_DIR = Path(__file__).resolve().parent.parent / "hooks"
+sys.path.insert(0, str(HOOKS_DIR))
+from critic_markers import clear_server_ready, mark_server_ready  # noqa: E402
+
 PLUGIN_NAME = "cursor-as-critic-guardrail"
 BUILTIN_DEFAULT_MODEL = "cursor-grok-4.6-high"
 CONFIG_RELATIVE_PATH = Path("harness") / PLUGIN_NAME / "config.json"
@@ -106,7 +110,7 @@ Structured consultation:
 
 def project_root(workspace: str | None = None) -> Path:
     """Return the target project root used for both the config and Cursor run."""
-    selected = (workspace or os.environ.get("CURSOR_PROJECT_DIR") or
+    selected = (workspace or os.environ.get("AGENTIC_RAILS_WORKSPACE") or os.environ.get("CURSOR_PROJECT_DIR") or
                 os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd())
     return Path(selected).resolve()
 
@@ -290,6 +294,7 @@ def dispatch(message: dict[str, Any]) -> dict[str, Any] | None:
     if method == "ping":
         return response(request_id, {})
     if method == "tools/list":
+        mark_server_ready(os.environ.get("AGENTIC_RAILS_MCP_HOST", "unknown"), os.environ.get("AGENTIC_RAILS_WORKSPACE") or os.getcwd())
         return response(request_id, {"tools": [TOOL]})
     if method == "tools/call":
         if params.get("name") != "consult_critic":
@@ -319,21 +324,24 @@ def handle(line: str) -> dict[str, Any] | None:
 def main() -> None:
     """Serve JSON-RPC over stdio until the client closes the transport."""
     stdin, stdout = sys.stdin.buffer, utf8_writer(sys.stdout)
-    while True:
-        raw = stdin.readline()
-        if not raw:
-            return
-        try:
-            line = raw.decode("utf-8")
-        except UnicodeDecodeError as exc:
-            output = response(None, error={"code": -32700, "message": f"stdin is not valid UTF-8: {exc}"})
-        else:
-            if not line.strip():
-                continue
-            output = handle(line)
-        if output is not None:
-            stdout.write(json.dumps(output) + "\n")
-            stdout.flush()
+    try:
+        while True:
+            raw = stdin.readline()
+            if not raw:
+                return
+            try:
+                line = raw.decode("utf-8")
+            except UnicodeDecodeError as exc:
+                output = response(None, error={"code": -32700, "message": f"stdin is not valid UTF-8: {exc}"})
+            else:
+                if not line.strip():
+                    continue
+                output = handle(line)
+            if output is not None:
+                stdout.write(json.dumps(output) + "\n")
+                stdout.flush()
+    finally:
+        clear_server_ready()
 
 
 if __name__ == "__main__":

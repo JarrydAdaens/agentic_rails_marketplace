@@ -1,0 +1,5 @@
+{
+  "name": "codex-as-advisor-guardrail",
+  "description": "Requires Claude Code executors to consult a constructive, read-only GPT-5.6 Sol advisor through the local Codex CLI before their first write.",
+  "author": { "name": "Jarryd Adaens" }
+}

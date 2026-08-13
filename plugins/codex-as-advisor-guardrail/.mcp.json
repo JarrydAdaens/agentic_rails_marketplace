@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "codex-as-advisor-guardrail": {
+      "command": "python",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp/advisor_server.py"]
+    }
+  }
+}
