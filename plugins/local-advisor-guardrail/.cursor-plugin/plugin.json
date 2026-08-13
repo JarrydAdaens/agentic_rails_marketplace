@@ -1,6 +1,6 @@
 {
   "name": "local-advisor-guardrail",
-  "version": "2.2.2",
+  "version": "2.2.3",
   "description": "Local advisor guardrail for Cursor: require a read-only Cursor Grok 4.5 High child-agent consultation inside Cursor before the first write of each session.",
   "author": {
     "name": "Jarryd Adaens"

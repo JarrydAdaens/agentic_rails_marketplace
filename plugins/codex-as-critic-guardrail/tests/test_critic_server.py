@@ -50,7 +50,7 @@ class CriticServerTests(unittest.TestCase):
         config = json.loads((SERVER_PATH.parents[1] / "mcp.json").read_text(encoding="utf-8"))
         launcher = config["mcpServers"]["codex-as-critic-guardrail"]
         self.assertEqual(launcher["type"], "stdio")
-        self.assertEqual(launcher["cwd"], "${PLUGIN_ROOT}")
+        self.assertNotIn("cwd", launcher)
         self.assertEqual(launcher["command"], r"C:\Windows\System32\cmd.exe")
         self.assertEqual(launcher["args"][:3], ["/d", "/c", "call"])
         self.assertEqual(launcher["args"][3], "${PLUGIN_ROOT}/scripts/launch-windows.cmd")

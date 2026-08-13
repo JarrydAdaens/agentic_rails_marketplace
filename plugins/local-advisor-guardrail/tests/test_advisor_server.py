@@ -38,7 +38,7 @@ class AdvisorServerTests(unittest.TestCase):
         self.assertEqual(codex["args"][-2:], ["--host", "codex"])
         self.assertEqual(cursor["args"][-2:], ["--host", "cursor"])
         self.assertEqual(cursor["type"], "stdio")
-        self.assertEqual(cursor["cwd"], "${PLUGIN_ROOT}")
+        self.assertNotIn("cwd", cursor)
         self.assertEqual(cursor["command"], r"C:\Windows\System32\cmd.exe")
         self.assertEqual(cursor["args"][:3], ["/d", "/c", "call"])
         self.assertEqual(cursor["args"][3], "${PLUGIN_ROOT}/scripts/launch-windows.cmd")

@@ -13,8 +13,7 @@
       "env": {
         "AGENTIC_RAILS_MCP_HOST": "cursor",
         "AGENTIC_RAILS_WORKSPACE": "${workspaceFolder}"
-      },
-      "cwd": "${PLUGIN_ROOT}"
+      }
     }
   }
 }

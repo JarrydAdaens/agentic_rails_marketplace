@@ -108,7 +108,7 @@ class AdapterContractTests(unittest.TestCase):
         for plugin in plugins:
             mcp = json.loads((ROOT / "plugins" / plugin / "mcp.json").read_text(encoding="utf-8"))
             server = next(iter(mcp["mcpServers"].values()))
-            self.assertEqual(server["cwd"], "${PLUGIN_ROOT}")
+            self.assertNotIn("cwd", server)
             self.assertEqual(server["command"], r"C:\Windows\System32\cmd.exe")
             self.assertEqual(server["args"][:3], ["/d", "/c", "call"])
             self.assertEqual(server["args"][3], "${PLUGIN_ROOT}/scripts/launch-windows.cmd")

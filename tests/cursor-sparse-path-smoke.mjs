@@ -44,6 +44,16 @@ function expand(value, pluginRoot) {
     .replaceAll("$" + "{workspaceFolder}", root.replaceAll("\\", "/"));
 }
 
+function mcpCwd(server, pluginRoot) {
+  // Cursor 3.15's MCP host does not expand ${PLUGIN_ROOT} in cwd. A literal
+  // placeholder makes Node report spawn cmd.exe ENOENT. Omit cwd in mcp.json
+  // so Cursor falls back to the user profile, which exists.
+  if (!server.cwd) {
+    return process.env.USERPROFILE || process.env.HOME || pluginRoot;
+  }
+  return expand(server.cwd, pluginRoot);
+}
+
 function runHook(server, command, pluginRoot, environment, input) {
   const prefix = `${server.command} `;
   if (!command.startsWith(prefix)) {
@@ -66,6 +76,9 @@ async function verifyPlugin(plugin, expectedTool, environment) {
   const pluginRoot = join(root, "plugins", plugin);
   const config = JSON.parse(readFileSync(join(pluginRoot, "mcp.json"), "utf8"));
   const server = Object.values(config.mcpServers)[0];
+  if (server.cwd) {
+    throw new Error(`${plugin} Cursor MCP must omit cwd; Cursor 3.15 leaves \${PLUGIN_ROOT} unexpanded and Node reports spawn cmd.exe ENOENT`);
+  }
   const hooks = JSON.parse(readFileSync(join(pluginRoot, "hooks", "cursor-hooks.json"), "utf8")).hooks;
 
   const context = runHook(
@@ -80,7 +93,7 @@ async function verifyPlugin(plugin, expectedTool, environment) {
   }
 
   const child = spawn(server.command, server.args.map((item) => expand(item, pluginRoot)), {
-    cwd: expand(server.cwd, pluginRoot),
+    cwd: mcpCwd(server, pluginRoot),
     env: environment,
     windowsHide: true,
   });
@@ -168,7 +181,7 @@ try {
     missingUvServer.command,
     missingUvServer.args.map((item) => expand(item, missingUvPluginRoot)),
     {
-      cwd: expand(missingUvServer.cwd, missingUvPluginRoot),
+      cwd: mcpCwd(missingUvServer, missingUvPluginRoot),
       env: {
         ...winGetOnlyEnvironment,
         LOCALAPPDATA: join(temporaryRoot, "no-uv"),

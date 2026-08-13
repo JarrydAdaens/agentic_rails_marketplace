@@ -37,14 +37,17 @@ creates a cache entry and exposes
 `plugin-local-advisor-guardrail-local-advisor-guardrail:consult_advisor` in a
 fresh Agent session.
 
-The Cursor MCP launcher is rooted with `${PLUGIN_ROOT}` and starts through the
-absolute Windows `cmd.exe` path. Cursor's MCP and hook processes may omit the
-user `PATH`, so the bundled bootstrap restores the user and machine PATH values
-from the Windows registry before resolving UV. It also recognizes the WinGet
-Links shim and standard per-user UV locations. It never falls back to
-`python`, `python.exe`, or `py.exe`; a genuinely missing UV installation
-produces an explicit startup error. The MCP server repeats the environment
-restore before resolving the absolute `agent.cmd` child command.
+The Cursor MCP launcher starts through the absolute Windows `cmd.exe` path and
+passes plugin-absolute script paths in `args`. It does not set `cwd` to
+`${PLUGIN_ROOT}`: Cursor 3.15's MCP host leaves that placeholder unexpanded, and
+Node then reports `spawn cmd.exe ENOENT` even though `cmd.exe` exists. Cursor's
+MCP and hook processes may omit the user `PATH`, so the bundled bootstrap
+restores the user and machine PATH values from the Windows registry before
+resolving UV. It also recognizes the WinGet Links shim and standard per-user UV
+locations. It never falls back to `python`, `python.exe`, or `py.exe`; a
+genuinely missing UV installation produces an explicit startup error. The MCP
+server repeats the environment restore before resolving the absolute `agent.cmd`
+child command.
 
 Markers live under `<temp>/local-advisor-guardrail-markers/`. Markers from the
 former `advisor-guardrail`, `advisor-codex-guardrail`, and legacy Claude setup
