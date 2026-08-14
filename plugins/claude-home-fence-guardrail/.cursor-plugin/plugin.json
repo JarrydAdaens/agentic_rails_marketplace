@@ -1,0 +1,7 @@
+{
+  "name": "claude-home-fence-guardrail",
+  "description": "Blocks Cursor agents from reading, searching, writing, or shelling into Claude Code's ~/.claude home tree.",
+  "author": { "name": "Jarryd Adaens" },
+  "hooks": "./hooks/cursor-hooks.json",
+  "keywords": ["guardrail", "claude", "fence", "isolation"]
+}

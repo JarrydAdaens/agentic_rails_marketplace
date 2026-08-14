@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "hooks": {
+    "beforeReadFile": [
+      {
+        "command": "powershell -NoProfile -ExecutionPolicy Bypass -File ./hooks/claude-home-fence.ps1",
+        "failClosed": true
+      }
+    ],
+    "beforeTabFileRead": [
+      {
+        "command": "powershell -NoProfile -ExecutionPolicy Bypass -File ./hooks/claude-home-fence.ps1",
+        "failClosed": true
+      }
+    ],
+    "preToolUse": [
+      {
+        "matcher": "Write|StrReplace|Delete|Edit|MultiEdit|NotebookEdit|Grep|Glob|Read",
+        "command": "powershell -NoProfile -ExecutionPolicy Bypass -File ./hooks/claude-home-fence.ps1",
+        "failClosed": true
+      },
+      {
+        "matcher": "Shell",
+        "command": "powershell -NoProfile -ExecutionPolicy Bypass -File ./hooks/claude-home-fence.ps1",
+        "failClosed": true
+      }
+    ],
+    "beforeShellExecution": [
+      {
+        "command": "powershell -NoProfile -ExecutionPolicy Bypass -File ./hooks/claude-home-fence.ps1",
+        "failClosed": true
+      }
+    ],
+    "sessionStart": [
+      {
+        "command": "powershell -NoProfile -ExecutionPolicy Bypass -File ./hooks/claude-home-fence.ps1"
+      }
+    ]
+  }
+}

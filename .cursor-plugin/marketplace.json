@@ -17,6 +17,7 @@
     { "name": "cursor-as-critic-guardrail", "source": "./plugins/cursor-as-critic-guardrail", "description": "Read-only Cursor Grok 4.6 High critic guardrail at standard speed.", "category": "guardrail" },
     { "name": "python-uv-guardrail", "source": "./plugins/python-uv-guardrail", "description": "Requires uv for Python and pip commands.", "category": "guardrail" },
     { "name": "readme-name-guardrail", "source": "./plugins/readme-name-guardrail", "description": "Reserves README.md for the project root.", "category": "guardrail" },
+    { "name": "claude-home-fence-guardrail", "source": "./plugins/claude-home-fence-guardrail", "description": "Blocks Cursor agents from accessing Claude Code's ~/.claude home tree.", "category": "guardrail" },
     { "name": "cursor-as-advisor-guardrail", "source": "./plugins/cursor-as-advisor-guardrail", "description": "Configurable read-only Cursor advisor guardrail defaulting to Grok 4.6 High at standard speed.", "category": "guardrail" }
   ]
 }
