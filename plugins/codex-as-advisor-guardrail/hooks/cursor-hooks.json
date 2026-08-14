@@ -1,19 +1,30 @@
 {
   "version": 1,
   "hooks": {
-    "preToolUse": [{
-      "matcher": "Write|StrReplace|Delete|Edit|MultiEdit|NotebookEdit",
-      "command": "C:\\Windows\\System32\\cmd.exe /d /c .\\scripts\\launch-windows.cmd .\\hooks\\advisor_gate.py",
-      "failClosed": false
-    }],
-    "afterMCPExecution": [{
-      "matcher": "consult_advisor$",
-      "command": "C:\\Windows\\System32\\cmd.exe /d /c .\\scripts\\launch-windows.cmd .\\hooks\\advisor_marker.py",
-      "failClosed": false
-    }],
+    "preToolUse": [
+      {
+        "matcher": "Write|StrReplace|Delete|Edit|MultiEdit|NotebookEdit",
+        "command": "uv run --no-project python ./scripts/launch.py ./hooks/advisor_gate.py",
+        "failClosed": false
+      }
+    ],
+    "afterShellExecution": [
+      {
+        "matcher": "consult_advisor",
+        "command": "uv run --no-project python ./scripts/launch.py ./hooks/advisor_marker.py",
+        "failClosed": false
+      }
+    ],
     "sessionStart": [
-      { "command": "C:\\Windows\\System32\\cmd.exe /d /c .\\scripts\\launch-windows.cmd .\\hooks\\advisor_cleanup.py", "failClosed": false },
-      { "command": "C:\\Windows\\System32\\cmd.exe /d /c .\\scripts\\launch-windows.cmd .\\hooks\\advisor_context.py", "failClosed": false }
+      {
+        "command": "uv run --no-project python ./scripts/launch.py ./hooks/advisor_cleanup.py",
+        "failClosed": false
+      },
+      {
+        "command": "uv run --no-project python ./scripts/launch.py ./hooks/advisor_context.py",
+        "failClosed": false,
+        "timeout": 120
+      }
     ]
   }
 }

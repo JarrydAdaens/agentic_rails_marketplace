@@ -20,11 +20,11 @@ import os
 import subprocess
 from typing import Any
 
-from critic_config import (
+from advisor_config import (
     CONSULT_TIMEOUT_ENV_VAR,
-    CriticConfig,
+    AdvisorConfig,
     DEFAULT_CONSULT_TIMEOUT_SECONDS,
-    require_critic_config,
+    require_advisor_config,
     resolve_consult_timeout,
 )
 from windows_runtime import resolve_cli
@@ -44,9 +44,9 @@ FIELD_DESCRIPTIONS = {
     "approach": "The plan you are about to follow, or the approach you actually took.",
     "evidence": (
         "Concrete file paths, error messages, test output, and constraints you "
-        "discovered. Thin evidence produces a thin critique."
+        "discovered. Thin evidence produces thin advice."
     ),
-    "question": "The specific decision or verdict you want the critic to rule on.",
+    "question": "The specific decision or verdict you want the advisor to rule on.",
 }
 
 HARD_FAILURE_HINTS = (
@@ -67,13 +67,13 @@ HARD_FAILURE_HINTS = (
 )
 
 
-def timeout_seconds(config: CriticConfig | None = None) -> int:
+def timeout_seconds(config: AdvisorConfig | None = None) -> int:
     return resolve_consult_timeout(config)
 
 
 def validate_arguments(arguments: Any) -> dict[str, str]:
     if not isinstance(arguments, dict):
-        raise ValueError("consult_critic arguments must be an object")
+        raise ValueError("consult_advisor arguments must be an object")
     missing = [
         name for name in FIELDS
         if not isinstance(arguments.get(name), str) or not arguments[name].strip()
@@ -93,21 +93,22 @@ def build_prompt(values: dict[str, str]) -> str:
         f"PLAN/APPROACH: {values['approach']}\nEVIDENCE: {values['evidence']}\n"
         f"QUESTION: {values['question']}"
     )
-    return f"""You are an adversarial critic reviewing the work of a coding agent from a different vendor. Your job is to find what is wrong, not to be agreeable: attack the approach, hunt for the flaw, the missed edge case, the simpler alternative, or the misread requirement. Do not implement or modify files. Inspect repository files only when useful to test a claim.
+    return f"""You are a senior reviewer and planner advising a coding agent from another vendor. Be constructive, candid, and practical. Return exactly one of: a plan, a course correction, or a completion verdict. Do not implement or modify files. Inspect repository files only to verify relevant claims.
 
-Attack the work to improve it, not to halt it. You are the senior engineering voice in this exchange — "someone more senior should decide" is not available to you. Every material objection carries five parts: the problem, the evidence, the concrete consequence, the correction you recommend, and whether work can continue meanwhile. Keep risk language concrete: not "this may regress rendering" but "this changes render-target lifetime and invalidates the three call sites that retain references across frames". Label a hypothesis as a hypothesis and name the test or experiment that would confirm it rather than escalating it.
+Never raise a concern without a forward path. Label speculation and name the cheap check that settles it. If the executor is circling, say so and give 2-4 concrete options in order. Recommending a stop requires concrete evidence, the strongest case for continuing, alternatives tried and untried, and why no other work can proceed.
 
-If the executor proposes stopping, escalating, or waiting for a human, attack that proposal with the same energy you attack the code: is the blocker global or only local, can the affected part be isolated, can other work proceed, can a cheap experiment settle it, is the damage actually irreversible, is this a strategic decision or merely an implementation problem? Endorsing a stop requires you to state the strongest argument for continuing, why that argument fails, and why stopping is justified — and the word limit below does not apply to that answer.
+You are the senior engineering voice in this exchange — "someone more senior should decide" is not available to you. Keep risk language concrete. Prefer unblockers over vetoes.
 
-Otherwise respond in at most 120 words: (1) your strongest objection in one sentence — or, if the approach genuinely survives attack, say so plainly, (2) the 2-4 concrete weaknesses, risks, or unexamined assumptions that matter most, (3) the one check most likely to expose a problem before proceeding. No preamble, no praise padding, and do not restate the task. If information is missing, identify it in one line rather than guessing.
+Otherwise respond in at most 120 words: (1) the recommended plan, course correction, or completion verdict in one sentence, (2) the 2-4 concrete next moves or risks that matter most, each with a forward path, (3) the one check most likely to settle the open question before proceeding. No preamble, no praise padding, and do not restate the task. If information is missing, identify it in one line rather than guessing.
 
 Structured consultation:
 {payload}
 """
 
 
-def command(config: CriticConfig | None = None) -> list[str]:
-    cfg = config or CriticConfig()
+
+def command(config: AdvisorConfig | None = None) -> list[str]:
+    cfg = config or AdvisorConfig()
     argv = [
         *resolve_cli("codex"),
         "exec",
@@ -135,10 +136,10 @@ def classify_failure(stderr: str, model: str) -> str:
     ):
         return "Codex authentication failed; sign in with the Codex CLI and retry. " + detail
     if any(term in lowered for term in ("quota", "credit", "usage limit", "rate limit", "billing")):
-        return "Codex critic quota or credits exhausted. " + detail
+        return "Codex advisor quota or credits exhausted. " + detail
     if any(term in lowered for term in ("model", "not available", "not found", "unsupported")):
-        return f"Critic model {model} is unavailable for this account or Codex version. " + detail
-    return "Codex critic failed. " + detail
+        return f"Advisor model {model} is unavailable for this account or Codex version. " + detail
+    return "Codex advisor failed. " + detail
 
 
 def is_hard_failure_message(message: str) -> bool:
@@ -148,8 +149,8 @@ def is_hard_failure_message(message: str) -> bool:
 
 def describe_timeout(limit: int, partial: Any) -> str:
     message = (
-        f"Codex critic timed out after {limit} seconds. Raise consult_timeout_seconds in "
-        f"harness/codex-as-critic-guardrail/config.json, or set {TIMEOUT_ENV_VAR}, "
+        f"Codex advisor timed out after {limit} seconds. Raise consult_timeout_seconds in "
+        f"harness/codex-as-advisor-guardrail/config.json, or set {TIMEOUT_ENV_VAR}, "
         "or send narrower evidence."
     )
     if isinstance(partial, bytes):
@@ -166,11 +167,11 @@ def workspace_root(workspace: str | None = None) -> str:
 def run_codex_prompt(
     prompt: str,
     *,
-    config: CriticConfig | None = None,
+    config: AdvisorConfig | None = None,
     workspace: str | None = None,
     timeout: int | None = None,
 ) -> str:
-    cfg = config or require_critic_config(workspace)
+    cfg = config or require_advisor_config(workspace)
     limit = timeout if timeout is not None else timeout_seconds(cfg)
     root = workspace_root(workspace)
     try:
@@ -187,16 +188,16 @@ def run_codex_prompt(
     except subprocess.TimeoutExpired as exc:
         raise RuntimeError(describe_timeout(limit, exc.stderr or exc.stdout)) from exc
     except OSError as exc:
-        raise RuntimeError(f"Could not start the Codex critic: {exc}") from exc
+        raise RuntimeError(f"Could not start the Codex advisor: {exc}") from exc
     if completed.returncode:
         raise RuntimeError(classify_failure(completed.stderr, cfg.model))
     text = completed.stdout.strip()
     if not text:
-        raise RuntimeError("Codex critic returned no output.")
+        raise RuntimeError("Codex advisor returned no output.")
     return text
 
 
 def consult(arguments: Any, workspace: str | None = None) -> str:
     values = validate_arguments(arguments)
-    config = require_critic_config(workspace)
+    config = require_advisor_config(workspace)
     return run_codex_prompt(build_prompt(values), config=config, workspace=workspace)

@@ -1,131 +1,157 @@
-"""Stdio MCP server exposing a constructive Codex-backed advisor."""
+# Copyright 2026 Jarryd Adaens
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""Claude Code stdio MCP server for consult_advisor (thin JSON-RPC over lib/)."""
+
 from __future__ import annotations
 
 import io
 import json
-import os
-import subprocess
 import sys
 from pathlib import Path
 from typing import Any, TextIO
 
 MCP_DIR = Path(__file__).resolve().parent
-sys.path.insert(0, str(MCP_DIR))
-from windows_runtime import resolve_cli  # noqa: E402
+PLUGIN_ROOT = MCP_DIR.parent
+sys.path.insert(0, str(PLUGIN_ROOT / "lib"))
+sys.path.insert(0, str(PLUGIN_ROOT / "hooks"))
 
-HOOKS = MCP_DIR.parent / "hooks"
-sys.path.insert(0, str(HOOKS))
-from advisor_markers import clear_server_ready, mark_server_ready  # noqa: E402
+from advisor_consult import (  # noqa: E402
+    DEFAULT_TIMEOUT_SECONDS,
+    FIELD_DESCRIPTIONS,
+    FIELDS,
+    PLUGIN_VERSION,
+    STAGES,
+    TIMEOUT_ENV_VAR,
+    build_prompt,
+    classify_failure,
+    command,
+    consult,
+    is_hard_failure_message,
+    timeout_seconds,
+    validate_arguments,
+)
+from advisor_session import mark_offline  # noqa: E402
 
-MODEL = "gpt-5.6-sol"
-VERSION = "1.0.1"
-FIELDS = ("task", "stage", "approach", "evidence", "question")
-STAGES = ("planning", "stuck", "pivot-check", "completion-review")
-PROTOCOLS = ("2025-06-18", "2025-03-26", "2024-11-05")
-TIMEOUT_ENV = "CODEX_ADVISOR_TIMEOUT_SECONDS"
+SUPPORTED_PROTOCOL_VERSIONS = ("2025-06-18", "2025-03-26", "2024-11-05")
 
-
-def timeout_seconds() -> int:
-    try:
-        value = int(os.environ.get(TIMEOUT_ENV, ""))
-    except ValueError:
-        value = 0
-    return value if value > 0 else 600
-
-
-def validate(arguments: Any) -> dict[str, str]:
-    if not isinstance(arguments, dict):
-        raise ValueError("consult_advisor arguments must be an object")
-    missing = [key for key in FIELDS if not isinstance(arguments.get(key), str) or not arguments[key].strip()]
-    if missing:
-        raise ValueError("missing or empty required field(s): " + ", ".join(missing))
-    if arguments["stage"] not in STAGES:
-        raise ValueError(f"stage must be one of: {', '.join(STAGES)}; received: {arguments['stage']}")
-    return {key: arguments[key].strip() for key in FIELDS}
-
-
-def prompt(values: dict[str, str]) -> str:
-    payload = "\n".join((f"TASK: {values['task']}", f"STAGE: {values['stage']}", f"PLAN/APPROACH: {values['approach']}", f"EVIDENCE: {values['evidence']}", f"QUESTION: {values['question']}"))
-    return f"""You are a senior reviewer and planner advising a coding agent from another vendor. Be constructive, candid, and practical. Return exactly one of: a plan, a course correction, or a completion verdict. Do not implement or modify files. Inspect repository files only to verify relevant claims.
-
-Never raise a concern without a forward path. Label speculation and name the cheap check that settles it. If the executor is circling, say so and give 2-4 concrete options in order. Recommending a stop requires concrete evidence, the strongest case for continuing, alternatives tried and untried, and why no other work can proceed.
-
-Otherwise answer in at most 120 words: one-sentence direction, the 2-4 decisions or risks that matter, and one verification before proceeding. No preamble or restatement.
-
-Structured consultation:\n{payload}\n"""
-
-
-def command() -> list[str]:
-    return [*resolve_cli("codex"), "exec", "--ephemeral", "--skip-git-repo-check", "--sandbox", "read-only", "--model", MODEL, "-c", 'model_reasoning_effort="high"', "-"]
-
-
-def consult(arguments: Any) -> str:
-    values = validate(arguments)
-    root = os.environ.get("AGENTIC_RAILS_WORKSPACE") or os.getcwd()
-    try:
-        result = subprocess.run(command(), input=prompt(values), capture_output=True, encoding="utf-8", errors="replace", cwd=root, timeout=timeout_seconds(), check=False)
-    except subprocess.TimeoutExpired as exc:
-        raise RuntimeError(f"Codex advisor timed out. Increase {TIMEOUT_ENV} or narrow the evidence.") from exc
-    except OSError as exc:
-        raise RuntimeError(f"Could not start the Codex advisor: {exc}") from exc
-    if result.returncode:
-        raise RuntimeError("Codex advisor failed. " + (result.stderr.strip() or "No error message was returned."))
-    if not result.stdout.strip():
-        raise RuntimeError("Codex advisor returned no advice.")
-    return result.stdout.strip()
+TOOL = {
+    "name": "consult_advisor",
+    "description": (
+        "Consult the constructive, read-only Codex advisor for a cross-vendor second "
+        "opinion before substantive work or completion."
+    ),
+    "inputSchema": {
+        "type": "object",
+        "properties": {
+            "task": {"type": "string", "description": FIELD_DESCRIPTIONS["task"]},
+            "stage": {
+                "type": "string",
+                "enum": list(STAGES),
+                "description": FIELD_DESCRIPTIONS["stage"],
+            },
+            "approach": {"type": "string", "description": FIELD_DESCRIPTIONS["approach"]},
+            "evidence": {"type": "string", "description": FIELD_DESCRIPTIONS["evidence"]},
+            "question": {"type": "string", "description": FIELD_DESCRIPTIONS["question"]},
+        },
+        "required": list(FIELDS),
+        "additionalProperties": False,
+    },
+}
 
 
-TOOL = {"name": "consult_advisor", "description": "Consult a constructive, read-only GPT-5.6 Sol advisor at high reasoning.", "inputSchema": {"type": "object", "properties": {key: ({"type": "string", "enum": list(STAGES)} if key == "stage" else {"type": "string"}) for key in FIELDS}, "required": list(FIELDS), "additionalProperties": False}}
+def response(
+    request_id: Any,
+    result: dict[str, Any] | None = None,
+    error: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    message: dict[str, Any] = {"jsonrpc": "2.0", "id": request_id}
+    message["error" if error else "result"] = error or result
+    return message
 
 
-def reply(request_id: Any, result=None, error=None):
-    return {"jsonrpc": "2.0", "id": request_id, "error" if error else "result": error or result}
+def negotiate_protocol_version(params: Any) -> str:
+    requested = params.get("protocolVersion") if isinstance(params, dict) else None
+    return requested if requested in SUPPORTED_PROTOCOL_VERSIONS else SUPPORTED_PROTOCOL_VERSIONS[0]
 
 
-def dispatch(message: dict[str, Any]):
+def dispatch(message: dict[str, Any]) -> dict[str, Any] | None:
     if "id" not in message:
         return None
-    request_id, method, params = message["id"], message.get("method"), message.get("params") or {}
+
+    method, request_id, params = message.get("method"), message["id"], message.get("params") or {}
     if method == "initialize":
-        requested = params.get("protocolVersion")
-        return reply(request_id, {"protocolVersion": requested if requested in PROTOCOLS else PROTOCOLS[0], "capabilities": {"tools": {}}, "serverInfo": {"name": "codex-as-advisor-guardrail", "version": VERSION}})
+        return response(request_id, {
+            "protocolVersion": negotiate_protocol_version(params),
+            "capabilities": {"tools": {}},
+            "serverInfo": {"name": "codex-as-advisor-guardrail", "version": PLUGIN_VERSION},
+        })
     if method == "ping":
-        return reply(request_id, {})
+        return response(request_id, {})
     if method == "tools/list":
-        mark_server_ready(os.environ.get("AGENTIC_RAILS_MCP_HOST", "unknown"), os.environ.get("AGENTIC_RAILS_WORKSPACE"))
-        return reply(request_id, {"tools": [TOOL]})
+        return response(request_id, {"tools": [TOOL]})
     if method == "tools/call":
         if params.get("name") != "consult_advisor":
-            return reply(request_id, error={"code": -32601, "message": "Unknown tool"})
+            return response(request_id, error={"code": -32601, "message": "Unknown tool"})
         try:
-            text = consult(params.get("arguments"))
-            return reply(request_id, {"content": [{"type": "text", "text": text}], "isError": False})
+            advice = consult(params.get("arguments"))
+            return response(request_id, {"content": [{"type": "text", "text": advice}], "isError": False})
         except (ValueError, RuntimeError) as exc:
-            return reply(request_id, {"content": [{"type": "text", "text": str(exc)}], "isError": True})
-    return reply(request_id, error={"code": -32601, "message": "Method not found"})
+            text = str(exc)
+            session = os_environ_session()
+            if session and is_hard_failure_message(text):
+                mark_offline(session, text)
+            return response(request_id, {"content": [{"type": "text", "text": text}], "isError": True})
+    return response(request_id, error={"code": -32601, "message": "Method not found"})
 
 
-def writer(stream: TextIO) -> TextIO:
+def os_environ_session() -> str | None:
+    import os
+
+    return os.environ.get("CLAUDE_SESSION_ID") or os.environ.get("AGENTIC_RAILS_SESSION_ID")
+
+
+def utf8_writer(stream: TextIO) -> TextIO:
     return io.TextIOWrapper(stream.buffer, encoding="utf-8", errors="replace", write_through=True)
 
 
-def main() -> None:
-    stdin, stdout = sys.stdin.buffer, writer(sys.stdout)
+def handle(line: str) -> dict[str, Any] | None:
     try:
-        for raw in iter(stdin.readline, b""):
-            if not raw.strip():
+        return dispatch(json.loads(line))
+    except (json.JSONDecodeError, TypeError) as exc:
+        return response(None, error={"code": -32700, "message": str(exc)})
+    except Exception as exc:  # noqa: BLE001 — one bad message must never kill the server
+        return response(None, error={"code": -32603, "message": f"Internal advisor server error: {exc}"})
+
+
+def main() -> None:
+    stdin, stdout = sys.stdin.buffer, utf8_writer(sys.stdout)
+    while True:
+        raw = stdin.readline()
+        if not raw:
+            return
+        try:
+            line = raw.decode("utf-8")
+        except UnicodeDecodeError as exc:
+            output = response(None, error={"code": -32700, "message": f"stdin is not valid UTF-8: {exc}"})
+        else:
+            if not line.strip():
                 continue
-            try:
-                output = dispatch(json.loads(raw.decode("utf-8")))
-            except (UnicodeDecodeError, json.JSONDecodeError, TypeError) as exc:
-                output = reply(None, error={"code": -32700, "message": str(exc)})
-            except Exception as exc:
-                output = reply(None, error={"code": -32603, "message": f"Internal advisor server error: {exc}"})
-            if output is not None:
-                stdout.write(json.dumps(output) + "\n")
-                stdout.flush()
-    finally:
-        clear_server_ready()
+            output = handle(line)
+        if output is not None:
+            stdout.write(json.dumps(output) + "\n")
+            stdout.flush()
 
 
 if __name__ == "__main__":

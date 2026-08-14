@@ -1,5 +1,7 @@
 {
   "name": "codex-as-advisor-guardrail",
-  "description": "Requires Claude Code executors to consult a constructive, read-only GPT-5.6 Sol advisor through the local Codex CLI before their first write.",
-  "author": { "name": "Jarryd Adaens" }
+  "description": "Cross-vendor actor-advisor guardrail for Claude Code: executor sessions must consult a constructive, read-only Codex advisor (via the local Codex CLI / consult_advisor MCP) before their first write. Cursor uses a Shell CLI instead of MCP. Ships enforcement hooks, harness config, session health self-disable, and the codex-advisor-health / init / help skills.",
+  "author": {
+    "name": "Jarryd Adaens"
+  }
 }

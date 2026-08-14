@@ -1,9 +1,8 @@
 {
   "name": "codex-as-advisor-guardrail",
-  "version": "1.0.2",
-  "description": "Requires Cursor executors to consult a constructive, read-only GPT-5.6 Sol advisor at high reasoning before their first write.",
+  "version": "1.1.0",
+  "description": "Requires Cursor agents to consult a read-only Codex advisor before their first write. Shell CLI (no MCP), harness config (model/effort/fast/timeouts), health self-disable, and init/help/health skills.",
   "author": { "name": "Jarryd Adaens" },
   "hooks": "./hooks/cursor-hooks.json",
-  "mcpServers": "./mcp.json",
-  "keywords": ["guardrail", "advisor", "codex", "cross-vendor"]
+  "keywords": ["guardrail", "advisor", "codex"]
 }

@@ -14,7 +14,8 @@ executor's family would miss together.
 
 Deep host notes: [docs/hosts/claude.md](docs/hosts/claude.md),
 [docs/hosts/cursor.md](docs/hosts/cursor.md). Architecture:
-[docs/architecture.md](docs/architecture.md).
+[docs/architecture.md](docs/architecture.md). Version history:
+[CHANGELOG.md](CHANGELOG.md).
 
 > Formerly published as `critic-guardrail`. Existing installs migrate through
 > the marketplace `renames` map.
