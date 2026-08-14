@@ -1,13 +1,45 @@
 ## Critic Protocol
 
 This session pairs an executor with an antagonistic, read-only critic from
-outside the Claude model family: GPT-5.6-Sol at high reasoning, reached through
-the local Codex CLI. In Cursor, invoke `consult_critic` from
-`plugin-codex-as-critic-guardrail-codex-as-critic-guardrail`. Consult it at
-decision points. The critic's job is to attack your approach, not to reassure
-you — expect objections, and treat "survives attack" as the pass signal.
-Consults are cheap relative to mistakes but expensive relative to silence —
-target 2–3 per task.
+Model, reasoning effort, fast tier, and timeouts come from
+`harness/codex-as-critic-guardrail/config.json` when present (built-in default:
+`gpt-5.6-sol` / `high` / `fast false` / consult 1800s / health 90s). Create that
+file with the `codex-critic-init` skill. Consult it at decision points. The
+critic's job is to attack your approach, not to reassure you — expect
+objections, and treat "survives attack" as the pass signal. Consults are cheap
+relative to mistakes but expensive relative to silence — target 2–3 per task.
+
+Session start runs a health probe. If the critic is **offline**, the write gate
+is disarmed for this session — continue working, and retest with the
+`codex-critic-health` skill when auth, quota, model, or config is fixed. If
+**online**, the first write is denied until one successful consult.
+
+### Host: Claude Code
+
+Invoke the MCP tool `consult_critic` with all five fields below.
+
+### Host: Cursor
+
+Do **not** expect an MCP tool. Pipe one JSON object on stdin to the plugin CLI:
+
+```text
+uv run --no-project python ./scripts/launch.py ./cli/consult_critic.py
+```
+
+JSON shape:
+
+```json
+{
+  "task": "...",
+  "stage": "planning",
+  "approach": "...",
+  "evidence": "...",
+  "question": "..."
+}
+```
+
+Run that command from a shell whose working directory (or
+`AGENTIC_RAILS_WORKSPACE`) is the project root.
 
 ### When to consult
 
@@ -17,12 +49,11 @@ target 2–3 per task.
 4. On tasks longer than a few steps: at least one consult before committing to an approach and one before declaring done. Short reactive tasks dictated by tool output just read don't need repeat consults.
 5. **Engage with objections seriously.** The critic is adversarial by design; do not dismiss an objection because it is inconvenient, and do not capitulate because it is forceful. Test each objection against the evidence. If evidence contradicts the critique, run one reconcile consult: "I found X, you object Y — which constraint breaks the tie?"
 
-A write hook denies the first Write/Edit/StrReplace/Delete of each session until
-one critic consult has occurred. The deny message tells you what to do; this is
-expected behavior, not an error. If Cursor did not register the critic MCP
-server, the hook allows the write and reports the missing tool rather than
-deadlocking the session. Shell commands are not gated — do not use them to
-bypass the consult requirement.
+A write hook denies the first Write/Edit/StrReplace/Delete of each session while
+health is online and no critic consult has succeeded. The deny message tells you
+what to do; this is expected behavior, not an error. Shell commands are not
+gated — do not use them to bypass the consult requirement when the gate is
+armed. If health is pending or offline, writes are allowed.
 
 ### Tenacity contract
 
@@ -41,8 +72,8 @@ decision, not an ending condition.
 
 ### Consult payload contract
 
-The critic does not see your transcript. Every `consult_critic` call MUST
-supply all five fields:
+The critic does not see your transcript. Every consult MUST supply all five
+fields:
 
 - `task` — one-paragraph statement of the overall task
 - `stage` — one of `planning`, `stuck`, `pivot-check`, `completion-review`

@@ -1,9 +1,8 @@
 {
   "name": "codex-as-critic-guardrail",
-  "version": "1.1.2",
-  "description": "Requires Cursor agents to consult a read-only GPT-5.6 Sol critic at high reasoning before their first write.",
+  "version": "1.2.1",
+  "description": "Requires Cursor agents to consult a read-only Codex critic before their first write. Shell CLI (no MCP), harness config (model/effort/fast/timeouts), health self-disable, and init/help/health skills.",
   "author": { "name": "Jarryd Adaens" },
   "hooks": "./hooks/cursor-hooks.json",
-  "mcpServers": "./mcp.json",
   "keywords": ["guardrail", "critic", "codex"]
 }

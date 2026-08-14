@@ -1,117 +1,94 @@
 # codex-as-critic-guardrail
 
-Cross-vendor actor-critic guardrail for Claude Code and Cursor. The executor must consult
-an antagonistic, read-only critic at decision points, and the session's first
-write is gated until that consult happens. Unlike `local-advisor-guardrail`, the
-second opinion comes from *outside* the Claude model family: a bundled stdio
-MCP tool, `consult_critic`, backed by `gpt-5.6-sol` at high reasoning through
-the user's existing Codex CLI login. Same-family models share blind spots; the
-critic exists to catch what Fable, Opus, Sonnet, and Haiku would all miss
-together.
+Cross-vendor actor-critic guardrail for **Claude Code** and **Cursor**. The
+executor must consult an antagonistic, read-only critic at decision points, and
+the session's first write is gated while the critic is healthy and no consult
+has succeeded yet. The critic backend is the local **Codex CLI** (not the Codex
+IDE). Same-family models share blind spots; the critic exists to catch what the
+executor's family would miss together.
 
-The critic attacks the work to improve it, not to halt it. Every material
-objection carries a recommended correction and a statement of whether work can
-continue meanwhile; hypotheses are labeled and paired with the test that would
-confirm them; and a proposal to stop is attacked as hard as the code, requiring
-the strongest case for continuing, why it fails, and why stopping is justified.
+| Host | How to consult | Unlock | MCP? |
+| --- | --- | --- | --- |
+| Claude Code | MCP `consult_critic` | PostToolUse on that tool | Yes (`.mcp.json`) |
+| Cursor | Shell → `cli/consult_critic.py` (stdin JSON) | `afterShellExecution` | **No** |
 
-Codex users who want a constructive checkpoint use the unified
-`local-advisor-guardrail`, which consults `gpt-5.6-sol` locally.
+Deep host notes: [docs/hosts/claude.md](docs/hosts/claude.md),
+[docs/hosts/cursor.md](docs/hosts/cursor.md). Architecture:
+[docs/architecture.md](docs/architecture.md).
 
-> Formerly published as `critic-guardrail`. Existing installs migrate
-> automatically through the marketplace `renames` map.
+> Formerly published as `critic-guardrail`. Existing installs migrate through
+> the marketplace `renames` map.
 
-## How it works
+## Harness config
 
-| Piece | Mechanism |
-| --- | --- |
-| Critic | `consult_critic(task, stage, approach, evidence, question)` MCP tool, model `gpt-5.6-sol`, high reasoning, read-only sandbox, adversarial persona |
-| Write gate | Claude `PreToolUse`; Cursor `preToolUse` on `Write`, `StrReplace`, `Delete`, and compatible edit names — denied until one consult has occurred this session |
-| Consult marker | Claude `PostToolUse`; Cursor `afterMCPExecution` on `consult_critic` — a completed consult unlocks writes for the session |
-| Protocol | `SessionStart` injects the consult protocol into context; stale markers are cleaned |
-
-The bundled MCP server runs `codex exec` ephemerally in the executor's
-workspace with a read-only sandbox, so the critic can inspect repository files
-but cannot modify them. It uses the installed CLI login; no API key is read or
-required. The `codex` executable must be on `PATH`. Claude Code requires Python
-3; Cursor runs the bundled server and hooks through `uv` without invoking the
-global Python environment directly.
-
-On install, review and trust the hooks and the local MCP command. This trust
-prompt is expected: the plugin executes bundled Python and, for a consultation,
-starts the locally authenticated Codex CLI. Authentication, unavailable-model,
-missing-executable, and timeout failures are returned as actionable tool
-errors. On Cursor, absolute native `cmd.exe` starts a bundled launcher that
-restores the Windows user and machine PATH values from the registry, recognizes
-WinGet's UV shim, and then starts the server through UV. The launcher omits
-`cwd`; Cursor 3.15 leaves `${PLUGIN_ROOT}` unexpanded there and Node reports
-that as `spawn cmd.exe ENOENT`. The server repeats the
-restore before resolving an absolute Codex command and ensures `node.exe` is
-available when Codex is an npm `.cmd` shim. `AGENTIC_RAILS_UV` remains an
-optional override; there is no direct-Python fallback.
-
-### Cursor installation
-
-Registering the marketplace or writing `enabled: true` into
-`.cursor/settings.json` does not install this plugin. Install
-`codex-as-critic-guardrail` through Cursor's interactive `/plugin` Marketplace
-screen or **Customize → Marketplace**, choose project or user scope, approve the
-MCP server, and open a fresh session. The expected MCP tool is
-`plugin-codex-as-critic-guardrail-codex-as-critic-guardrail:consult_critic`.
-
-The Cursor gate is deliberately fail-open. It activates only after the live MCP
-server has completed tool registration. If the server, launcher, or hook input
-is unavailable, writes proceed with an actionable diagnostic rather than an
-empty fail-closed denial.
-
-The first completed consultation creates a marker under
-`<temp>/codex-as-critic-guardrail-markers/` and unlocks writes for that session.
-A fresh session remains locked.
-
-## Consult timeout
-
-A consultation is a full Codex run at high reasoning, and it gets slower the
-larger and less familiar the repository is. Measured across real sessions, the
-median consult took 51 seconds, the 90th percentile 132 seconds, and the longest
-success 178 seconds.
-
-The default cap is therefore **600 seconds**. Claude Code imposes no competing
-limit — a stdio MCP server has no per-request timer, and an unset
-`MCP_TOOL_TIMEOUT` defaults to roughly 28 hours — so this cap is the only one
-that applies. Raise it for very large repositories:
+Optional project file (JSONC — `//` comments allowed):
 
 ```jsonc
-// .claude/settings.json
-{ "env": { "CODEX_CRITIC_TIMEOUT_SECONDS": "900" } }
+{
+  "model": "gpt-5.6-sol",
+  "effort": "high",
+  "fast": false,
+  "consult_timeout_seconds": 1800,
+  "health_timeout_seconds": 90
+}
 ```
 
-A timeout error reports the limit, names the variable, and includes whatever
-Codex managed to emit before it was cut off.
+Path: `harness/codex-as-critic-guardrail/config.json`. Create it with the
+user-invoked skill **`codex-critic-init`**. Missing file → built-in defaults.
+Invalid file → health goes offline (gate disarmed). Env vars
+`CODEX_CRITIC_TIMEOUT_SECONDS` / `CODEX_CRITIC_HEALTH_TIMEOUT_SECONDS` override
+the matching timeout fields when set.
 
-## Choosing between local-advisor-guardrail and codex-as-critic-guardrail
+## Skills
 
-Both gate the session's first write behind a consult. Installing both is
-supported and intentionally requires both consultations before the first
-write; each successful consult unlocks only its own gate. Install one when one
-independent review is enough. `local-advisor-guardrail` gives a
-same-ecosystem senior advisor (Opus) whose advice the executor is told to
-weight heavily. `codex-as-critic-guardrail` gives a cross-vendor antagonist
-whose objections the executor is told to test against evidence, not obey. Prefer
-the critic when the failure mode you fear is confident same-family groupthink;
-prefer the advisor when you want a capability lift for a smaller executor.
+| Skill | Purpose |
+| --- | --- |
+| `codex-critic-help` | What the plugin does, hooks, when the gate fires |
+| `codex-critic-init` | Write the commented harness config |
+| `codex-critic-health` | Mid-session ONLINE/OFFLINE retest |
+
+## Health and self-disable
+
+On session start the plugin probes Codex with the configured model (short
+timeout, default 90s via `CODEX_CRITIC_HEALTH_TIMEOUT_SECONDS`).
+
+| Health | Write gate |
+| --- | --- |
+| pending | Allow (fail-open; Cursor sessionStart is fire-and-forget) |
+| online | Deny until a successful consult |
+| offline | Allow; status explains why |
+
+Retest mid-session with the user-invoked skill **`codex-critic-health`**
+(`disable-model-invocation: true`) or `cli/critic_health.py`. A successful
+consult also marks the session online.
+
+## Timeouts
+
+| Cap | Default | Config field | Env override |
+| --- | --- | --- | --- |
+| Consult | 1800s | `consult_timeout_seconds` | `CODEX_CRITIC_TIMEOUT_SECONDS` |
+| Health probe | 90s | `health_timeout_seconds` | `CODEX_CRITIC_HEALTH_TIMEOUT_SECONDS` |
+
+Precedence: env (if set) → harness config → built-in default.
+
+## Runtime
+
+Python-only launcher: `scripts/launch.py` (no `.cmd`). Cursor hooks call
+`uv run --no-project python ./scripts/launch.py …`. Requires `uv` or a working
+`python` on PATH; optional `AGENTIC_RAILS_UV` override.
+
+## Choosing between local-advisor and codex-as-critic
+
+Both gate the first write behind a consult when healthy. Prefer the critic when
+the failure mode is same-family groupthink; prefer an advisor when you want a
+capability lift for a smaller executor.
 
 ## Known limitations
 
-- Shell commands are advisory-only. Reliably parsing shell writes is too
-  fragile, so Bash and shell-command surfaces are intentionally ungated.
-- Gating is per session, not per task; a long multi-task session forces only
-  its first consultation.
+- Shell writes are ungated by design.
+- Gating is per session; long multi-task sessions force only the first consult
+  while online.
 - The critic sees the structured payload and the readable workspace, not the
-  executor transcript. Thin evidence produces a thin critique.
-- Requires the Codex CLI on PATH with an authenticated login, access to the
-  fixed `gpt-5.6-sol` model, and consumes existing ChatGPT/Codex quota.
-- A consultation blocks the MCP server until it completes; the server handles
-  one consult at a time, which is all the write gate ever asks of it.
-- An adversarial critic will sometimes object to sound approaches; the
-  protocol tells the executor to test objections against evidence rather than
-  capitulate, but a suggestible executor may still over-correct.
+  executor transcript.
+- Requires authenticated Codex CLI access to the configured model and consumes
+  Codex quota.

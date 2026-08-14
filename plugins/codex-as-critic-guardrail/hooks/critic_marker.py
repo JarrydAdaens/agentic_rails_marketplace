@@ -12,18 +12,43 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""PostToolUse marker: record that the critic was consulted this session.
+"""Record a successful critic consult (MCP PostToolUse or Cursor afterShellExecution)."""
 
-Fires on consult_critic completions (plain or MCP-namespaced, e.g.
-mcp__codex-as-critic-guardrail__consult_critic). Touches a per-session marker file that
-critic_gate.py checks before allowing Write/Edit tools.
-"""
+from __future__ import annotations
 
 import json
 import sys
 
-from critic_markers import marker_dir, marker_path
+from critic_markers import mark_consulted, mark_online, read_health
 from critic_streams import force_utf8
+
+
+def _session_id(payload: dict) -> str:
+    return str(payload.get("session_id") or payload.get("conversation_id") or "unknown")
+
+
+def _is_mcp_consult(payload: dict) -> bool:
+    tool_name = str(payload.get("tool_name") or payload.get("tool") or "")
+    return tool_name == "consult_critic" or tool_name.endswith("consult_critic")
+
+
+def _is_cli_consult(payload: dict) -> bool:
+    command = str(payload.get("command") or "")
+    if "consult_critic.py" not in command and "consult_critic" not in command:
+        return False
+    # Prefer explicit success signals when the host provides them.
+    if "exit_code" in payload:
+        try:
+            return int(payload["exit_code"]) == 0
+        except (TypeError, ValueError):
+            return False
+    status = payload.get("status") or payload.get("result")
+    if isinstance(status, str) and status.lower() in {"failed", "error", "failure"}:
+        return False
+    output = str(payload.get("output") or "")
+    if "Codex critic" in output and ("failed" in output.lower() or "timed out" in output.lower()):
+        return False
+    return True
 
 
 def main() -> None:
@@ -33,13 +58,25 @@ def main() -> None:
     except (json.JSONDecodeError, UnicodeDecodeError):
         sys.exit(0)
 
-    tool_name = str(payload.get("tool_name") or payload.get("tool") or "")
-    if not (tool_name == "consult_critic" or tool_name.endswith("consult_critic")):
+    if not isinstance(payload, dict):
         sys.exit(0)
 
-    session_id = payload.get("session_id") or payload.get("conversation_id", "unknown")
-    marker_dir().mkdir(parents=True, exist_ok=True)
-    marker_path(session_id).touch()
+    event = str(payload.get("hook_event_name") or "")
+    if event == "afterShellExecution" or "command" in payload and not _is_mcp_consult(payload):
+        if not _is_cli_consult(payload):
+            sys.exit(0)
+    elif not _is_mcp_consult(payload):
+        sys.exit(0)
+
+    session_id = _session_id(payload)
+    mark_consulted(session_id)
+    health = read_health(session_id) or {}
+    mark_online(
+        session_id,
+        model=str(health.get("model") or ""),
+        effort=str(health.get("effort") or ""),
+        fast=bool(health.get("fast")) if isinstance(health.get("fast"), bool) else False,
+    )
 
 
 if __name__ == "__main__":

@@ -12,34 +12,39 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""PreToolUse gate: deny Write/Edit tools until the critic has been consulted this session.
+"""PreToolUse gate: deny writes only when critic health is online and no consult yet."""
 
-Reads the hook payload from stdin. If no consult marker exists for the current
-session, emits a permissionDecision deny so the executor self-corrects by
-consulting the critic MCP tool first. Marker files are created by
-critic_marker.py (PostToolUse on consult_critic).
-"""
+from __future__ import annotations
 
 import json
 import sys
 
-from critic_markers import has_live_server, has_marker
+from critic_markers import HEALTH_SKILL, has_marker, health_state, offline_reason
 from critic_streams import force_utf8
 
-DENY_REASON = (
+CLAUDE_DENY = (
     "Critic gate: consult the critic before the first write of this session. "
-    "Call consult_critic from "
-    "plugin-codex-as-critic-guardrail-codex-as-critic-guardrail with all five "
-    "fields from the Critic "
-    "Protocol in your context (task / stage / approach / evidence / question), "
-    "then retry this edit."
+    "Call consult_critic (MCP) with all five fields from the Critic Protocol "
+    "(task / stage / approach / evidence / question), then retry this edit."
 )
-MCP_UNAVAILABLE_REASON = (
-    "Codex critic gate is inactive because Cursor has not registered the "
-    "consult_critic tool from plugin-codex-as-critic-guardrail-codex-as-critic-guardrail. "
-    "This write is allowed to avoid a deadlock. Install and enable the plugin from "
-    "Cursor's /plugin Marketplace screen, approve its MCP server, and restart the session."
+
+CURSOR_DENY = (
+    "Critic gate: consult the critic before the first write of this session. "
+    "Pipe a JSON object with task, stage, approach, evidence, and question to "
+    "cli/consult_critic.py via the plugin launcher (see Critic Protocol), then retry."
 )
+
+
+def _session_id(payload: dict) -> str:
+    return str(payload.get("session_id") or payload.get("conversation_id") or "unknown")
+
+
+def _cursor_payload(permission: str, message: str) -> str:
+    return json.dumps({
+        "permission": permission,
+        "user_message": message,
+        "agent_message": message,
+    })
 
 
 def main() -> None:
@@ -47,32 +52,47 @@ def main() -> None:
     try:
         payload = json.load(sys.stdin)
     except (json.JSONDecodeError, UnicodeDecodeError):
-        print("Codex critic hook received invalid Cursor input; allowing the write.", file=sys.stderr)
+        print("Codex critic hook received invalid input; allowing the write.", file=sys.stderr)
         sys.exit(0)
 
     if not isinstance(payload, dict):
-        print("Codex critic hook received an unexpected Cursor payload; allowing the write.", file=sys.stderr)
+        print("Codex critic hook received an unexpected payload; allowing the write.", file=sys.stderr)
         sys.exit(0)
 
-    session_id = payload.get("session_id") or payload.get("conversation_id", "unknown")
+    session_id = _session_id(payload)
     if has_marker(session_id):
         sys.exit(0)
 
-    if payload.get("hook_event_name") == "preToolUse":
-        workspace_roots = payload.get("workspace_roots") or []
-        workspace = workspace_roots[0] if workspace_roots else payload.get("cwd")
-        if not has_live_server("cursor", workspace):
-            print(MCP_UNAVAILABLE_REASON, file=sys.stderr)
-            print(json.dumps({
-                "permission": "allow",
-                "user_message": MCP_UNAVAILABLE_REASON,
-                "agent_message": MCP_UNAVAILABLE_REASON,
-            }))
+    cursor = payload.get("hook_event_name") == "preToolUse"
+    state = health_state(session_id)
+
+    if state == "pending":
+        message = (
+            "Codex-as-critic health pending — write gate fail-open until the probe finishes."
+        )
+    elif state == "offline":
+        message = (
+            f"Codex-as-critic offline — {offline_reason(session_id)}. "
+            f"Write gate disarmed. Retest with the {HEALTH_SKILL} skill."
+        )
+    else:
+        message = None
+
+    if message is not None:
+        if cursor:
+            print(message, file=sys.stderr)
+            print(_cursor_payload("allow", message))
             return
+        print(message, file=sys.stderr)
+        sys.exit(0)
+
+    # online and not consulted
+    deny = CURSOR_DENY if cursor else CLAUDE_DENY
+    if cursor:
         print(json.dumps({
             "permission": "deny",
-            "user_message": DENY_REASON,
-            "agent_message": DENY_REASON,
+            "user_message": deny,
+            "agent_message": deny,
         }))
         return
 
@@ -80,7 +100,7 @@ def main() -> None:
         "hookSpecificOutput": {
             "hookEventName": "PreToolUse",
             "permissionDecision": "deny",
-            "permissionDecisionReason": DENY_REASON,
+            "permissionDecisionReason": deny,
         }
     }))
 

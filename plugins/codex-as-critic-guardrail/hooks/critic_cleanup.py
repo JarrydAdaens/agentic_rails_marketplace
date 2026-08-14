@@ -12,13 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""SessionStart cleanup: delete stale critic-consult markers.
+"""SessionStart cleanup: delete stale critic consult and health markers."""
 
-Markers are per-session, so old sessions leave orphaned files behind. Anything
-older than 24 hours can never belong to a live session and is removed. Marker
-directories the plugin used under earlier names are swept too, so a rename does
-not strand files in the temp directory forever.
-"""
+from __future__ import annotations
 
 import sys
 import time
@@ -32,12 +28,13 @@ MAX_AGE_SECONDS = 24 * 60 * 60
 def sweep(directory: Path, cutoff: float) -> None:
     if not directory.is_dir():
         return
-    for marker in directory.glob("critic-consulted-*"):
-        try:
-            if marker.stat().st_mtime < cutoff:
-                marker.unlink()
-        except OSError:
-            pass  # another session may have removed it; never block startup
+    for pattern in ("critic-consulted-*", "critic-health-*.json", "mcp-server-*.json"):
+        for marker in directory.glob(pattern):
+            try:
+                if marker.stat().st_mtime < cutoff:
+                    marker.unlink()
+            except OSError:
+                pass
 
 
 def main() -> None:
@@ -46,7 +43,7 @@ def main() -> None:
     for legacy in legacy_marker_dirs():
         sweep(legacy, cutoff)
         try:
-            legacy.rmdir()  # only succeeds once the last stale marker is gone
+            legacy.rmdir()
         except OSError:
             pass
 
