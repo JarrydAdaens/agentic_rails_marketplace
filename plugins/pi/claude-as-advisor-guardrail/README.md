@@ -13,7 +13,7 @@ hosts; the write gate just holds in-memory state that its own tool set.
 
 | How to consult | Unlock | MCP? |
 | --- | --- | --- |
-| `consult_claude_advisor` tool (native to pi) | first successful consult; **disarmed** if the CLI is unreachable or a consult times out | **No** |
+| `consult_claude_advisor` tool (native to pi) | first successful consult; **disarmed** if the CLI is unreachable, a consult times out, or a consult fails with a hard cause (authentication, quota/credits, model availability) | **No** |
 
 Install as part of the repo-root pi package (`pi install <repo>`); see the
 repository `README.md`. Parameters: `task`, `stage` (`planning`, `stuck`,
@@ -41,10 +41,13 @@ prompt on UTF-8 stdin.
 
 ## Behavior notes
 
-- **The gate disarms on an unreachable advisor.** A missing CLI or a consult
-  timeout disarms the write gate for the session — an unreachable advisor must
-  never wedge the session. A *reachable-but-failing* consult (non-zero exit)
-  leaves the gate armed so the model can fix the cause and retry.
+- **The gate disarms when the advisor is unusable, not wedged.** A missing
+  CLI, a consult timeout, or a consult that runs and fails with a HARD cause
+  (authentication, quota/credits, model availability) disarms the write gate
+  for the session — an unusable advisor must never deny every write.
+  A SOFT failure (transient, malformed, one-off) leaves the gate armed so the
+  model can fix the cause and retry. Either way the failure is reported to
+  the model, never swallowed.
 - **Fail open on internal errors.** A bug in this guardrail allows
   `write`/`edit` through rather than blocking them — pi's `tool_call` fails
   closed, so every handler body is wrapped.

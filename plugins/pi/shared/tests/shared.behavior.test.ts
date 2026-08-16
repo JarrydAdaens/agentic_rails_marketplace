@@ -3,7 +3,7 @@
 
 /**
  * Behavioral tests for the shared pi guardrail modules (bash-segments,
- * harness-config, budget, cli-resolution, run-external). Pure-logic tests
+ * harness-config, budget, cli-resolution, run-external, advisor-failure). Pure-logic tests
  * run directly under pi's bundled Node via native type stripping;
  * run-external is exercised against trivial node subprocesses (never the
  * claude CLI, no mock framework).
@@ -19,6 +19,7 @@ import { capToBudget, TRUNCATION_MARKER } from "../budget.ts";
 import { isEnabled, loadHarnessConfig } from "../harness-config.ts";
 import { isBatchShim, knownCandidates, resolveCli, searchPath } from "../cli-resolution.ts";
 import { DEFAULT_TIMEOUT_SECONDS, runExternal } from "../run-external.ts";
+import { classifyAdvisorFailure, hardFailureCategory, HARD_FAILURE_HINTS } from "../advisor-failure.ts";
 
 let failed = 0;
 let passed = 0;
@@ -321,6 +322,27 @@ await checkAsync("run-external: captured output is capped via budget.ts", async 
 
 check("run-external: the default timeout is 600 seconds", () => {
 	assert.equal(DEFAULT_TIMEOUT_SECONDS, 600);
+});
+
+// --- advisor-failure --------------------------------------------------------
+
+check("advisor-failure: every hard hint classifies hard (case-insensitive)", () => {
+	for (const hint of HARD_FAILURE_HINTS) {
+		assert.equal(classifyAdvisorFailure(`ERROR: ${hint.toUpperCase()} while consulting`), "hard", `hint: ${hint}`);
+	}
+});
+
+check("advisor-failure: soft details classify soft, including empty detail", () => {
+	for (const detail of ["connection reset by peer", "malformed reply", "socket hang up", ""]) {
+		assert.equal(classifyAdvisorFailure(detail), "soft", `expected soft: ${JSON.stringify(detail)}`);
+	}
+});
+
+check("advisor-failure: categories name the cause, first match wins", () => {
+	assert.equal(hardFailureCategory("not logged in — sign in first"), "authentication");
+	assert.equal(hardFailureCategory("quota exceeded; check credits"), "quota or credits");
+	assert.equal(hardFailureCategory("model 'opus' not found"), "model availability");
+	assert.equal(hardFailureCategory("no error message"), null);
 });
 
 console.log(`\nshared behavior: ${passed} passed, ${failed} failed`);

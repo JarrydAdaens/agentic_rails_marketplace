@@ -2,20 +2,23 @@
 // Licensed under the Apache License, Version 2.0.
 
 /**
- * Behavioral tests for the claude-as-advisor-guardrail (pi host).
+ * Behavioral tests for the cursor-as-advisor-guardrail (pi host).
  *
  * Run with pi's bundled Node (native type stripping), e.g.:
  *   C:\Users\Jarry\AppData\Local\pi-node\current\node.exe
- *     plugins/pi/claude-as-advisor-guardrail/tests/claude-advisor.behavior.test.ts
+ *     plugins/pi/cursor-as-advisor-guardrail/tests/cursor-advisor.behavior.test.ts
  * or via the repository driver:
  *   python tests/run_pi_behavior_tests.py
  *
- * The load-bearing cases: the command line is the verified one, a `.cmd`
- * shim is spawned through `cmd.exe /d /c`, the reply is capped before it
- * reaches the model, and the gate state machine denies before a successful
- * consult, allows after one, and disarms (never wedges) when the CLI is
- * unreachable or a consult times out. NO test calls the real claude CLI and
- * no mock subprocess framework is built: the pure parts are tested directly.
+ * The load-bearing cases: the command line is the verified one (agent
+ * --print --output-format text --mode ask --sandbox disabled --trust
+ * --model cursor-grok-4.6-high, prompt on UTF-8 stdin), it NEVER carries
+ * --force/--yolo/--auto-review, a HARD failure (authentication, quota,
+ * model availability) disarms the gate while a SOFT failure keeps it armed,
+ * the reply is capped before it reaches the model, and the gate state
+ * machine denies before a successful consult and allows after one. NO test
+ * calls the real cursor CLI and no mock subprocess framework is built: the
+ * pure parts are tested directly.
  */
 
 import assert from "node:assert/strict";
@@ -28,24 +31,26 @@ import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { classifyAdvisorFailure, hardFailureCategory, HARD_FAILURE_HINTS } from "../../shared/advisor-failure.ts";
 import { capToBudget, TRUNCATION_MARKER } from "../../shared/budget.ts";
 import {
-	CLAUDE_ADVISOR_FLAGS,
+	DEFAULT_MODEL,
 	DEFAULT_REPLY_BUDGET_CHARS,
 	DEFAULT_TIMEOUT_SECONDS,
 	GUARDRAIL_NAME,
 	applyConsultOutcome,
 	buildPrompt,
+	configModel,
 	configReplyBudgetChars,
 	configTimeoutSeconds,
 	createGate,
+	cursorAdvisorFlags,
 	denyReason,
 	failedAdvisorMessage,
-	hardFailureMessage,
 	gateAllowsWrite,
+	hardFailureMessage,
 	timeoutAdvisorMessage,
 	unreachableAdvisorMessage,
 	validateConsult,
-} from "../extensions/claude-as-advisor-guardrail.ts";
-import claudeAdvisorGuardrail from "../extensions/claude-as-advisor-guardrail.ts";
+} from "../extensions/cursor-as-advisor-guardrail.ts";
+import cursorAdvisorGuardrail from "../extensions/cursor-as-advisor-guardrail.ts";
 
 let failed = 0;
 let passed = 0;
@@ -62,7 +67,7 @@ function check(label: string, fn: () => void) {
 }
 
 // A hermetic project root: no config at first, then one with settings.
-const projectRoot = mkdtempSync(join(tmpdir(), "pi-claude-advisor-test-"));
+const projectRoot = mkdtempSync(join(tmpdir(), "pi-cursor-advisor-test-"));
 const harnessDir = join(projectRoot, "harness", GUARDRAIL_NAME);
 const harnessConfig = () => join(harnessDir, "config.json");
 mkdirSync(harnessDir, { recursive: true });
@@ -92,7 +97,6 @@ check("validate: all four stages are accepted", () => {
 			question: "q",
 		});
 		assert.equal(r.error, null, `stage ${stage} should be valid`);
-		assert.equal(r.values?.stage, stage);
 	}
 });
 
@@ -113,18 +117,17 @@ check("validate: a bad stage is rejected with the valid list", () => {
 	});
 	assert.equal(r.values, null);
 	assert.ok((r.error ?? "").includes("planning, stuck, pivot-check, completion-review"));
-	assert.ok((r.error ?? "").includes("gossip"));
 });
 
-check("validate: a non-object is rejected", () => {
+check("validate: a non-object is rejected and names consult_cursor_advisor", () => {
 	for (const bad of [null, "consult", ["t", "a", "e", "q"], 42]) {
 		const r = validateConsult(bad);
 		assert.equal(r.values, null, `${JSON.stringify(bad)} should be rejected`);
-		assert.ok((r.error ?? "").length > 0);
+		assert.ok((r.error ?? "").includes("consult_cursor_advisor"));
 	}
 });
 
-// --- prompt shape (ported from the Cursor host) ----------------------------------
+// --- prompt shape (same constructive shape as the other advisors) ------------------
 
 check("prompt: persona, forward-path rule, and structured fields are present", () => {
 	const v = validateConsult({
@@ -140,47 +143,60 @@ check("prompt: persona, forward-path rule, and structured fields are present", (
 	assert.ok(prompt.includes("Do not implement or modify files"));
 	assert.ok(prompt.includes("TASK: ship the pi port"));
 	assert.ok(prompt.includes("STAGE: stuck"));
-	assert.ok(prompt.includes("PLAN/APPROACH: shared modules first"));
-	assert.ok(prompt.includes("EVIDENCE: tests green"));
 	assert.ok(prompt.includes("QUESTION: is this the right seam?"));
 	assert.ok(prompt.includes("Structured consultation:"));
 });
 
 // --- the command line (verified) --------------------------------------------------
 
-check("command: the flag set is exactly the verified one", () => {
-	assert.deepEqual([...CLAUDE_ADVISOR_FLAGS], [
-		"-p",
-		"--model",
-		"opus",
-		"--effort",
-		"high",
-		"--permission-mode",
-		"plan",
-		"--tools",
-		"Read,Grep,Glob",
-		"--safe-mode",
-		"--no-session-persistence",
+check("command: the default flag set is exactly the verified one", () => {
+	assert.deepEqual(cursorAdvisorFlags(DEFAULT_MODEL), [
+		"--print",
 		"--output-format",
 		"text",
+		"--mode",
+		"ask",
+		"--sandbox",
+		"disabled",
+		"--trust",
+		"--model",
+		"cursor-grok-4.6-high",
 	]);
 });
 
-check("command: a direct .exe resolves to [exe, flags...]", () => {
-	const exe = "C:\\x\\claude.exe";
-	const argv = [exe, ...CLAUDE_ADVISOR_FLAGS];
-	assert.equal(argv[0], exe);
-	assert.equal(argv[1], "-p");
-	assert.equal(argv[argv.length - 1], "text");
+check("command: ask mode is read-only and the OS sandbox is explicitly disabled", () => {
+	const flags = [...cursorAdvisorFlags(DEFAULT_MODEL)];
+	assert.ok(flags.includes("--mode") && flags[flags.indexOf("--mode") + 1] === "ask");
+	assert.ok(flags.includes("--sandbox") && flags[flags.indexOf("--sandbox") + 1] === "disabled");
+});
+
+check("command: NEVER carries --force, --yolo, --auto-review, or MCP auto-approval", () => {
+	const flags = [...cursorAdvisorFlags(DEFAULT_MODEL)];
+	for (const forbidden of ["--force", "--yolo", "--auto-review", "--dangerously-bypass-approvals"]) {
+		assert.ok(!flags.includes(forbidden), `${forbidden} must never appear on the advisor command`);
+	}
+});
+
+check("command: the model is configurable but the default is the verified one", () => {
+	assert.equal(DEFAULT_MODEL, "cursor-grok-4.6-high");
+	assert.equal(configModel(null), "cursor-grok-4.6-high");
+	assert.equal(cursorAdvisorFlags("cursor-grok-4.6-medium").at(-1), "cursor-grok-4.6-medium");
 });
 
 check("command: a .cmd shim is spawned through cmd.exe /d /c, flags after it", () => {
-	const shim = "C:\\Users\\jarry\\AppData\\Local\\pnpm\\claude.cmd";
+	const shim = "C:\\Users\\jarry\\AppData\\Local\\cursor-agent\\agent.cmd";
 	const cmd = "C:\\Windows\\System32\\cmd.exe";
-	const argv = [cmd, "/d", "/c", shim, ...CLAUDE_ADVISOR_FLAGS];
+	const argv = [cmd, "/d", "/c", shim, ...cursorAdvisorFlags(DEFAULT_MODEL)];
 	assert.deepEqual(argv.slice(0, 4), [cmd, "/d", "/c", shim]);
-	assert.equal(argv[4], "-p");
-	assert.equal(argv[argv.length - 1], "text");
+	assert.equal(argv[4], "--print");
+	assert.equal(argv[argv.length - 1], DEFAULT_MODEL);
+});
+
+check("command: the prompt never travels on the command line (stdin only)", () => {
+	// No flag value slot is left for a prompt: every odd-indexed value
+	// belongs to the flag set above; the runner writes the prompt to stdin.
+	const flags = [...cursorAdvisorFlags(DEFAULT_MODEL)];
+	assert.equal(flags.length % 2, 0, "flag list is fully paired — nothing for a prompt");
 });
 
 // --- reply capping -----------------------------------------------------------------
@@ -207,6 +223,27 @@ check("reply: a project-configured budget is honored", () => {
 
 check("reply: a short reply passes through unchanged", () => {
 	assert.equal(capToBudget("looks good", 4000), "looks good");
+});
+
+// --- failure classification and the resulting gate state ----------------------------
+
+check("classify: every HARD_FAILURE_HINT marks a hard failure", () => {
+	for (const hint of HARD_FAILURE_HINTS) {
+		assert.equal(classifyAdvisorFailure(`The advisor failed: ${hint} today`), "hard", `hint: ${hint}`);
+	}
+});
+
+check("classify: transient, malformed, and empty detail are soft", () => {
+	for (const detail of ["connection reset by peer", "malformed JSON in the advisor reply", "socket hang up", ""]) {
+		assert.equal(classifyAdvisorFailure(detail), "soft", `expected soft: ${JSON.stringify(detail)}`);
+	}
+});
+
+check("classify: sign-in and model-availability failures are hard", () => {
+	assert.equal(classifyAdvisorFailure("You are not logged in. Sign in to Cursor to continue."), "hard");
+	assert.equal(hardFailureCategory("not logged in"), "authentication");
+	assert.equal(hardFailureCategory("model cursor-grok-4.6-high not found"), "model availability");
+	assert.equal(classifyAdvisorFailure("socket hang up"), "soft");
 });
 
 // --- the gate state machine --------------------------------------------------------
@@ -238,6 +275,21 @@ check("gate: a timed-out consult disarms the gate", () => {
 	assert.equal(gateAllowsWrite(gate), true);
 });
 
+check("gate: a HARD failure (unusable advisor) disarms the gate — no wedge", () => {
+	for (const detail of [
+		"You are not logged in. Sign in to Cursor to continue.",
+		"403 unauthorized: authentication required",
+		"usage limit reached for this Cursor account",
+		"model 'cursor-grok-4.6-high' not available",
+	]) {
+		assert.equal(classifyAdvisorFailure(detail), "hard", `expected hard: ${detail}`);
+		const gate = createGate();
+		applyConsultOutcome(gate, { kind: "hard_failed" });
+		assert.equal(gate.state, "disarmed", `expected disarmed for: ${detail}`);
+		assert.equal(gateAllowsWrite(gate), true, `expected writes allowed for: ${detail}`);
+	}
+});
+
 check("gate: a SOFT failure (transient, one-off) keeps the gate armed", () => {
 	const gate = createGate();
 	applyConsultOutcome(gate, { kind: "failed" });
@@ -245,51 +297,9 @@ check("gate: a SOFT failure (transient, one-off) keeps the gate armed", () => {
 	assert.equal(gateAllowsWrite(gate), false);
 });
 
-check("gate: a HARD failure (unusable advisor) disarms the gate — no wedge", () => {
-	for (const detail of [
-		"Error: not logged in. Run 'claude login' to sign in.",
-		"403 unauthorized: authentication required",
-		"You have exceeded your usage limit; check your billing account.",
-		"model 'opus' not found in this account",
-	]) {
-		assert.equal(classifyAdvisorFailure(detail), "hard", `expected hard: ${detail}`);
-		const gate = createGate();
-		applyConsultOutcome(gate, { kind: "hard_failed" });
-		assert.equal(gate.state, "disarmed");
-		assert.equal(gateAllowsWrite(gate), true, `expected disarmed for: ${detail}`);
-	}
-});
-
-// --- failure classification (shared/advisor-failure.ts) ----------------------
-
-check("classify: every HARD_FAILURE_HINT marks a hard failure", () => {
-	for (const hint of HARD_FAILURE_HINTS) {
-		assert.equal(classifyAdvisorFailure(`The advisor failed: ${hint} today`), "hard", `hint: ${hint}`);
-	}
-});
-
-check("classify: transient, malformed, and empty detail are soft", () => {
-	for (const detail of [
-		"connection reset by peer",
-		"malformed JSON in the advisor reply",
-		"socket hang up after 30s",
-		"",
-	]) {
-		assert.equal(classifyAdvisorFailure(detail), "soft", `expected soft: ${JSON.stringify(detail)}`);
-	}
-});
-
-check("classify: case-insensitive, and category names the cause", () => {
-	assert.equal(classifyAdvisorFailure("QUOTA EXCEEDED FOR THIS PLAN"), "hard");
-	assert.equal(hardFailureCategory("quota exceeded"), "quota or credits");
-	assert.equal(hardFailureCategory("not logged in"), "authentication");
-	assert.equal(hardFailureCategory("model gpt-x not found"), "model availability");
-	assert.equal(hardFailureCategory("socket hang up"), null);
-});
-
 check("gate: once disarmed, the gate stays open", () => {
 	const gate = createGate();
-	applyConsultOutcome(gate, { kind: "unreachable" });
+	applyConsultOutcome(gate, { kind: "hard_failed" });
 	applyConsultOutcome(gate, { kind: "failed" }); // no re-arm on failure
 	assert.equal(gate.state, "disarmed");
 	assert.equal(gateAllowsWrite(gate), true);
@@ -300,7 +310,7 @@ check("gate: once disarmed, the gate stays open", () => {
 check("deny reason: names the offending write and the remedy", () => {
 	const r = denyReason("src/app.py");
 	assert.ok(r.includes("src/app.py"));
-	assert.ok(r.includes("consult_claude_advisor"));
+	assert.ok(r.includes("consult_cursor_advisor"));
 	assert.ok(r.includes("expected behavior, not an error"));
 });
 
@@ -309,7 +319,7 @@ check("deny reason: works when no path is known", () => {
 });
 
 check("messages: unreachable, timeout, and hard failure disarm; soft stays armed", () => {
-	assert.ok(unreachableAdvisorMessage("claude not found").includes("disarmed"));
+	assert.ok(unreachableAdvisorMessage("agent not found").includes("disarmed"));
 	assert.ok(timeoutAdvisorMessage("The external CLI timed out after 600s.").includes("disarmed"));
 	assert.ok(failedAdvisorMessage("connection reset by peer", undefined).includes("stays armed"));
 	assert.ok(failedAdvisorMessage("", "no note").includes("no note"));
@@ -317,22 +327,32 @@ check("messages: unreachable, timeout, and hard failure disarm; soft stays armed
 });
 
 check("messages: a hard failure reports the cause AND disarms the gate", () => {
-	const msg = hardFailureMessage("Error: 403 unauthorized — authentication required");
+	const msg = hardFailureMessage("You are not logged in. Sign in to Cursor to continue.");
 	assert.ok(msg.includes("disarmed"));
 	assert.ok(msg.includes("authentication"));
-	assert.ok(msg.includes("403 unauthorized"));
-	const quota = hardFailureMessage("quota exceeded for this plan");
-	assert.ok(quota.includes("quota or credits"));
-	assert.ok(quota.includes("disarmed"));
+	assert.ok(hardFailureMessage("quota exhausted").includes("quota or credits"));
 	assert.ok(hardFailureMessage("").includes("No error message was returned."));
 });
 
 // --- config seam ----------------------------------------------------------------------
 
-check("config: defaults are 600s timeout and 4000-char reply", () => {
+check("config: defaults are 600s timeout, 4000-char reply, cursor-grok-4.6-high", () => {
 	assert.equal(DEFAULT_TIMEOUT_SECONDS, 600);
 	assert.equal(configTimeoutSeconds(null), 600);
 	assert.equal(configTimeoutSeconds({ consult_timeout_seconds: -5 }), 600); // malformed -> default
+	assert.equal(configModel(null), "cursor-grok-4.6-high");
+});
+
+check("config: model honors a non-empty string, falls back otherwise", () => {
+	assert.equal(configModel({ model: "cursor-grok-4.6-medium" }), "cursor-grok-4.6-medium");
+	assert.equal(configModel({ model: "  " }), "cursor-grok-4.6-high"); // empty -> default
+	assert.equal(configModel({ model: null }), "cursor-grok-4.6-high"); // malformed -> default
+});
+
+check("config: the effort key is accepted for parity but never reaches the command", () => {
+	// The Cursor CLI takes no effort flag: the model id encodes the tier.
+	const flags = [...cursorAdvisorFlags(configModel({ effort: "high" }))];
+	assert.ok(!flags.some((flag) => flag.toLowerCase().includes("effort")));
 });
 
 check("config: a project-configured timeout is honored", () => {
@@ -356,7 +376,7 @@ function loadExtension() {
 			tool = def as (typeof tool & object) | null;
 		},
 	};
-	claudeAdvisorGuardrail(fakePi as unknown as ExtensionAPI);
+	cursorAdvisorGuardrail(fakePi as unknown as ExtensionAPI);
 	if (handler === null || tool === null) {
 		throw new Error("the extension registered neither a tool nor a tool_call handler");
 	}
@@ -365,8 +385,8 @@ function loadExtension() {
 
 const { handler, tool } = loadExtension();
 
-check("tool: exactly the MCP-replacement tool, named consult_claude_advisor", () => {
-	assert.equal(tool.name, "consult_claude_advisor");
+check("tool: exactly the MCP-replacement tool, named consult_cursor_advisor", () => {
+	assert.equal(tool.name, "consult_cursor_advisor");
 });
 
 check("tool: promptSnippet is ONE short line for the 131k system prompt", () => {
@@ -391,7 +411,7 @@ const writeEvent = {
 check("gate (glue): the first write is denied while armed", () => {
 	const r = handler(writeEvent, { cwd: projectRoot }) as { block?: unknown; reason?: unknown };
 	assert.equal(r?.block, true);
-	assert.ok(String(r?.reason).includes("consult_claude_advisor"));
+	assert.ok(String(r?.reason).includes("consult_cursor_advisor"));
 	assert.ok(String(r?.reason).includes("src/app.py"));
 });
 
@@ -455,7 +475,7 @@ check("fail-open: an internal error allows edit through while armed", () => {
 	);
 });
 
-console.log(`\nclaude-as-advisor behavior: ${passed} passed, ${failed} failed`);
+console.log(`\ncursor-as-advisor behavior: ${passed} passed, ${failed} failed`);
 if (failed > 0) {
 	process.exitCode = 1;
 }

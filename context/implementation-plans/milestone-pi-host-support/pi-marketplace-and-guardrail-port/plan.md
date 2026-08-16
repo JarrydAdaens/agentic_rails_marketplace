@@ -179,6 +179,12 @@ own core packages and forbids bundling them.
   Status: `ANSWERED` — decided 17 August 2026 and shipped in Phase 2.
   Answer: An `enabled` flag for parity with its siblings and **no** per-command allowlist. `enabled: false` is a deliberate, visible, project-level act; a regex allowlist on a hard prohibition is an accident waiting to happen. The guardrail also does not hook `user_bash`, so the human can still push by hand — which is the point.
 
+- Q: Should an advisor consult that runs and fails (rather than timing out or being unresolvable) disarm the write gate?
+  Impact: If it stays armed, an authentication or quota failure denies every write for the whole session — the exact wedge the guardrail is supposed to prevent. Not hypothetical: the Codex quota was exhausted on 17 August 2026, so that advisor fails this way today.
+  Status: `ANSWERED` — decided and shipped in Phase 3b.
+  Answer: **Hard failures disarm; soft failures stay armed.** Classification is ported from the Cursor host's `HARD_FAILURE_HINTS` into `plugins/pi/shared/advisor-failure.ts` and shared by all three advisors. Hard means authentication, quota/credits/billing/rate limit, or model availability; anything else is treated as transient, keeps the gate armed, and is reported to the model. Failures are never swallowed in either case.
+  Known breadth, kept deliberately: `HARD_FAILURE_HINTS` contains the bare token `"model"` (`advisor_consult.py:63`), so a transient message merely mentioning a model disarms the gate. That is more permissive than "model unavailable" alone. It is kept rather than narrowed because it errs toward disarming rather than wedging — the direction this guardrail family deliberately chose — and because silently diverging from the sibling's classification would break cross-tree parity for no gain. Narrow it in both trees together, or not at all.
+
 - Q: Does the pi `readme-name-guardrail` match its Cursor sibling exactly on `git commit <path>`?
   Impact: Cross-tree behavioral parity, which the repository otherwise treats as an invariant.
   Status: `ANSWERED` — divergence found during Phase 2 and deliberately kept.
@@ -283,6 +289,9 @@ own core packages and forbids bundling them.
 
 - Risk: The review bot loops — `agent_settled` → inject message → agent runs → settles → injects again. **Confirmed live: three full runs, stopped only by a hard counter.**
   Mitigation: A hard per-session cycle counter is the primary and only load-bearing guard. Do **not** rely on an in-flight boolean or `ctx.isIdle()` — both were measured returning the non-blocking value on every reentrant fire (Evidence 9.6). A diff fingerprint is kept as a secondary guard for the unchanged-tree case only, and is explicitly not trusted to stop a loop where the agent edits files each cycle.
+
+- Risk: **A write gate is routed around via `bash`, and a local model does it unprompted.** Measured 17 August 2026: with the cursor advisor installed and no consult performed, the `write` tool was correctly denied — and the model immediately re-created the same file with a shell redirect instead, reporting success. Given only `write` and `read`, the same prompt produced a clean denial and no file, which is how the gap was isolated.
+  Mitigation: **Not mitigated. Recorded as a known limitation.** Every host in this repository gates the structured write tools and not shell redirects, so closing it on pi alone would break cross-tree parity, and it is out of scope for Phase 3. It matters more here than elsewhere: on a frontier model a denial is usually respected, whereas the local model treated it as an obstacle to route around within one turn. Closing it means extending the advisor gates to `bash` segments that redirect into a file (`>`, `>>`, `tee`), reusing the existing segmentation from `shared/bash-segments.ts`. That is a worthwhile follow-up story for all hosts, not a quiet pi-only divergence.
 
 - Risk: A bug in a pi guardrail wedges the tool it guards for the whole session, because pi's `tool_call` fails **closed** — the inverse of every other host in this repository.
   Mitigation: Every `tool_call` handler body is wrapped in `try/catch` returning `undefined`. Add a test per guardrail that induces an internal error and asserts the tool is allowed through. This is the one place where pi's defaults actively fight the repository's convention, so it gets a test rather than a comment.
