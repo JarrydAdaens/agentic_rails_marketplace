@@ -17,10 +17,10 @@ This file provides repository guidance for agentic IDEs and coding agents workin
 
 ## Layout and conventions
 
-- One folder per plugin under `plugins/`, named `<domain>-<subject>-<kind>` (kinds: `-verifier`, `-gate`, `-guardrail`). Shared payload is authored once; thin `.claude-plugin/`, `.codex-plugin/`, and `.cursor-plugin/` manifests select host-specific hooks or MCP launchers.
-- Host-specific adapters belong inside one stable plugin when they implement one capability. Manifests must prevent a host from loading another host's payload.
+- Three source roots, `plugins/claude/`, `plugins/codex/`, and `plugins/cursor/`, each holding only the plugins that host supports. A plugin available on more than one host is a separate copy under each host's root, not a shared payload — there is no cross-host branching in a plugin's own code, and no folder outside its host root is ever referenced.
+- Each plugin folder is named `<domain>-<subject>-<kind>` (kinds: `-verifier`, `-gate`, `-guardrail`) and carries exactly one host manifest: `.claude-plugin/` under `plugins/claude/`, `.codex-plugin/` under `plugins/codex/`, `.cursor-plugin/` under `plugins/cursor/`. A plugin folder with more than one `.*-plugin/` directory is a bug.
 - Every plugin folder has a `README.md` stating what it does, what the consuming project must provide, and any known limitations.
-- All three catalogs (`.claude-plugin/marketplace.json`, `.agents/plugins/marketplace.json`, `.cursor-plugin/marketplace.json`) must list every compatible plugin; keep them in sync when adding or removing plugins.
+- Each catalog (`.claude-plugin/marketplace.json`, `.agents/plugins/marketplace.json`, `.cursor-plugin/marketplace.json`) lists only the plugins in its own host root — `./plugins/<host>/<name>` — and nothing outside it.
 - File and folder names are kebab-case except tool-mandated names and language-idiomatic code files. American English throughout.
 - Validate before committing: `claude plugin validate .` from the repo root.
 

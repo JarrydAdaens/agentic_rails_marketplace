@@ -2,7 +2,7 @@
 name: agentic-rails-marketplace-design
 description: Design and purpose document for the agentic_rails_marketplace repository — the source of truth and native plugin marketplace for installable lifecycle guardrails served to Claude Code, Codex, and Cursor.
 metadata:
-  version: "0.2"
+  version: "0.3"
   status: "Draft for review"
   owner: "Jarryd Adaens"
   repo: "agentic_rails_marketplace"
@@ -137,46 +137,65 @@ Cross-references for the reviewing agent to pull in during setup:
 
 ---
 
-## 4. Repository Layout (three host layouts, one marketplace)
+## 4. Repository Layout (three host roots, one marketplace)
 
 Claude Code, Codex, and Cursor are structurally similar but **not**
 interchangeable: they use different manifests, hook event names, response
-schemas, install paths, and CLIs. A single repository serves all three by
-carrying their manifest layouts side by side and selecting host adapters inside
-one stable plugin.
-
-The shared artefact logic (the actual eval/guardrail scripts) should be authored
-**once**; only the thin per-tool registration manifests are duplicated.
-
-Proposed shape (to be validated by the reviewing agent against current vendor
-docs — see §7):
+schemas, install paths, and CLIs — and they evolve independently, on their own
+release cadence. This repository carries three separate source roots,
+`plugins/claude/`, `plugins/codex/`, and `plugins/cursor/`, each holding only
+the plugins that host supports, with a single host manifest and no runtime
+host-detection branching. A plugin that serves more than one host exists as an
+independent copy in each host's root; there is no shared-payload folder.
 
 ```text
 agentic_rails_marketplace/
 ├── README.md                         # short pointer to this design doc
-├── agentic_rails_marketplace_design.md   # this file
+├── context/design.md                 # this file
 │
 ├── .claude-plugin/
-│   └── marketplace.json              # Claude marketplace registry (lists all plugins)
+│   └── marketplace.json              # Claude catalog — lists plugins/claude/* only
 │
 ├── .agents/
 │   └── plugins/
-│       └── marketplace.json          # Codex personal/marketplace registry
+│       └── marketplace.json          # Codex catalog — lists plugins/codex/* only
+│
+├── .cursor-plugin/
+│   └── marketplace.json              # Cursor catalog — lists plugins/cursor/* only
 │
 └── plugins/
-    └── <plugin-name>/                # one folder per independently installable plugin
-        ├── hooks/ · mcp/ · agents/   # shared payload plus host adapters
-        ├── .claude-plugin/
-        ├── .codex-plugin/
-        └── .cursor-plugin/           # thin host registrations
+    ├── claude/
+    │   └── <plugin-name>/            # single-host plugin: one manifest, no branching
+    │       ├── hooks/ · mcp/ · agents/
+    │       └── .claude-plugin/
+    ├── codex/
+    │   └── <plugin-name>/
+    │       ├── hooks/ · mcp/ · agents/
+    │       └── .codex-plugin/
+    └── cursor/
+        └── <plugin-name>/
+            ├── hooks/ · mcp/ · agents/
+            └── .cursor-plugin/
 ```
 
 Key points:
 
-- Default component folders hold shared logic once. Host-specific hook manifests
-  and MCP launch arguments adapt that logic without splitting the capability.
-- The three top-level `marketplace.json` files are the catalogs each tool reads
-  to discover what plugins exist.
+- Each host root is a closed world: its catalog resolves entirely inside
+  `plugins/<host>/`, and every plugin folder there carries exactly one host
+  manifest. No plugin folder anywhere contains more than one `.*-plugin/`
+  directory.
+- A plugin available on more than one host is duplicated once per host root,
+  not shared. The duplication is deliberate: it lets a change to one host's
+  payload land without touching the others, and it lets each copy be pruned to
+  exactly the branching that host needs — usually none, since a single-host
+  copy has nothing left to detect.
+- The three top-level `marketplace.json` files are the catalogs each tool
+  reads to discover what plugins exist; each lists only its own host's plugins,
+  under `./plugins/<host>/<name>`.
+- Cross-tree drift (a fix landing in one host's copy and not its siblings) is
+  the risk this layout accepts in exchange for host isolation. It is caught by
+  a root-level structural and behavioral test suite that walks all three roots,
+  not by keeping the payload physically shared.
 - Everything is **plain files and folders** — diffable, reviewable, copyable.
   Do **not** store payloads as zip archives; zips defeat diffing, review, and
   native fetch, and force an unzip step nothing else needs.
@@ -215,10 +234,11 @@ that one is chosen and applied consistently across both manifest formats.)*
 
 ### Publishing (owner side)
 
-1. Author or extract an eval/guardrail as a plugin under `plugins/<name>/shared/`.
-2. Add the two thin registration manifests (`.claude-plugin/plugin.json`,
-   `.codex-plugin/plugin.json`) pointing at the shared payload.
-3. Register the plugin in both top-level `marketplace.json` catalogues.
+1. Author or extract an eval/guardrail as a plugin under `plugins/<host>/<name>/`,
+   once per host that supports it.
+2. Add that host's own manifest (`.claude-plugin/plugin.json`,
+   `.codex-plugin/plugin.json`, or `.cursor-plugin/plugin.json`) inside each copy.
+3. Register the plugin in that host's own `marketplace.json` catalogue.
 4. Commit and push. The repository *is* the source of truth; commit history is
    the version record.
 
@@ -257,17 +277,14 @@ systems are new and their paths/commands move):
    file location (`.agents/plugins/marketplace.json` and related), plugin
    manifest location (`.codex-plugin/plugin.json`), cache and enabled-state
    locations. Validate the proposed `.codex-plugin/` structure.
-3. **Confirm the shared-payload pointer mechanism** — verify that each tool's
-   `plugin.json` can reference a shared payload folder rather than requiring
-   duplicated files, and adjust the layout if not.
-4. **Confirm private-repo install** for both tools, and capture the Claude
+3. **Confirm private-repo install** for both tools, and capture the Claude
    local-clone workaround steps if the direct private add misbehaves.
-5. **Confirm hook trust behaviour** — both tools treat hooks as high-trust and
+4. **Confirm hook trust behaviour** — both tools treat hooks as high-trust and
    may require explicit review/trust before hooks run. Document what the user
    must approve on install.
-6. **Confirm graceful degradation** — verify that an unresolved/half-configured
+5. **Confirm graceful degradation** — verify that an unresolved/half-configured
    plugin entry is skipped rather than breaking the whole marketplace.
-7. **Decide the plugin naming convention** (§5) and apply it across both
+6. **Decide the plugin naming convention** (§5) and apply it across both
    manifest formats.
 
 ### Non-goals (explicitly out of scope)
@@ -290,6 +307,7 @@ systems are new and their paths/commands move):
   "plugin" — vendor vocabulary, no invented metaphors.
 - **Plain files, not archives:** everything diffable, reviewable, natively
   fetchable.
-- **Author once, register per tool:** shared payload, thin per-tool manifests.
+- **One host, one copy, one manifest:** each host root carries its own payload
+  and its own manifest; no cross-host branching, no shared-payload folder.
 - **Granularity follows lifecycle:** a plugin is the unit of independent
   install-and-remove.

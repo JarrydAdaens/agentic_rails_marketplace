@@ -1,0 +1,7 @@
+{
+  "name": "codex-as-critic-guardrail",
+  "description": "Cross-vendor actor-critic guardrail for Claude Code: executor sessions must consult an antagonistic, read-only Codex critic via the local Codex CLI before their first write. Shell CLI (no MCP). Ships enforcement hooks, harness config, session health self-disable, and the codex-critic-health / init / help skills.",
+  "author": {
+    "name": "Jarryd Adaens"
+  }
+}
