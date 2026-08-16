@@ -3,37 +3,37 @@
   "hooks": {
     "beforeReadFile": [
       {
-        "command": "powershell -NoProfile -ExecutionPolicy Bypass -File ./hooks/claude-home-fence.ps1",
+        "command": "C:\\Windows\\System32\\cmd.exe /d /c .\\scripts\\launch-windows.cmd .\\hooks\\claude_home_fence.py",
         "failClosed": true
       }
     ],
     "beforeTabFileRead": [
       {
-        "command": "powershell -NoProfile -ExecutionPolicy Bypass -File ./hooks/claude-home-fence.ps1",
+        "command": "C:\\Windows\\System32\\cmd.exe /d /c .\\scripts\\launch-windows.cmd .\\hooks\\claude_home_fence.py",
         "failClosed": true
       }
     ],
     "preToolUse": [
       {
         "matcher": "Write|StrReplace|Delete|Edit|MultiEdit|NotebookEdit|Grep|Glob|Read",
-        "command": "powershell -NoProfile -ExecutionPolicy Bypass -File ./hooks/claude-home-fence.ps1",
+        "command": "C:\\Windows\\System32\\cmd.exe /d /c .\\scripts\\launch-windows.cmd .\\hooks\\claude_home_fence.py",
         "failClosed": true
       },
       {
         "matcher": "Shell",
-        "command": "powershell -NoProfile -ExecutionPolicy Bypass -File ./hooks/claude-home-fence.ps1",
+        "command": "C:\\Windows\\System32\\cmd.exe /d /c .\\scripts\\launch-windows.cmd .\\hooks\\claude_home_fence.py",
         "failClosed": true
       }
     ],
     "beforeShellExecution": [
       {
-        "command": "powershell -NoProfile -ExecutionPolicy Bypass -File ./hooks/claude-home-fence.ps1",
+        "command": "C:\\Windows\\System32\\cmd.exe /d /c .\\scripts\\launch-windows.cmd .\\hooks\\claude_home_fence.py",
         "failClosed": true
       }
     ],
     "sessionStart": [
       {
-        "command": "powershell -NoProfile -ExecutionPolicy Bypass -File ./hooks/claude-home-fence.ps1"
+        "command": "C:\\Windows\\System32\\cmd.exe /d /c .\\scripts\\launch-windows.cmd .\\hooks\\claude_home_fence.py"
       }
     ]
   }
