@@ -58,6 +58,13 @@ prompt on UTF-8 stdin.
 
 - Gate state is in-memory and scoped to the pi process: a `/new` session in
   the same process inherits a satisfied or disarmed gate.
+- **The gate is on `write`/`edit`, not on shell redirects.** A model can
+  create the same file with a redirect through `bash` (`>`, `>>`, `tee`) and
+  route around the denial. Measured on pi: after a clean denial of `write`, the
+  local model did exactly this unprompted, within one turn, and reported
+  success. Every host in this repository shares the gap; closing it means
+  extending the advisor gates to redirect-carrying `bash` segments on all of
+  them, which is a separate story.
 - The `claude` model aliases (`opus`) follow Anthropic's moving alias; the
   guardrail does not pin a dated model ID.
 - Requires a Windows or POSIX environment where the `claude` CLI is

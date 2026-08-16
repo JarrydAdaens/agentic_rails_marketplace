@@ -17,12 +17,15 @@ This file provides repository guidance for agentic IDEs and coding agents workin
 
 ## Layout and conventions
 
-- Three source roots, `plugins/claude/`, `plugins/codex/`, and `plugins/cursor/`, each holding only the plugins that host supports. A plugin available on more than one host is a separate copy under each host's root, not a shared payload — there is no cross-host branching in a plugin's own code, and no folder outside its host root is ever referenced.
+- Three manifest host roots — `plugins/claude/`, `plugins/codex/`, and `plugins/cursor/` — each holding only the plugins that host supports. A plugin available on more than one host is a separate copy under each host's root, not a shared payload — there is no cross-host branching in a plugin's own code, and no folder outside its host root is ever referenced.
+- A fourth source root, `plugins/pi/`, is **not a peer** of the three. Pi has no per-plugin manifest and no catalog: the whole repository is **one pi package** declared by the root `package.json`, whose `pi.extensions` glob (`plugins/pi/*/extensions/*.ts`) reaches into each guardrail folder. Per-guardrail granularity on Pi comes from `pi config` filtering, not install-and-remove, because a pi git source clones the repository root with no subdirectory selector. `plugins/pi/shared/` is a library imported by the extensions and is deliberately not matched by the extension glob. Pi's install points at the checkout rather than copying a plugin folder, so the "no folder outside its host root" rule above applies to the three manifest hosts, not to `plugins/pi/`.
+- `tests/test_cross_ide_guardrails.py` covers the three manifest hosts only; the `plugins/pi/` exclusion there is deliberate, not an oversight — do not add `pi` to its `HOSTS`. Pi's structure is covered by `tests/test_pi_package.py` and its behavior by the per-module `.test.ts` files run under Pi's bundled Node.
 - Each plugin folder is named `<domain>-<subject>-<kind>` (kinds: `-verifier`, `-gate`, `-guardrail`) and carries exactly one host manifest: `.claude-plugin/` under `plugins/claude/`, `.codex-plugin/` under `plugins/codex/`, `.cursor-plugin/` under `plugins/cursor/`. A plugin folder with more than one `.*-plugin/` directory is a bug.
 - Every plugin folder has a `README.md` stating what it does, what the consuming project must provide, and any known limitations.
 - Each catalog (`.claude-plugin/marketplace.json`, `.agents/plugins/marketplace.json`, `.cursor-plugin/marketplace.json`) lists only the plugins in its own host root — `./plugins/<host>/<name>` — and nothing outside it.
+- Pi extension sources stay within erasable TypeScript (no enums or namespaces), use explicit `.ts` extensions on relative imports, and use `import type` for type-only imports — the style Pi's own examples use, which is also what Pi's bundled Node can run and test directly.
 - File and folder names are kebab-case except tool-mandated names and language-idiomatic code files. American English throughout.
-- Validate before committing: `claude plugin validate .` from the repo root.
+- Validate before committing: `claude plugin validate .`, `uvx --with pytest pytest tests/ -q`, and `"C:\Users\Jarry\AppData\Local\pi-node\current\node.exe" --test "plugins/pi/**/*.test.ts"` from the repo root.
 
 ## What does not belong here
 

@@ -513,16 +513,23 @@ perform), `terminate: true` is the correct setting. For a prohibition with a rem
 A two-extension package folder was installed with `pi install <abs path>`, both extensions
 loaded and fired, and `pi remove` cleanly reverted the settings file.
 
-One wrinkle worth recording: pi wrote the path into `settings.json` **relative to the
-settings file**, not as the absolute path given:
+One wrinkle worth recording: pi **normalizes** the stored path rather than keeping what
+you typed. It writes a path relative to the settings file when one is expressible, and an
+absolute path when it is not. Both were observed:
 
 ```json
-{ "packages": ["..\\..\\AppData\\Local\\Temp\\pi-spike\\pkg"] }
+{ "packages": ["..\\..\\AppData\\Local\\Temp\\pi-spike\\pkg"] }        // C: package, C: settings
+{ "packages": ["D:\\Code Projects\\agentic_rails\\agentic_rails_marketplace"] }  // D: package
 ```
 
-That is a portability footgun for any documented install command — a local-path install
-is bound to the settings file's own location, and a settings file copied to another
-machine will resolve the relative path somewhere unintended.
+The second was measured on 17 August 2026 during the Phase 5 install round trip and
+corrects the original "always relative" reading of this finding.
+
+Either form is a portability footgun, for different reasons: the relative form binds the
+install to the settings file's own location, so a settings file copied to another machine
+resolves it somewhere unintended; the absolute form is machine-bound outright. **Document
+the git source as the portable install and a local path as a development convenience
+only.**
 
 ### 9.5 Pi's `tool_call` fails **closed**, not open
 

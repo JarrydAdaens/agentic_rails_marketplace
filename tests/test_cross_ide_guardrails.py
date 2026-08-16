@@ -10,6 +10,17 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).parents[1]
+# "pi" is deliberately NOT a fourth host in this matrix, and plugins/pi/ is
+# deliberately absent from every assertion in this module. The assertions
+# above and below assume each plugin folder carries exactly one host manifest
+# and that a catalog lists the plugins; pi has neither a per-plugin manifest
+# nor a catalog — the whole repository is ONE pi package declared by the
+# root package.json, and granularity comes from `pi config` filtering. Its
+# shape is covered by tests/test_pi_package.py instead, and its absence
+# here is a deliberate exclusion, not an oversight (see context/design.md
+# sections 4 and 5). Do not add "pi" to HOSTS: every assertion in this file
+# would fail on plugins/pi/ by construction rather than catch a real
+# regression.
 HOSTS = ("claude", "codex", "cursor")
 HOST_MANIFEST_DIR = {"claude": ".claude-plugin", "codex": ".codex-plugin", "cursor": ".cursor-plugin"}
 HOST_CATALOG = {
@@ -44,6 +55,8 @@ class MarketplaceMatrixTests(unittest.TestCase):
                 self.assertEqual(json.loads(manifest.read_text(encoding="utf-8"))["name"], entry["name"])
 
     def test_every_plugin_folder_carries_exactly_its_own_host_manifest(self):
+        # Walks plugins/<host>/ for the three manifest-bearing hosts only;
+        # plugins/pi/ is excluded by design (see the HOSTS note above).
         for host in HOSTS:
             own = HOST_MANIFEST_DIR[host]
             foreign = {d for d in HOST_MANIFEST_DIR.values() if d != own}
