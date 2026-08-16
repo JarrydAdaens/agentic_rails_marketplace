@@ -1,0 +1,10 @@
+{
+  "name": "agentic-rails-pi",
+  "private": true,
+  "keywords": ["pi-package"],
+  "pi": { "extensions": ["plugins/pi/*/extensions/*.ts"] },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "typebox": "*"
+  }
+}
