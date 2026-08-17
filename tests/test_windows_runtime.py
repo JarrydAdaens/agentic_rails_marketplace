@@ -12,7 +12,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 ROOT = Path(__file__).parents[1]
-RUNTIME_PATH = ROOT / "plugins" / "local-advisor-guardrail" / "mcp" / "windows_runtime.py"
+RUNTIME_PATH = ROOT / "plugins" / "cursor" / "local-advisor-guardrail" / "mcp" / "windows_runtime.py"
 SPEC = importlib.util.spec_from_file_location("tested_windows_runtime", RUNTIME_PATH)
 runtime = importlib.util.module_from_spec(SPEC)
 assert SPEC and SPEC.loader

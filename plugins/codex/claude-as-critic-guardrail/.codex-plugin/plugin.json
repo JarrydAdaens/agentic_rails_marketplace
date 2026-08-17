@@ -1,0 +1,15 @@
+{
+  "name": "claude-as-critic-guardrail",
+  "version": "1.1.0",
+  "description": "Consult-capable, read-only Claude Opus critic for Codex. Shell CLI (no MCP). No confirmed Codex hook mechanism exists to enforce a write gate on this host, so consultation is voluntary: run it manually before writing.",
+  "author": { "name": "Jarryd Adaens" },
+  "interface": {
+    "displayName": "Claude as Critic Guardrail",
+    "shortDescription": "Consult a Claude Opus critic before writing.",
+    "longDescription": "Adds a read-only Claude Opus critic at high effort, reachable via a shell CLI. Not currently gate-enforcing on Codex.",
+    "developerName": "Jarryd Adaens",
+    "category": "Productivity",
+    "capabilities": ["Read-only critic"],
+    "defaultPrompt": ["Consult the Claude critic before implementing this task."]
+  }
+}

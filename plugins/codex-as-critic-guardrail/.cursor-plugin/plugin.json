@@ -1,8 +1,0 @@
-{
-  "name": "codex-as-critic-guardrail",
-  "version": "1.1.0",
-  "description": "Requires Cursor agents to consult a read-only Codex critic before their first write. Shell CLI (no MCP), harness config (model/effort/fast/timeouts), health self-disable, and init/help/health skills.",
-  "author": { "name": "Jarryd Adaens" },
-  "hooks": "./hooks/cursor-hooks.json",
-  "keywords": ["guardrail", "critic", "codex"]
-}

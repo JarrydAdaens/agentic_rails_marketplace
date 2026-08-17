@@ -8,56 +8,56 @@
   "plugins": [
     {
       "name": "jobs-done-guardrail",
-      "source": "./plugins/jobs-done-guardrail",
+      "source": "./plugins/claude/jobs-done-guardrail",
       "description": "Deterministic completion guardrail: an agent finishing a turn with relevant code changes must pass the project's build and unit tests before handing back to the human. Fingerprint-skips already-validated states. Supports Claude Code and Cursor.",
       "category": "guardrail",
       "keywords": ["build", "test", "stop-hook", "guardrail", "jobs-done"]
     },
     {
       "name": "local-advisor-guardrail",
-      "source": "./plugins/local-advisor-guardrail",
+      "source": "./plugins/claude/local-advisor-guardrail",
       "description": "Local advisor guardrail for Claude Code, Codex, and Cursor. It requires consultation with a child agent inside the current IDE before the first write and selects Opus High, GPT-5.6 Sol High, or Cursor Grok 4.5 High for that host.",
       "category": "guardrail",
       "keywords": ["advisor", "guardrail", "hooks", "actor-critic", "consult"]
     },
     {
       "name": "codex-as-critic-guardrail",
-      "source": "./plugins/codex-as-critic-guardrail",
+      "source": "./plugins/claude/codex-as-critic-guardrail",
       "description": "Cross-vendor actor-critic guardrail for Claude Code and Cursor: executor sessions must consult an antagonistic, read-only GPT-5.6 Sol critic via the local Codex CLI before their first write.",
       "category": "guardrail",
       "keywords": ["critic", "guardrail", "hooks", "actor-critic", "codex", "cross-vendor"]
     },
     {
       "name": "codex-as-advisor-guardrail",
-      "source": "./plugins/codex-as-advisor-guardrail",
+      "source": "./plugins/claude/codex-as-advisor-guardrail",
       "description": "Cross-vendor advisor guardrail for Claude Code and Cursor: consult a constructive, read-only GPT-5.6 Sol advisor via the local Codex CLI before the first write.",
       "category": "guardrail",
       "keywords": ["advisor", "guardrail", "hooks", "codex", "cross-vendor"]
     },
     {
       "name": "cursor-as-critic-guardrail",
-      "source": "./plugins/cursor-as-critic-guardrail",
+      "source": "./plugins/claude/cursor-as-critic-guardrail",
       "description": "Cross-vendor actor-critic guardrail for Claude Code and Codex: executor sessions must consult an antagonistic, read-only Cursor Grok 4.6 High critic at standard speed before their first write.",
       "category": "guardrail",
       "keywords": ["critic", "guardrail", "hooks", "actor-critic", "cursor", "cross-vendor", "model-selection"]
     },
     {
       "name": "python-uv-guardrail",
-      "source": "./plugins/python-uv-guardrail",
+      "source": "./plugins/claude/python-uv-guardrail",
       "description": "Deterministic pre-tool guardrail for Claude Code and Cursor: direct python/pip commands are denied with a uv-based retry instruction.",
       "category": "guardrail",
       "keywords": ["python", "uv", "pip", "guardrail", "pre-tool-use"]
     },
     {
       "name": "readme-name-guardrail",
-      "source": "./plugins/readme-name-guardrail",
+      "source": "./plugins/claude/readme-name-guardrail",
       "description": "Deterministic pre-tool guardrail for Claude Code and Cursor: nested README.md writes and Git staging/commits are denied in favor of descriptive filenames.",
       "category": "guardrail",
       "keywords": ["readme", "naming", "guardrail", "pre-tool-use", "git"]
     },
     {
       "name": "cursor-as-advisor-guardrail",
-      "source": "./plugins/cursor-as-advisor-guardrail",
+      "source": "./plugins/claude/cursor-as-advisor-guardrail",
       "description": "Cross-vendor advisor guardrail for Claude Code and Codex: executor sessions must consult a helpful, read-only advisor through the local Cursor Agent CLI before their first write. Defaults to Cursor Grok 4.6 High at standard speed.",
       "category": "guardrail",
       "keywords": ["advisor", "guardrail", "hooks", "actor-critic", "cursor", "cross-vendor", "model-selection"]

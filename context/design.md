@@ -2,7 +2,7 @@
 name: agentic-rails-marketplace-design
 description: Design and purpose document for the agentic_rails_marketplace repository — the source of truth and native plugin marketplace for installable lifecycle guardrails served to Claude Code, Codex, and Cursor.
 metadata:
-  version: "0.2"
+  version: "0.4"
   status: "Draft for review"
   owner: "Jarryd Adaens"
   repo: "agentic_rails_marketplace"
@@ -137,46 +137,89 @@ Cross-references for the reviewing agent to pull in during setup:
 
 ---
 
-## 4. Repository Layout (three host layouts, one marketplace)
+## 4. Repository Layout (three host roots plus the pi root, one marketplace)
 
 Claude Code, Codex, and Cursor are structurally similar but **not**
 interchangeable: they use different manifests, hook event names, response
-schemas, install paths, and CLIs. A single repository serves all three by
-carrying their manifest layouts side by side and selecting host adapters inside
-one stable plugin.
+schemas, install paths, and CLIs — and they evolve independently, on their own
+release cadence. This repository carries three separate source roots,
+`plugins/claude/`, `plugins/codex/`, and `plugins/cursor/`, each holding only
+the plugins that host supports, with a single host manifest and no runtime
+host-detection branching. A plugin that serves more than one host exists as an
+independent copy in each host's root; there is no shared-payload folder.
 
-The shared artefact logic (the actual eval/guardrail scripts) should be authored
-**once**; only the thin per-tool registration manifests are duplicated.
-
-Proposed shape (to be validated by the reviewing agent against current vendor
-docs — see §7):
+A fourth source root, `plugins/pi/`, exists for the fourth host, Pi. It is
+structurally unlike the other three and is **not** a fourth peer of them —
+see the key points below before reshaping anything under it.
 
 ```text
 agentic_rails_marketplace/
 ├── README.md                         # short pointer to this design doc
-├── agentic_rails_marketplace_design.md   # this file
+├── context/design.md                 # this file
 │
 ├── .claude-plugin/
-│   └── marketplace.json              # Claude marketplace registry (lists all plugins)
+│   └── marketplace.json              # Claude catalog — lists plugins/claude/* only
 │
 ├── .agents/
 │   └── plugins/
-│       └── marketplace.json          # Codex personal/marketplace registry
+│       └── marketplace.json          # Codex catalog — lists plugins/codex/* only
+│
+├── .cursor-plugin/
+│   └── marketplace.json              # Cursor catalog — lists plugins/cursor/* only
+│
+├── package.json                      # the one pi package manifest — the whole repository
+│                                     # is a single pi package, not one package per guardrail
 │
 └── plugins/
-    └── <plugin-name>/                # one folder per independently installable plugin
-        ├── hooks/ · mcp/ · agents/   # shared payload plus host adapters
-        ├── .claude-plugin/
-        ├── .codex-plugin/
-        └── .cursor-plugin/           # thin host registrations
+    ├── claude/
+    │   └── <plugin-name>/            # single-host plugin: one manifest, no branching
+    │       ├── hooks/ · mcp/ · agents/
+    │       └── .claude-plugin/
+    ├── codex/
+    │   └── <plugin-name>/
+    │       ├── hooks/ · mcp/ · agents/
+    │       └── .codex-plugin/
+    ├── cursor/
+    │   └── <plugin-name>/
+    │       ├── hooks/ · mcp/ · agents/
+    │       └── .cursor-plugin/
+    └── pi/                           # NOT a fourth peer — no manifests, no catalog
+        ├── shared/                   # library imported by the extensions; not loaded as one
+        └── <guardrail-name>/         # plain source folder, reached by the root package glob
+            ├── extensions/<guardrail-name>.ts
+            ├── tests/
+            └── README.md
 ```
 
 Key points:
 
-- Default component folders hold shared logic once. Host-specific hook manifests
-  and MCP launch arguments adapt that logic without splitting the capability.
-- The three top-level `marketplace.json` files are the catalogs each tool reads
-  to discover what plugins exist.
+- Each host root is a closed world: its catalog resolves entirely inside
+  `plugins/<host>/`, and every plugin folder there carries exactly one host
+  manifest. No plugin folder anywhere contains more than one `.*-plugin/`
+  directory — and no `.*-plugin/` directory may appear under `plugins/pi/`
+  at all, because Pi has no manifest concept.
+- A plugin available on more than one host is duplicated once per host root,
+  not shared. The duplication is deliberate: it lets a change to one host's
+  payload land without touching the others, and it lets each copy be pruned to
+  exactly the branching that host needs — usually none, since a single-host
+  copy has nothing left to detect.
+- The three top-level `marketplace.json` files are the catalogs each tool
+  reads to discover what plugins exist; each lists only its own host's plugins,
+  under `./plugins/<host>/<name>`.
+- **`plugins/pi/` is not a fourth peer of the three host roots.** Pi has no
+  per-plugin manifest and no marketplace catalog — there is nothing to list
+  and nothing to register. The root `package.json` declares the **whole
+  repository as one pi package**, with an `extensions` glob
+  (`plugins/pi/*/extensions/*.ts`) that reaches into each guardrail folder.
+  The guardrail folders there are plain source folders, not installable units,
+  and `plugins/pi/shared/` is a library they import — deliberately kept out of
+  the glob by the glob's `/extensions/` segment. Granularity on Pi comes from
+  `pi config` resource filtering over the one installed package, not from
+  install-and-remove of individual folders (see §5).
+- Cross-tree drift (a fix landing in one host's copy and not its siblings) is
+  the risk this layout accepts in exchange for host isolation. It is caught by
+  a root-level structural and behavioral test suite that walks all three roots,
+  not by keeping the payload physically shared.
 - Everything is **plain files and folders** — diffable, reviewable, copyable.
   Do **not** store payloads as zip archives; zips defeat diffing, review, and
   native fetch, and force an unzip step nothing else needs.
@@ -198,6 +241,37 @@ the plugins that fit the work it does. A video-game evaluation and a
 web-browser-test evaluation are separate plugins, and a given machine installs
 whichever is relevant and leaves the other uninstalled.
 
+### This does not hold on Pi (recorded departure)
+
+Recorded plainly, because the section's opening claim is otherwise the design's
+load-bearing one: **"a plugin is the unit of independent install-and-remove" is
+false on the Pi host, and Pi alone breaks it.**
+
+Why it cannot hold: a Pi git source clones the repository **from its root with
+no subdirectory selector** — `git:host/user/repo@ref` is the entire addressing
+scheme; there is no `#path/to/subdir` syntax. A multi-guardrail repository
+cannot expose per-guardrail git installs at all. Local paths *can* be installed
+per folder, but a local install is machine-bound (Pi records the path in
+`settings.json` relative to the settings file where it can) and is a
+development convenience, not a distribution. One repository per guardrail
+would restore the granularity, at the cost of splitting this repository apart
+— rejected.
+
+What delivers the granularity instead: one `pi install` of the repository,
+then `pi config` resource filtering (the settings `packages` array supports
+per-resource globs, exclusions, and force-include/force-exclude) to enable or
+disable individual guardrails without reinstalling. The test for *what belongs
+together* — shared lifecycle / interdependence — is unchanged; only the
+*mechanism* that separates the rest differs on this host.
+
+What would have to change in Pi to reverse the decision, as of the verified
+pi 0.84.2: git-source addressing with a subdirectory selector — or recognition
+of a subdirectory's own `package.json` as a distinct, independently
+installable package inside a cloned repository — giving each guardrail folder
+its own install/update/remove identity without forking the repository. No such
+mechanism exists as of 16 August 2026 (`context/pi-agentic-ide/pi-agentic-ide.md`
+§6 and §9.10).
+
 ### Naming convention (decide early, painful to change later)
 
 Once there are dozens of plugins across domains, names must sort and filter
@@ -215,10 +289,11 @@ that one is chosen and applied consistently across both manifest formats.)*
 
 ### Publishing (owner side)
 
-1. Author or extract an eval/guardrail as a plugin under `plugins/<name>/shared/`.
-2. Add the two thin registration manifests (`.claude-plugin/plugin.json`,
-   `.codex-plugin/plugin.json`) pointing at the shared payload.
-3. Register the plugin in both top-level `marketplace.json` catalogues.
+1. Author or extract an eval/guardrail as a plugin under `plugins/<host>/<name>/`,
+   once per host that supports it.
+2. Add that host's own manifest (`.claude-plugin/plugin.json`,
+   `.codex-plugin/plugin.json`, or `.cursor-plugin/plugin.json`) inside each copy.
+3. Register the plugin in that host's own `marketplace.json` catalogue.
 4. Commit and push. The repository *is* the source of truth; commit history is
    the version record.
 
@@ -257,17 +332,14 @@ systems are new and their paths/commands move):
    file location (`.agents/plugins/marketplace.json` and related), plugin
    manifest location (`.codex-plugin/plugin.json`), cache and enabled-state
    locations. Validate the proposed `.codex-plugin/` structure.
-3. **Confirm the shared-payload pointer mechanism** — verify that each tool's
-   `plugin.json` can reference a shared payload folder rather than requiring
-   duplicated files, and adjust the layout if not.
-4. **Confirm private-repo install** for both tools, and capture the Claude
+3. **Confirm private-repo install** for both tools, and capture the Claude
    local-clone workaround steps if the direct private add misbehaves.
-5. **Confirm hook trust behaviour** — both tools treat hooks as high-trust and
+4. **Confirm hook trust behaviour** — both tools treat hooks as high-trust and
    may require explicit review/trust before hooks run. Document what the user
    must approve on install.
-6. **Confirm graceful degradation** — verify that an unresolved/half-configured
+5. **Confirm graceful degradation** — verify that an unresolved/half-configured
    plugin entry is skipped rather than breaking the whole marketplace.
-7. **Decide the plugin naming convention** (§5) and apply it across both
+6. **Decide the plugin naming convention** (§5) and apply it across both
    manifest formats.
 
 ### Non-goals (explicitly out of scope)
@@ -290,6 +362,7 @@ systems are new and their paths/commands move):
   "plugin" — vendor vocabulary, no invented metaphors.
 - **Plain files, not archives:** everything diffable, reviewable, natively
   fetchable.
-- **Author once, register per tool:** shared payload, thin per-tool manifests.
+- **One host, one copy, one manifest:** each host root carries its own payload
+  and its own manifest; no cross-host branching, no shared-payload folder.
 - **Granularity follows lifecycle:** a plugin is the unit of independent
   install-and-remove.

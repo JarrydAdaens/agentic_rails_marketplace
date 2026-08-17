@@ -1,9 +1,0 @@
-{
-  "mcpServers": {
-    "claude-as-critic-guardrail": {
-      "command": "python",
-      "args": ["${PLUGIN_ROOT}/mcp/critic_server.py"],
-      "env": { "AGENTIC_RAILS_MCP_HOST": "codex" }
-    }
-  }
-}

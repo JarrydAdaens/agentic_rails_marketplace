@@ -1,0 +1,7 @@
+{
+  "name": "codex-as-advisor-guardrail",
+  "description": "Cross-vendor actor-advisor guardrail for Claude Code: executor sessions must consult a constructive, read-only Codex advisor via the local Codex CLI before their first write. Shell CLI (no MCP). Ships enforcement hooks, harness config, session health self-disable, and the codex-advisor-health / init / help skills.",
+  "author": {
+    "name": "Jarryd Adaens"
+  }
+}
