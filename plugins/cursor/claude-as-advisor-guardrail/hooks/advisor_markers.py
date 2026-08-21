@@ -1,10 +1,44 @@
+# Copyright 2026 Jarryd Adaens
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""Hook-facing re-exports of session markers (shared with lib/)."""
+
 from __future__ import annotations
-import tempfile
+
+import sys
 from pathlib import Path
 
-PLUGIN_NAME = "claude-as-advisor-guardrail"
+_LIB = Path(__file__).resolve().parents[1] / "lib"
+if str(_LIB) not in sys.path:
+    sys.path.insert(0, str(_LIB))
 
-
-def marker_dir(): return Path(tempfile.gettempdir()) / f"{PLUGIN_NAME}-markers"
-def marker_path(session_id): return marker_dir() / f"advisor-consulted-{session_id}"
-def has_marker(session_id): return marker_path(session_id).exists()
+from advisor_session import (  # noqa: E402,F401
+    BACKEND_LABEL,
+    HEALTH_SKILL,
+    clear_consulted,
+    format_status_block,
+    has_marker,
+    health_path,
+    health_state,
+    mark_consulted,
+    mark_offline,
+    mark_online,
+    mark_pending,
+    marker_dir,
+    marker_path,
+    offline_reason,
+    presence_line,
+    read_health,
+    write_health,
+)

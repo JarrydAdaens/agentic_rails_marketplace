@@ -18,8 +18,12 @@ from __future__ import annotations
 
 import sys
 
-from advisor_markers import marker_dir, marker_path
+from advisor_markers import mark_consulted, mark_online, read_health
 from advisor_streams import force_utf8, read_hook_payload
+
+
+def _session_id(payload: dict) -> str:
+    return str(payload.get("session_id") or payload.get("conversation_id") or "unknown")
 
 
 def _is_cli_consult(payload: dict) -> bool:
@@ -49,9 +53,17 @@ def main() -> None:
     if not _is_cli_consult(payload):
         sys.exit(0)
 
-    session = payload.get("session_id") or payload.get("conversation_id", "unknown")
-    marker_dir().mkdir(parents=True, exist_ok=True)
-    marker_path(session).touch()
+    session_id = _session_id(payload)
+    mark_consulted(session_id)
+    # A consult only reaches this hook by succeeding, which is itself proof the
+    # backend is reachable -- so keep the session armed rather than letting a
+    # stale pending/offline verdict outlive the evidence.
+    health = read_health(session_id) or {}
+    mark_online(
+        session_id,
+        model=str(health.get("model") or ""),
+        effort=str(health.get("effort") or ""),
+    )
 
 
 if __name__ == "__main__":
