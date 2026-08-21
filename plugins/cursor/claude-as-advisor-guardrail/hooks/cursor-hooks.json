@@ -5,7 +5,7 @@
     "afterShellExecution": [{ "matcher": "consult_advisor", "command": "uv run --no-project python ./scripts/launch.py ./hooks/advisor_marker.py", "failClosed": false }],
     "sessionStart": [
       { "command": "uv run --no-project python ./scripts/launch.py ./hooks/advisor_cleanup.py", "failClosed": false },
-      { "command": "uv run --no-project python ./scripts/launch.py ./hooks/advisor_context.py", "failClosed": false }
+      { "command": "uv run --no-project python ./scripts/launch.py ./hooks/advisor_context.py", "failClosed": false, "timeout": 120 }
     ]
   }
 }

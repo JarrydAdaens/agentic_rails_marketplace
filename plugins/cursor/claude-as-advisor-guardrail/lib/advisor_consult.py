@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Consult a read-only Claude Opus advisor at high effort via the local claude CLI."""
+"""Consult a read-only Claude advisor via the local claude CLI."""
 
 from __future__ import annotations
 
@@ -26,20 +26,27 @@ _LIB = Path(__file__).resolve().parent
 if str(_LIB) not in sys.path:
     sys.path.insert(0, str(_LIB))
 
+from advisor_config import (  # noqa: E402
+    CONSULT_TIMEOUT_ENV_VAR,
+    DEFAULT_CONSULT_TIMEOUT_SECONDS,
+    AdvisorConfig,
+    require_advisor_config,
+    resolve_consult_timeout,
+)
 from windows_runtime import resolve_cli  # noqa: E402
 
+# Back-compat aliases kept so existing callers and tests keep working after the
+# move to harness config.
 MODEL = "opus"
+TIMEOUT_ENV = CONSULT_TIMEOUT_ENV_VAR
+DEFAULT_TIMEOUT_SECONDS = DEFAULT_CONSULT_TIMEOUT_SECONDS
+
 FIELDS = ("task", "stage", "approach", "evidence", "question")
 STAGES = ("planning", "stuck", "pivot-check", "completion-review")
-TIMEOUT_ENV = "CLAUDE_ADVISOR_TIMEOUT_SECONDS"
 
 
-def timeout_seconds() -> int:
-    try:
-        value = int(os.environ.get(TIMEOUT_ENV, ""))
-    except ValueError:
-        value = 0
-    return value if value > 0 else 600
+def timeout_seconds(config: AdvisorConfig | None = None) -> int:
+    return resolve_consult_timeout(config)
 
 
 def validate(arguments: Any) -> dict[str, str]:
@@ -67,29 +74,74 @@ Otherwise answer in at most 120 words: one-sentence direction, 2-4 important dec
 Structured consultation:\n{payload}\n"""
 
 
-def command() -> list[str]:
+def command(config: AdvisorConfig | None = None) -> list[str]:
+    cfg = config or AdvisorConfig()
     return [
-        *resolve_cli("claude"), "-p", "--model", MODEL, "--effort", "high",
+        *resolve_cli("claude"), "-p", "--model", cfg.model, "--effort", cfg.effort,
         "--permission-mode", "plan", "--tools", "Read,Grep,Glob", "--safe-mode",
         "--no-session-persistence", "--output-format", "text",
     ]
 
 
-def consult(arguments: Any) -> str:
-    values = validate(arguments)
-    root = os.environ.get("AGENTIC_RAILS_WORKSPACE") or os.getcwd()
+def classify_failure(stderr: str, model: str) -> str:
+    """Turn a CLI failure into a reason a human can act on."""
+    detail = stderr.strip() or "The Claude CLI exited without an error message."
+    lowered = detail.lower()
+    if any(term in lowered for term in ("not logged in", "authentication", "unauthorized", "sign in", "login required", "api key")):
+        return "Claude authentication failed; sign in with the Claude CLI and retry. " + detail
+    if any(term in lowered for term in ("quota", "credit", "usage limit", "rate limit", "billing")):
+        return "Claude advisor quota or credits exhausted. " + detail
+    if any(term in lowered for term in ("model", "not available", "not found", "unsupported")):
+        return f"Advisor model {model} is unavailable for this account or Claude CLI version. " + detail
+    return "Claude advisor failed. " + detail
+
+
+def describe_timeout(limit: int, partial: Any) -> str:
+    message = (
+        f"Claude advisor timed out after {limit} seconds. Raise consult_timeout_seconds in "
+        f"harness/claude-as-advisor-guardrail/config.json, or set {CONSULT_TIMEOUT_ENV_VAR}, "
+        "or send narrower evidence."
+    )
+    if isinstance(partial, bytes):
+        partial = partial.decode("utf-8", "replace")
+    if isinstance(partial, str) and partial.strip():
+        message += " Claude output before the timeout: " + partial.strip()[-400:]
+    return message
+
+
+def workspace_root(workspace: str | None = None) -> str:
+    return workspace or os.environ.get("AGENTIC_RAILS_WORKSPACE") or os.getcwd()
+
+
+def run_claude_prompt(
+    prompt: str,
+    *,
+    config: AdvisorConfig | None = None,
+    workspace: str | None = None,
+    timeout: int | None = None,
+) -> str:
+    """Run one ephemeral, read-only Claude session and return its text output."""
+    cfg = config or require_advisor_config(workspace)
+    limit = timeout if timeout is not None else timeout_seconds(cfg)
     try:
-        result = subprocess.run(
-            command(), input=build_prompt(values), capture_output=True,
-            encoding="utf-8", errors="replace", cwd=root,
-            timeout=timeout_seconds(), check=False,
+        completed = subprocess.run(
+            command(cfg), input=prompt, capture_output=True,
+            encoding="utf-8", errors="replace", cwd=workspace_root(workspace),
+            timeout=limit, check=False,
         )
     except subprocess.TimeoutExpired as exc:
-        raise RuntimeError(f"Claude advisor timed out. Increase {TIMEOUT_ENV} or narrow the evidence.") from exc
+        raise RuntimeError(describe_timeout(limit, exc.stderr or exc.stdout)) from exc
     except OSError as exc:
         raise RuntimeError(f"Could not start the Claude advisor: {exc}") from exc
-    if result.returncode:
-        raise RuntimeError("Claude advisor failed. " + (result.stderr.strip() or "No error message was returned."))
-    if not result.stdout.strip():
+    if completed.returncode:
+        raise RuntimeError(classify_failure(completed.stderr, cfg.model))
+    text = completed.stdout.strip()
+    if not text:
         raise RuntimeError("Claude advisor returned no advice.")
-    return result.stdout.strip()
+    return text
+
+
+def consult(arguments: Any, workspace: str | None = None) -> str:
+    values = validate(arguments)
+    config = require_advisor_config(workspace)
+    return run_claude_prompt(build_prompt(values), config=config, workspace=workspace)

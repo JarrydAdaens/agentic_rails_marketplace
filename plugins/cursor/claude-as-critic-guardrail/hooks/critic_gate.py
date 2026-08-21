@@ -12,12 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Deny writes until the critic has been consulted this session (native Cursor host)."""
+"""preToolUse gate: deny writes only when critic health is online and no consult yet."""
+
+from __future__ import annotations
 
 import json
 import sys
 
-from critic_markers import has_marker
+from critic_markers import BACKEND_LABEL, HEALTH_SKILL, has_marker, health_state, offline_reason
 from critic_streams import force_utf8, read_hook_payload
 
 DENY_REASON = (
@@ -28,21 +30,47 @@ DENY_REASON = (
 )
 
 
+def _session_id(payload: dict) -> str:
+    return str(payload.get("session_id") or payload.get("conversation_id") or "unknown")
+
+
+def _reply(permission: str, message: str) -> str:
+    return json.dumps({
+        "permission": permission,
+        "user_message": message,
+        "agent_message": message,
+    })
+
+
 def main() -> None:
     force_utf8()
     payload = read_hook_payload()
     if payload is None:
         sys.exit(0)
 
-    session_id = payload.get("session_id") or payload.get("conversation_id", "unknown")
+    session_id = _session_id(payload)
     if has_marker(session_id):
         sys.exit(0)
 
-    print(json.dumps({
-        "permission": "deny",
-        "user_message": DENY_REASON,
-        "agent_message": DENY_REASON,
-    }))
+    state = health_state(session_id)
+
+    if state == "pending":
+        message = f"{BACKEND_LABEL} health pending — write gate fail-open until the probe finishes."
+        print(message, file=sys.stderr)
+        print(_reply("allow", message))
+        return
+
+    if state == "offline":
+        message = (
+            f"{BACKEND_LABEL} offline — {offline_reason(session_id)}. "
+            f"Write gate disarmed. Retest with the {HEALTH_SKILL} skill."
+        )
+        print(message, file=sys.stderr)
+        print(_reply("allow", message))
+        return
+
+    # online and not consulted
+    print(_reply("deny", DENY_REASON))
 
 
 if __name__ == "__main__":
