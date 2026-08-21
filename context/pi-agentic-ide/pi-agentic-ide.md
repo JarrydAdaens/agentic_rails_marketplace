@@ -583,16 +583,37 @@ fingerprint helps only when the tree is unchanged; if the agent edits files each
 fingerprint differs every time and stops nothing. Any wrap-up guardrail that injects
 context must treat the counter as its primary guard, not its backstop.
 
-### 9.7 Print mode cannot host a wrap-up guardrail at all
+### 9.7 Print mode cannot host an *injecting* wrap-up guardrail — but it can host an awaited one
 
-The same probe under `pi -p` produced exactly one `agent_settled`, and the injected
+The original probe under `pi -p` produced exactly one `agent_settled`, and the injected
 message never ran — the session shut down first, and the deferred `sendUserMessage` threw:
 
 > "This extension ctx is stale after session replacement or reload."
 
-`-p` is documented as "process prompt and exit", and that is precisely what it does.
-A review-bot-style guardrail must check `ctx.mode` and stand down in `"print"`, otherwise
-it does nothing useful and logs an error on the way out.
+**That result was correct but the conclusion drawn from it was too broad.** It shows that
+*injection* cannot work in print mode: `-p` is documented as "process prompt and exit", so
+there is no further agent run for an injected message to drive.
+
+It does **not** show that the handler is skipped. Measured 17 August 2026, a second probe
+whose `agent_settled` handler awaited an 8-second sleep and then wrote a file:
+
+```
+[PROBE] agent_settled entered; sleeping 8s
+[PROBE] agent_settled completed after sleep
+```
+
+Both markers were written, and the prompt's own output appeared after them. **Pi awaits an
+async `agent_settled` handler before exiting in print mode.**
+
+The practical consequence is significant for orchestration: a wrap-up guardrail can run a
+full external review in `pi -p` and persist its verdict to disk, provided it **returns its
+promise so pi awaits it** and **reports rather than injects**. Reject becomes a written
+verdict for the caller instead of a bounced-back message.
+
+A guardrail that stands down on `ctx.mode === "print"` is therefore being more
+conservative than necessary — and note that such a check is also the wrong shape, since
+`--mode json` is equally non-interactive and would take the injecting path. The correct
+condition is "do not inject in any non-interactive mode", not "do nothing in print mode".
 
 ### 9.8 Pi's bundled Node runs TypeScript directly — no build step, no dev dependency
 
