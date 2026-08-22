@@ -1,7 +1,7 @@
 {
   "name": "claude-as-advisor-guardrail",
   "version": "1.2.0",
-  "description": "Requires Cursor executors to consult a constructive, read-only Claude advisor before their first write. Shell CLI (no MCP), harness config (model/effort/timeouts), health self-disable, and init/help/health skills.",
+  "description": "v1.2.0 — Requires Cursor executors to consult a constructive, read-only Claude advisor before their first write. Shell CLI (no MCP), harness config (model/effort/timeouts), health self-disable, and init/help/health skills.",
   "author": { "name": "Jarryd Adaens" },
   "hooks": "./hooks/cursor-hooks.json",
   "keywords": ["guardrail", "advisor", "claude", "opus", "cross-vendor"]
