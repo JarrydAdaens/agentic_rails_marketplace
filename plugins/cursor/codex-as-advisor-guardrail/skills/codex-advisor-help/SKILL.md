@@ -34,6 +34,8 @@ not bricked.
 | `codex-advisor-model` | View or persist the Codex model and reasoning effort |
 | `codex-advisor-timeout` | View or persist the advisor consult timeout |
 | `codex-advisor-version` | Print the installed version and edit timestamp |
+| `codex-advisor-install-hooks` | Merge hooks into the Cursor CLI user hooks file |
+| `codex-advisor-remove-hooks` | Remove this plugin's user-hook entries |
 
 ## Harness config
 
@@ -80,6 +82,11 @@ pending/offline.
 
 Cursor consult transport: pipe JSON to `cli/consult_advisor.py` (see protocol).
 There is **no** Cursor MCP server for this plugin.
+
+Run `/codex-advisor-install-hooks` after copying the plugin into Cursor local
+plugins. It merges absolute hook commands into `~/.cursor/hooks.json`, which
+Cursor CLI loads for a fresh session. Use `/codex-advisor-remove-hooks` to
+remove only this plugin's entries.
 
 ### Claude Code (`hooks/hooks.json`)
 

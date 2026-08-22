@@ -34,6 +34,8 @@ not bricked.
 | `codex-critic-model` | View or persist the Codex model and reasoning effort |
 | `codex-critic-timeout` | View or persist the critic consult timeout |
 | `codex-critic-version` | Print the installed version and edit timestamp |
+| `codex-critic-install-hooks` | Merge hooks into the Cursor CLI user hooks file |
+| `codex-critic-remove-hooks` | Remove this plugin's user-hook entries |
 
 ## Harness config
 
@@ -80,6 +82,11 @@ pending/offline.
 
 Cursor consult transport: pipe JSON to `cli/consult_critic.py` (see protocol).
 There is **no** Cursor MCP server for this plugin.
+
+Run `/codex-critic-install-hooks` after copying the plugin into Cursor local
+plugins. It merges absolute hook commands into `~/.cursor/hooks.json`, which
+Cursor CLI loads for a fresh session. Use `/codex-critic-remove-hooks` to
+remove only this plugin's entries.
 
 ### Claude Code (`hooks/hooks.json`)
 

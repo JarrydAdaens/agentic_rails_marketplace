@@ -190,6 +190,27 @@ class HookTests(unittest.TestCase):
             )
             self.assertEqual(again.returncode, 1)
 
+    def test_user_hook_lifecycle_skills_and_commands_exist(self):
+        install = PLUGIN / "cli" / "critic_install_hooks.py"
+        remove = PLUGIN / "cli" / "critic_remove_hooks.py"
+        for path in (install, remove, PLUGIN / "lib" / "user_hooks.py"):
+            self.assertTrue(path.is_file(), path)
+        for name in ("codex-critic-install-hooks", "codex-critic-remove-hooks"):
+            skill = (PLUGIN / "skills" / name / "SKILL.md").read_text(encoding="utf-8")
+            self.assertIn("disable-model-invocation: true", skill)
+            self.assertIn("hooks.json", skill)
+        with tempfile.TemporaryDirectory(dir=PLUGIN) as root:
+            hooks_file = Path(root) / "hooks.json"
+            first = subprocess.run([sys.executable, str(install), "--hooks-file", str(hooks_file)], capture_output=True, text=True, timeout=30, check=False)
+            self.assertEqual(first.returncode, 0, first.stderr)
+            once = json.loads(hooks_file.read_text(encoding="utf-8"))
+            second = subprocess.run([sys.executable, str(install), "--hooks-file", str(hooks_file)], capture_output=True, text=True, timeout=30, check=False)
+            self.assertEqual(second.returncode, 0, second.stderr)
+            self.assertEqual(json.loads(hooks_file.read_text(encoding="utf-8")), once)
+            removed = subprocess.run([sys.executable, str(remove), "--hooks-file", str(hooks_file)], capture_output=True, text=True, timeout=30, check=False)
+            self.assertEqual(removed.returncode, 0, removed.stderr)
+            self.assertEqual(json.loads(hooks_file.read_text(encoding="utf-8"))["hooks"], {})
+
 
 class OnlineToastTests(unittest.TestCase):
     def invoke(self, payload):
