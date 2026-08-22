@@ -1,0 +1,6 @@
+{
+  "name": "rails-marketplace-surgeon",
+  "description": "v1.0.0 — Experimental, explicit repair of stale Agentic Rails Cursor marketplace and plugin cache payloads while preserving plugin-owned configuration.",
+  "author": { "name": "Jarryd Adaens" },
+  "keywords": ["agentic-rails", "cursor", "marketplace", "surgeon", "repair", "experimental"]
+}

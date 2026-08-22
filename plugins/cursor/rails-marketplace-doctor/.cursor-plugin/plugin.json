@@ -1,0 +1,6 @@
+{
+  "name": "rails-marketplace-doctor",
+  "description": "v1.0.0 — Read-only diagnosis of the local Agentic Rails Cursor marketplace, plugin cache freshness, runtime dependencies, and installation hygiene.",
+  "author": { "name": "Jarryd Adaens" },
+  "keywords": ["agentic-rails", "cursor", "marketplace", "doctor", "diagnostics"]
+}

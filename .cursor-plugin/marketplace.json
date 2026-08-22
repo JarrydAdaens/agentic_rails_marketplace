@@ -18,6 +18,8 @@
     { "name": "python-uv-guardrail", "source": "./plugins/cursor/python-uv-guardrail", "description": "Requires uv for Python and pip commands.", "category": "guardrail" },
     { "name": "readme-name-guardrail", "source": "./plugins/cursor/readme-name-guardrail", "description": "Reserves README.md for the project root.", "category": "guardrail" },
     { "name": "claude-home-fence-guardrail", "source": "./plugins/cursor/claude-home-fence-guardrail", "description": "Blocks Cursor agents from accessing Claude Code's ~/.claude home tree.", "category": "guardrail" },
-    { "name": "cursor-as-advisor-guardrail", "source": "./plugins/cursor/cursor-as-advisor-guardrail", "description": "Configurable read-only Cursor advisor guardrail defaulting to Grok 4.6 High at standard speed.", "category": "guardrail" }
+    { "name": "cursor-as-advisor-guardrail", "source": "./plugins/cursor/cursor-as-advisor-guardrail", "description": "Configurable read-only Cursor advisor guardrail defaulting to Grok 4.6 High at standard speed.", "category": "guardrail" },
+    { "name": "rails-marketplace-doctor", "source": "./plugins/cursor/rails-marketplace-doctor", "description": "Read-only diagnosis for Agentic Rails Cursor marketplace and plugin cache freshness.", "category": "maintenance" },
+    { "name": "rails-marketplace-surgeon", "source": "./plugins/cursor/rails-marketplace-surgeon", "description": "Experimental, explicit cache repair for stale Agentic Rails Cursor plugin payloads.", "category": "maintenance" }
   ]
 }
