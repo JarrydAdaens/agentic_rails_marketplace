@@ -38,6 +38,8 @@ session so the IDE is not bricked.
 | `claude-critic-model` | Persist the critic model and reasoning effort for this project |
 | `claude-critic-timeout` | View or persist the critic consult timeout for this project |
 | `claude-critic-version` | Print the installed version and edit timestamp |
+| `claude-critic-install-hooks` | Merge this plugin into `~/.cursor/hooks.json` (Cursor CLI write gate) |
+| `claude-critic-remove-hooks` | Remove this plugin's entries from `~/.cursor/hooks.json` |
 
 ## Harness config
 
@@ -89,6 +91,12 @@ while pending/offline.
 
 Consult transport: pipe JSON to `cli/consult_critic.py` (see the protocol).
 There is **no** MCP server for this plugin on any host.
+
+Cursor CLI does not run hooks from the plugin folder. Use
+`/claude-critic-install-hooks` to merge this plugin into
+`~/.cursor/hooks.json` with absolute command paths, and
+`/claude-critic-remove-hooks` to take them out. Start a new CLI session
+after either.
 
 ## Mid-session re-enable
 

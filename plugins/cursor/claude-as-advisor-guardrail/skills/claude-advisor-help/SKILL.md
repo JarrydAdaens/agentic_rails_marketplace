@@ -38,6 +38,8 @@ session so the IDE is not bricked.
 | `claude-advisor-model` | Persist the advisor model and reasoning effort for this project |
 | `claude-advisor-timeout` | View or persist the advisor consult timeout for this project |
 | `claude-advisor-version` | Print the installed version and edit timestamp |
+| `claude-advisor-install-hooks` | Merge this plugin into `~/.cursor/hooks.json` (Cursor CLI write gate) |
+| `claude-advisor-remove-hooks` | Remove this plugin's entries from `~/.cursor/hooks.json` |
 
 ## Harness config
 
@@ -89,6 +91,12 @@ while pending/offline.
 
 Consult transport: pipe JSON to `cli/consult_advisor.py` (see the protocol).
 There is **no** MCP server for this plugin on any host.
+
+Cursor CLI does not run hooks from the plugin folder. Use
+`/claude-advisor-install-hooks` to merge this plugin into
+`~/.cursor/hooks.json` with absolute command paths, and
+`/claude-advisor-remove-hooks` to take them out. Start a new CLI session
+after either.
 
 ## Mid-session re-enable
 

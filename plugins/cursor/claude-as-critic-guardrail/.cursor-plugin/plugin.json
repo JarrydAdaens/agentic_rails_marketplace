@@ -1,7 +1,7 @@
 {
   "name": "claude-as-critic-guardrail",
-  "version": "1.3.3",
-  "description": "v1.3.3 — Requires Cursor executors to consult an adversarial, read-only Claude critic before their first write. Shell CLI (no MCP), persistent enable/model/effort/timeout/version controls, health self-disable, and help/init/health skills.",
+  "version": "1.4.0",
+  "description": "v1.4.0 — Requires Cursor executors to consult an adversarial, read-only Claude critic before their first write. Shell CLI (no MCP), user-hook install/remove for Cursor CLI, persistent enable/model/effort/timeout/version controls, health self-disable, and help/init/health skills.",
   "author": { "name": "Jarryd Adaens" },
   "hooks": "./hooks/cursor-hooks.json",
   "keywords": ["guardrail", "critic", "claude", "opus", "cross-vendor"]

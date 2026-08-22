@@ -4,6 +4,14 @@ Keep this file and `VERSION` in sync with `.cursor-plugin/plugin.json`. This
 tree carries only the Cursor host; the Codex host is a separate copy under
 `plugins/codex/` and is consult-capable rather than gate-enforcing.
 
+## 1.4.0 — 2026-08-22
+
+- Add `/claude-critic-install-hooks` and `/claude-critic-remove-hooks` to
+  merge or unmerge this plugin into `~/.cursor/hooks.json` with absolute
+  command paths, so Cursor CLI can run the write gate. Sibling hooks and the
+  home fence are left in place. Install is idempotent; malformed JSON is
+  refused without writing.
+
 ## 1.3.3 — 2026-08-22
 
 - Align generated critic JSONC timeout documentation with the advisor and
