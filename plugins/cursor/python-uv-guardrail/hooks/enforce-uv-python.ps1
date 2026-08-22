@@ -22,7 +22,7 @@ $ErrorActionPreference = "Stop"
 # Ships in the python-uv-guardrail plugin and runs from the plugin cache. The
 # guardrail is active by default wherever the plugin is enabled; an optional
 # per-project escape hatch lives in the target project's
-# harness/python-uv-guardrail/config.json seam (absent means "enforce with
+# harness/python-uv-guardrail/cursor-config.json seam (absent means "enforce with
 # defaults"). Any internal error fails OPEN (exit 0) so a hook bug can never
 # block every Bash command.
 
@@ -80,7 +80,7 @@ function Get-ProjectConfig($Hook) {
         $projectRoot = (Get-Location).Path
     }
 
-    $configPath = Join-Path $projectRoot "harness/python-uv-guardrail/config.json"
+    $configPath = Join-Path $projectRoot "harness/python-uv-guardrail/cursor-config.json"
     if (-not (Test-Path -LiteralPath $configPath)) {
         return $null
     }

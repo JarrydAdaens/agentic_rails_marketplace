@@ -2,7 +2,7 @@
 name: codex-critic-init
 description: >-
   Create the project harness config for codex-as-critic-guardrail
-  (harness/codex-as-critic-guardrail/config.json) with commented defaults for
+  (harness/codex-as-critic-guardrail/cursor-config.json) with commented defaults for
   enabled state, model, effort, fast, and timeouts. Use when setting up the critic in a new
   project or when the user asks to init/write the critic config.
 disable-model-invocation: true

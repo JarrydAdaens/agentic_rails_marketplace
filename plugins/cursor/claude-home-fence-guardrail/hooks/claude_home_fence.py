@@ -154,7 +154,7 @@ def project_root(hook: dict[str, Any]) -> Path:
 
 
 def config_disabled(root: Path) -> bool:
-    config_path = root / "harness" / "claude-home-fence-guardrail" / "config.json"
+    config_path = root / "harness" / "claude-home-fence-guardrail" / "cursor-config.json"
     if not config_path.is_file():
         return False
     try:

@@ -28,7 +28,7 @@ not bricked.
 | Skill | Purpose |
 | --- | --- |
 | `codex-critic-help` | This overview |
-| `codex-critic-init` | Write `harness/codex-as-critic-guardrail/config.json` with commented defaults |
+| `codex-critic-init` | Write `harness/codex-as-critic-guardrail/cursor-config.json` with commented defaults |
 | `codex-critic-health` | Retest critic reachability mid-session; print ONLINE/OFFLINE + gate status |
 | `codex-critic-enabled` | Persistently engage or disengage the critic for this project |
 | `codex-critic-model` | View or persist the Codex model and reasoning effort |
@@ -37,7 +37,7 @@ not bricked.
 
 ## Harness config
 
-Path: `harness/codex-as-critic-guardrail/config.json` (JSONC; `//` comments OK).
+Path: `harness/codex-as-critic-guardrail/cursor-config.json` (JSONC; `//` comments OK).
 
 Fields: `enabled`, `model`, `effort`, `fast`, `consult_timeout_seconds`, `health_timeout_seconds`.
 

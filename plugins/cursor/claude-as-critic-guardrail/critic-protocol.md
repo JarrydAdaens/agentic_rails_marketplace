@@ -2,7 +2,7 @@
 
 This session pairs an executor with an antagonistic, read-only Claude critic.
 Model, reasoning effort, and timeouts come from
-`harness/claude-as-critic-guardrail/config.json` when present (built-in
+`harness/claude-as-critic-guardrail/cursor-config.json` when present (built-in
 default: `opus` / `high` / consult 600s / health 90s). Create that file with the
 `claude-critic-init` skill. Consult the critic at decision points. Its job is to
 attack your approach, not to reassure you — expect objections, and treat

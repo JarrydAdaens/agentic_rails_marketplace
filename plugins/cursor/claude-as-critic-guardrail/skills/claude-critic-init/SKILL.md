@@ -2,7 +2,7 @@
 name: claude-critic-init
 description: >-
   Create the project harness config for claude-as-critic-guardrail
-  (harness/claude-as-critic-guardrail/config.json) with commented defaults for
+  (harness/claude-as-critic-guardrail/cursor-config.json) with commented defaults for
   model, effort, and timeouts. Use when setting up the critic in a new project
   or when the user asks to init/write the critic config.
 disable-model-invocation: true

@@ -88,7 +88,7 @@ class AdvisorServerTests(unittest.TestCase):
     def test_project_default_is_written_in_plugin_harness_seam(self):
         with tempfile.TemporaryDirectory() as root:
             path = server.write_project_default("cursor-grok-4.5-low", root)
-            expected = Path(root) / "harness" / "cursor-as-advisor-guardrail" / "config.json"
+            expected = Path(root) / "harness" / "cursor-as-advisor-guardrail" / "cursor-config.json"
             self.assertEqual(path, expected)
             self.assertEqual(json.loads(path.read_text(encoding="utf-8"))["default_model"], "cursor-grok-4.5-low")
             self.assertEqual(server.read_project_default(root), ("cursor-grok-4.5-low", True))

@@ -33,7 +33,7 @@ Optional project file (JSONC — `//` comments allowed):
 }
 ```
 
-Path: `harness/codex-as-advisor-guardrail/config.json`. Create it with the
+Path: `harness/codex-as-advisor-guardrail/cursor-config.json`. Create it with the
 user-invoked skill **`codex-advisor-init`**. Missing file → built-in defaults.
 Invalid file → health goes offline (gate disarmed). Env vars
 `CODEX_ADVISOR_TIMEOUT_SECONDS` / `CODEX_ADVISOR_HEALTH_TIMEOUT_SECONDS` override

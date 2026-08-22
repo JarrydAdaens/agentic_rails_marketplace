@@ -44,7 +44,7 @@ the gate.
 
 ## What the consuming project provides
 
-Nothing is required. Optionally, `harness/claude-as-critic-guardrail/config.json`
+Nothing is required. Optionally, `harness/claude-as-critic-guardrail/cursor-config.json`
 (JSONC — `//` comments allowed), written by `claude-critic-init`:
 
 | Field | Default | Notes |

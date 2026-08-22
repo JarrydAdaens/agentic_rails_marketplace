@@ -32,7 +32,7 @@ session so the IDE is not bricked.
 | Skill | Purpose |
 | --- | --- |
 | `claude-advisor-help` | This overview |
-| `claude-advisor-init` | Write `harness/claude-as-advisor-guardrail/config.json` with commented defaults |
+| `claude-advisor-init` | Write `harness/claude-as-advisor-guardrail/cursor-config.json` with commented defaults |
 | `claude-advisor-health` | Retest advisor reachability mid-session; print ONLINE/OFFLINE + gate status |
 | `claude-advisor-enabled` | Persistently engage or disengage the advisor for this project |
 | `claude-advisor-model` | Persist the advisor model and reasoning effort for this project |
@@ -41,7 +41,7 @@ session so the IDE is not bricked.
 
 ## Harness config
 
-Path: `harness/claude-as-advisor-guardrail/config.json` (JSONC; `//` comments OK).
+Path: `harness/claude-as-advisor-guardrail/cursor-config.json` (JSONC; `//` comments OK).
 
 Fields: `enabled`, `model`, `effort`, `consult_timeout_seconds`, `health_timeout_seconds`.
 `effort` is one of `low`, `medium`, `high`, `xhigh`, `max`. There is no `fast`

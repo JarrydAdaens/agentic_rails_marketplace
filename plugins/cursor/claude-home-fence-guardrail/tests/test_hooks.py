@@ -235,7 +235,7 @@ class FenceBehaviorTests(unittest.TestCase):
     def test_disabled_seam_allows_claude_home_read(self):
         harness = self.workspace / "harness" / "claude-home-fence-guardrail"
         harness.mkdir(parents=True)
-        (harness / "config.json").write_text('{"enabled": false}\n', encoding="utf-8")
+        (harness / "cursor-config.json").write_text('{"enabled": false}\n', encoding="utf-8")
         code, decision, _ = self.invoke(
             {
                 "hook_event_name": "beforeReadFile",

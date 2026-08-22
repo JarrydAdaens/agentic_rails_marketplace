@@ -149,7 +149,7 @@ def is_hard_failure_message(message: str) -> bool:
 def describe_timeout(limit: int, partial: Any) -> str:
     message = (
         f"Codex critic timed out after {limit} seconds. Raise consult_timeout_seconds in "
-        f"harness/codex-as-critic-guardrail/config.json, or set {TIMEOUT_ENV_VAR}, "
+        f"harness/codex-as-critic-guardrail/cursor-config.json, or set {TIMEOUT_ENV_VAR}, "
         "or send narrower evidence."
     )
     if isinstance(partial, bytes):

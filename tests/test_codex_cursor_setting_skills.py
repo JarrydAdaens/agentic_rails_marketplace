@@ -43,7 +43,7 @@ class CodexCursorSettingSkillsTests(unittest.TestCase):
                 self.assertEqual(timeout.returncode, 0, timeout.stderr)
                 self.assertIn("400 seconds", timeout.stdout)
 
-                config_path = Path(workspace) / "harness" / plugin / "config.json"
+                config_path = Path(workspace) / "harness" / plugin / "cursor-config.json"
                 config = json.loads("\n".join(line for line in config_path.read_text(encoding="utf-8").splitlines() if not line.lstrip().startswith("//")))
                 self.assertFalse(config["enabled"])
                 self.assertEqual(config["model"], "gpt-5.6-terra")
@@ -72,7 +72,7 @@ class CodexCursorSettingSkillsTests(unittest.TestCase):
 
                 initialized = self.run_cli(root / "cli" / f"{prefix}_init.py", "--workspace", workspace)
                 self.assertEqual(initialized.returncode, 0, initialized.stderr)
-                config = (Path(workspace) / "harness" / plugin / "config.json").read_text(encoding="utf-8")
+                config = (Path(workspace) / "harness" / plugin / "cursor-config.json").read_text(encoding="utf-8")
                 self.assertIn("Maximum wall-clock seconds a full", config)
                 self.assertIn("This is separate from the consult limit.", config)
 

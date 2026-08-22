@@ -1,12 +1,10 @@
 {
   "name": "local-advisor-guardrail",
-  "version": "2.2.3",
-  "description": "v2.2.3 — Local advisor guardrail for Cursor: require a read-only Cursor Grok 4.5 High child-agent consultation inside Cursor before the first write of each session.",
+  "version": "3.0.0",
+  "description": "v3.0.0 — Native Cursor local-advisor guardrail: require a read-only custom subagent consultation before the first write, with persistent enable/model/timeout/version controls and no MCP server.",
   "author": {
     "name": "Jarryd Adaens"
   },
   "keywords": ["advisor", "guardrail", "hooks", "actor-critic", "grok"],
-  "agents": [],
-  "hooks": "./hooks/cursor-hooks.json",
-  "mcpServers": "./mcp.json"
+  "hooks": "./hooks/cursor-hooks.json"
 }

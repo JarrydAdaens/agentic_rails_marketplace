@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Any
 
 PLUGIN_NAME = "codex-as-critic-guardrail"
-CONFIG_RELATIVE_PATH = Path("harness") / PLUGIN_NAME / "config.json"
+CONFIG_RELATIVE_PATH = Path("harness") / PLUGIN_NAME / "cursor-config.json"
 
 DEFAULT_MODEL = "gpt-5.6-sol"
 DEFAULT_EFFORT = "high"

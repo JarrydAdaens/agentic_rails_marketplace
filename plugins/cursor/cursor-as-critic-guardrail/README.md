@@ -47,7 +47,7 @@ The optional `model` argument selects the model for the current consultation.
 After a successful call, that model becomes the default for this project only:
 
 ```text
-harness/cursor-as-critic-guardrail/config.json
+harness/cursor-as-critic-guardrail/cursor-config.json
 ```
 
 ```json

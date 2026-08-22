@@ -44,7 +44,7 @@ the gate.
 
 ## What the consuming project provides
 
-Nothing is required. Optionally, `harness/claude-as-advisor-guardrail/config.json`
+Nothing is required. Optionally, `harness/claude-as-advisor-guardrail/cursor-config.json`
 (JSONC — `//` comments allowed), written by `claude-advisor-init`:
 
 | Field | Default | Notes |

@@ -28,7 +28,7 @@ not bricked.
 | Skill | Purpose |
 | --- | --- |
 | `codex-advisor-help` | This overview |
-| `codex-advisor-init` | Write `harness/codex-as-advisor-guardrail/config.json` with commented defaults |
+| `codex-advisor-init` | Write `harness/codex-as-advisor-guardrail/cursor-config.json` with commented defaults |
 | `codex-advisor-health` | Retest advisor reachability mid-session; print ONLINE/OFFLINE + gate status |
 | `codex-advisor-enabled` | Persistently engage or disengage the advisor for this project |
 | `codex-advisor-model` | View or persist the Codex model and reasoning effort |
@@ -37,7 +37,7 @@ not bricked.
 
 ## Harness config
 
-Path: `harness/codex-as-advisor-guardrail/config.json` (JSONC; `//` comments OK).
+Path: `harness/codex-as-advisor-guardrail/cursor-config.json` (JSONC; `//` comments OK).
 
 Fields: `enabled`, `model`, `effort`, `fast`, `consult_timeout_seconds`, `health_timeout_seconds`.
 

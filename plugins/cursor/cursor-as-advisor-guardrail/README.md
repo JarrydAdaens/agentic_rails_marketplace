@@ -53,7 +53,7 @@ consultation. After a successful call, that model becomes the default for this
 project only:
 
 ```text
-harness/cursor-as-advisor-guardrail/config.json
+harness/cursor-as-advisor-guardrail/cursor-config.json
 ```
 
 ```json

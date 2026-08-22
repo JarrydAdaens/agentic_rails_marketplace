@@ -28,7 +28,7 @@ The plugin is inert in any project until the seam exists. Create
 `harness/jobs-done-guardrail/` in the target project:
 
 1. Copy `examples/config.example.json` to
-   `harness/jobs-done-guardrail/config.json` and set the project's build and
+   `harness/jobs-done-guardrail/cursor-config.json` and set the project's build and
    test commands, plus the file-extension and path filters that define a
    "relevant" change.
 2. Optionally copy `examples/eval-mode.example.json` to

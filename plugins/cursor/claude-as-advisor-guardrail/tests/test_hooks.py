@@ -173,7 +173,7 @@ class SurfaceTests(unittest.TestCase):
             )
             self.assertEqual(completed.returncode, 0, completed.stderr)
             self.assertIn("Path:", completed.stdout)
-            config = Path(root) / "harness" / "claude-as-advisor-guardrail" / "config.json"
+            config = Path(root) / "harness" / "claude-as-advisor-guardrail" / "cursor-config.json"
             self.assertTrue(config.is_file())
 
             again = subprocess.run(

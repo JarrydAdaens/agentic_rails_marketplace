@@ -2,7 +2,7 @@
 
 This session pairs an executor with a constructive, read-only advisor. Model,
 reasoning effort, fast tier, and timeouts come from
-`harness/codex-as-advisor-guardrail/config.json` when present (built-in default:
+`harness/codex-as-advisor-guardrail/cursor-config.json` when present (built-in default:
 `gpt-5.6-sol` / `high` / `fast false` / consult 1800s / health 90s). Create that
 file with the `codex-advisor-init` skill. Consult it at decision points. The
 advisor's job is to improve your approach with a forward path — expect a plan,

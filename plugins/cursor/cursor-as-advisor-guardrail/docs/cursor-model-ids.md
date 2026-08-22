@@ -2,7 +2,7 @@
 
 Every model ID the Cursor Agent CLI exposes, so an agent can turn a loose human
 phrase — "that latest Grok one", "Opus with max thinking" — into the exact
-string that goes into `harness/cursor-as-advisor-guardrail/config.json` or the
+string that goes into `harness/cursor-as-advisor-guardrail/cursor-config.json` or the
 `model` argument of `consult_advisor`.
 
 Captured from `agent models` on 13 August 2026. **Availability is account- and

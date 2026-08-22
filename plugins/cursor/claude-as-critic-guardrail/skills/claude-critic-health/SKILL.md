@@ -31,7 +31,7 @@ python ./scripts/launch.py ./cli/critic_health.py --session-id <SESSION_ID> --wo
 
 Use the active conversation/session id when known; otherwise pass the id the
 host exposes. Use the project workspace that contains
-`harness/claude-as-critic-guardrail/config.json` when present.
+`harness/claude-as-critic-guardrail/cursor-config.json` when present.
 
 3. Copy the CLI stdout to the user **verbatim** (it is already the confirmation
    block). Also state plainly whether the write gate is now armed or still

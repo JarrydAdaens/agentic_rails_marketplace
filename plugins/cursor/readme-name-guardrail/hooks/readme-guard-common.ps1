@@ -56,9 +56,9 @@ function Get-ProjectRoot($Hook) {
 }
 
 function Get-GuardConfig($Root) {
-    # Optional per-project escape hatch at harness/readme-name-guardrail/config.json.
+    # Optional per-project escape hatch at harness/readme-name-guardrail/cursor-config.json.
     # Absent, empty, or malformed all mean "enforce with defaults."
-    $configPath = Join-Path $Root "harness/readme-name-guardrail/config.json"
+    $configPath = Join-Path $Root "harness/readme-name-guardrail/cursor-config.json"
     if (-not (Test-Path -LiteralPath $configPath)) { return $null }
     $content = Get-Content -LiteralPath $configPath -Raw
     if ([string]::IsNullOrWhiteSpace($content)) { return $null }

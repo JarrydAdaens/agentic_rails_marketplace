@@ -34,15 +34,9 @@ def main() -> None:
     tool_name = str(payload.get("tool_name") or payload.get("tool") or "")
     tool_input = payload.get("tool_input") or payload.get("input") or {}
     subagent = str(tool_input.get("subagent_type") or "")
-    is_subagent = tool_name in ("Task", "Agent", "") and (
-        subagent == "advisor" or subagent.endswith(":advisor")
+    is_advisor = tool_name in ("Task", "Agent", "") and (
+        subagent.startswith("local-advisor-") or subagent.endswith(":advisor")
     )
-    is_mcp = tool_name == "consult_advisor" or (
-        "consult_advisor" in tool_name and (
-            tool_name.startswith("mcp__") or tool_name.startswith("MCP:")
-        )
-    )
-    is_advisor = is_subagent or is_mcp
     if not is_advisor:
         sys.exit(0)
 

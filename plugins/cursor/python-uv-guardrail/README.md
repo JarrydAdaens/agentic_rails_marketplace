@@ -45,7 +45,7 @@ enablement scopes.
 Unlike a verifier that needs project-specific commands, this guardrail is
 **active by default** wherever the plugin is enabled — no seam required. The seam
 exists only as an escape hatch. To relax or disable it in a specific project,
-create `harness/python-uv-guardrail/config.json`:
+create `harness/python-uv-guardrail/cursor-config.json`:
 
 ```json
 {

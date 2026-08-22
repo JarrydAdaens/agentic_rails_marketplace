@@ -16,7 +16,7 @@ $ErrorActionPreference = "Stop"
 
 # Stop-hook build + test guardrail. Ships in the jobs-done-guardrail plugin and
 # runs from the plugin cache; everything project-specific lives in the target
-# project's harness/jobs-done-guardrail/ seam folder (config.json, eval-mode.json,
+# project's harness/jobs-done-guardrail/ seam folder (cursor-config.json, eval-mode.json,
 # plus git-ignored runs/ and state/). No seam config means the guardrail is not
 # adopted in this project and the hook exits silently.
 
@@ -282,7 +282,7 @@ try {
     Set-Location $repoRoot
 
     $seamRoot = Join-Path $repoRoot "harness/jobs-done-guardrail"
-    $configPath = Join-Path $seamRoot "config.json"
+    $configPath = Join-Path $seamRoot "cursor-config.json"
     $scriptPath = $PSCommandPath
     $runRoot = Join-Path $seamRoot "runs"
     $stateRoot = Join-Path $seamRoot "state"

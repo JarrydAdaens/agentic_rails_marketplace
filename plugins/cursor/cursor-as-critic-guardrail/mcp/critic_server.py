@@ -41,7 +41,7 @@ from critic_markers import clear_server_ready, mark_server_ready  # noqa: E402
 PLUGIN_NAME = "cursor-as-critic-guardrail"
 PLUGIN_VERSION = "1.1.2"
 BUILTIN_DEFAULT_MODEL = "cursor-grok-4.6-high"
-CONFIG_RELATIVE_PATH = Path("harness") / PLUGIN_NAME / "config.json"
+CONFIG_RELATIVE_PATH = Path("harness") / PLUGIN_NAME / "cursor-config.json"
 CONFIG_MODEL_KEY = "default_model"
 
 DEFAULT_TIMEOUT_SECONDS = 600

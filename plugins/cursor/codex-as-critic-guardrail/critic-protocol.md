@@ -2,7 +2,7 @@
 
 This session pairs an executor with an antagonistic, read-only critic from
 Model, reasoning effort, fast tier, and timeouts come from
-`harness/codex-as-critic-guardrail/config.json` when present (built-in default:
+`harness/codex-as-critic-guardrail/cursor-config.json` when present (built-in default:
 `gpt-5.6-sol` / `high` / `fast false` / consult 1800s / health 90s). Create that
 file with the `codex-critic-init` skill. Consult it at decision points. The
 critic's job is to attack your approach, not to reassure you — expect

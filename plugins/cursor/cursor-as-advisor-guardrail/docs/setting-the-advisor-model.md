@@ -22,7 +22,7 @@ previously set to something else — create this file in the **root of the
 project you are working in**:
 
 ```text
-harness/cursor-as-advisor-guardrail/config.json
+harness/cursor-as-advisor-guardrail/cursor-config.json
 ```
 
 with exactly this content:
@@ -69,7 +69,7 @@ says — it is the only authority.
 Resolution order, highest priority first:
 
 1. The optional `model` argument on a single `consult_advisor` call.
-2. `default_model` in `harness/cursor-as-advisor-guardrail/config.json`, read
+2. `default_model` in `harness/cursor-as-advisor-guardrail/cursor-config.json`, read
    from the project root (`CLAUDE_PROJECT_DIR`, otherwise the working
    directory).
 3. The plugin's built-in fallback, `cursor-grok-4.6-high`, when no config file
@@ -84,7 +84,7 @@ Two consequences worth internalizing:
 
 - **The setting is per project, not per machine or per user.** There is no
   global or user-level model setting. Every repository you want on Grok needs
-  its own `harness/cursor-as-advisor-guardrail/config.json`.
+  its own `harness/cursor-as-advisor-guardrail/cursor-config.json`.
 - **A successful call with an explicit `model` writes that model into the
   config file**, creating it if absent. So the one-shot path below doubles as a
   way to set the default.

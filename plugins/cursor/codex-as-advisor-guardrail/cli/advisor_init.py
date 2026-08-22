@@ -34,7 +34,7 @@ from windows_runtime import restore_windows_environment  # noqa: E402
 def main(argv: list[str] | None = None) -> int:
     restore_windows_environment()
     parser = argparse.ArgumentParser(
-        description="Write harness/codex-as-advisor-guardrail/config.json with defaults and comments."
+        description="Write harness/codex-as-advisor-guardrail/cursor-config.json with defaults and comments."
     )
     parser.add_argument(
         "--workspace",

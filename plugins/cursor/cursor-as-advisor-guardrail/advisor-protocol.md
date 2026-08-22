@@ -52,7 +52,7 @@ supply these five fields:
 
 The optional sixth field, `model`, selects an exact Cursor model ID. A
 successful call remembers that model in this project's
-`harness/cursor-as-advisor-guardrail/config.json`. Omit it to reuse the saved
+`harness/cursor-as-advisor-guardrail/cursor-config.json`. Omit it to reuse the saved
 project default; a project with no saved default starts with
 `cursor-grok-4.6-high` (Cursor Grok 4.6, high reasoning, standard speed).
 Exact IDs come from `agent models`; the plugin's

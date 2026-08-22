@@ -2,7 +2,7 @@
 
 This session pairs an executor with a constructive, read-only Claude advisor.
 Model, reasoning effort, and timeouts come from
-`harness/claude-as-advisor-guardrail/config.json` when present (built-in
+`harness/claude-as-advisor-guardrail/cursor-config.json` when present (built-in
 default: `opus` / `high` / consult 600s / health 90s). Create that file with the
 `claude-advisor-init` skill. Consult the advisor at decision points. Its job is
 to improve your approach with a forward path — expect a plan, a course

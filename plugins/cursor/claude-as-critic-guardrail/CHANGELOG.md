@@ -35,7 +35,7 @@ tree carries only the Cursor host; the Codex host is a separate copy under
 ## 1.2.0 — 2026-08-20
 
 - Add the `lib/` layer this plugin never had: harness JSONC config
-  (`harness/claude-as-critic-guardrail/config.json` — `model`, `effort`,
+  (`harness/claude-as-critic-guardrail/cursor-config.json` — `model`, `effort`,
   `consult_timeout_seconds`, `health_timeout_seconds`), session health markers,
   and a bounded health probe.
 - Replace the unconditional write gate with the three-state health model

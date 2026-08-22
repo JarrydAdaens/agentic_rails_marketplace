@@ -58,7 +58,7 @@ handoff notes for the exact file list).
 
 Active by default wherever the plugin (or user hook) is enabled. To disable in
 one project without removing the fence globally, create
-`harness/claude-home-fence-guardrail/config.json`:
+`harness/claude-home-fence-guardrail/cursor-config.json`:
 
 ```json
 {

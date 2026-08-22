@@ -64,7 +64,7 @@ each `git add` / `git commit` segment, honoring a `-C <dir>` repo override:
 
 The guardrail is **active by default** wherever the plugin is enabled — no seam
 required. The seam exists only to relax it. To disable or carve out exceptions in
-a specific project, create `harness/readme-name-guardrail/config.json`:
+a specific project, create `harness/readme-name-guardrail/cursor-config.json`:
 
 ```json
 {

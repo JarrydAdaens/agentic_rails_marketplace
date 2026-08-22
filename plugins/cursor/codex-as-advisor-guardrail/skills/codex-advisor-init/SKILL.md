@@ -2,7 +2,7 @@
 name: codex-advisor-init
 description: >-
   Create the project harness config for codex-as-advisor-guardrail
-  (harness/codex-as-advisor-guardrail/config.json) with commented defaults for
+  (harness/codex-as-advisor-guardrail/cursor-config.json) with commented defaults for
   enabled state, model, effort, fast, and timeouts. Use when setting up the advisor in a new
   project or when the user asks to init/write the advisor config.
 disable-model-invocation: true

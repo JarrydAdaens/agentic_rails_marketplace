@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Any
 
 PLUGIN_NAME = "claude-as-advisor-guardrail"
-CONFIG_RELATIVE_PATH = Path("harness") / PLUGIN_NAME / "config.json"
+CONFIG_RELATIVE_PATH = Path("harness") / PLUGIN_NAME / "cursor-config.json"
 
 DEFAULT_MODEL = "opus"
 DEFAULT_EFFORT = "high"

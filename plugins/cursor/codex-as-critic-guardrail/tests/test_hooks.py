@@ -179,7 +179,7 @@ class HookTests(unittest.TestCase):
             )
             self.assertEqual(completed.returncode, 0, completed.stderr)
             self.assertIn("Path:", completed.stdout)
-            config = Path(root) / "harness" / "codex-as-critic-guardrail" / "config.json"
+            config = Path(root) / "harness" / "codex-as-critic-guardrail" / "cursor-config.json"
             self.assertTrue(config.is_file())
             self.assertIn("//", config.read_text(encoding="utf-8"))
             again = subprocess.run(

@@ -32,7 +32,7 @@ session so the IDE is not bricked.
 | Skill | Purpose |
 | --- | --- |
 | `claude-critic-help` | This overview |
-| `claude-critic-init` | Write `harness/claude-as-critic-guardrail/config.json` with commented defaults |
+| `claude-critic-init` | Write `harness/claude-as-critic-guardrail/cursor-config.json` with commented defaults |
 | `claude-critic-health` | Retest critic reachability mid-session; print ONLINE/OFFLINE + gate status |
 | `claude-critic-enabled` | Persistently engage or disengage the critic for this project |
 | `claude-critic-model` | Persist the critic model and reasoning effort for this project |
@@ -41,7 +41,7 @@ session so the IDE is not bricked.
 
 ## Harness config
 
-Path: `harness/claude-as-critic-guardrail/config.json` (JSONC; `//` comments OK).
+Path: `harness/claude-as-critic-guardrail/cursor-config.json` (JSONC; `//` comments OK).
 
 Fields: `enabled`, `model`, `effort`, `consult_timeout_seconds`, `health_timeout_seconds`.
 `effort` is one of `low`, `medium`, `high`, `xhigh`, `max`. There is no `fast`

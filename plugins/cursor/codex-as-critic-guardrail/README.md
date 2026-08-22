@@ -36,7 +36,7 @@ Optional project file (JSONC — `//` comments allowed):
 }
 ```
 
-Path: `harness/codex-as-critic-guardrail/config.json`. Create it with the
+Path: `harness/codex-as-critic-guardrail/cursor-config.json`. Create it with the
 user-invoked skill **`codex-critic-init`**. Missing file → built-in defaults.
 Invalid file → health goes offline (gate disarmed). Env vars
 `CODEX_CRITIC_TIMEOUT_SECONDS` / `CODEX_CRITIC_HEALTH_TIMEOUT_SECONDS` override

@@ -2,7 +2,7 @@
 name: claude-advisor-init
 description: >-
   Create the project harness config for claude-as-advisor-guardrail
-  (harness/claude-as-advisor-guardrail/config.json) with commented defaults for
+  (harness/claude-as-advisor-guardrail/cursor-config.json) with commented defaults for
   model, effort, and timeouts. Use when setting up the advisor in a new project
   or when the user asks to init/write the advisor config.
 disable-model-invocation: true

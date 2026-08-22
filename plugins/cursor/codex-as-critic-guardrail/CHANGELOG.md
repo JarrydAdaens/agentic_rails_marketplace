@@ -25,7 +25,7 @@ Cursor host; the Claude Code host is a separate copy under `plugins/claude/`.
 - Cursor consult transport is Shell CLI only (no Cursor MCP); Claude Code keeps
   MCP `consult_critic`.
 - Shared `lib/` for config, consult, health, and session markers; harness JSONC
-  at `harness/codex-as-critic-guardrail/config.json`.
+  at `harness/codex-as-critic-guardrail/cursor-config.json`.
 - Session health self-disable (`pending` / `online` / `offline`) so a broken
   Codex backend cannot brick the IDE write path.
 - User-invoked skills: `codex-critic-help`, `codex-critic-health`,

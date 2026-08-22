@@ -43,7 +43,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--workspace",
         default=os.environ.get("AGENTIC_RAILS_WORKSPACE") or os.getcwd(),
-        help="Project root containing harness/codex-as-advisor-guardrail/config.json",
+        help="Project root containing harness/codex-as-advisor-guardrail/cursor-config.json",
     )
     args = parser.parse_args(argv)
 

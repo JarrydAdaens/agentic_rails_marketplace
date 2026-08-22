@@ -21,23 +21,20 @@ advisor MCP tool first. Marker files are created by advisor_marker.py.
 
 import json
 import sys
+from pathlib import Path
 
-from advisor_markers import has_live_server, has_marker
+from advisor_markers import has_marker
 from advisor_streams import force_utf8, read_hook_payload
+
+_LIB = Path(__file__).resolve().parents[1] / "lib"
+sys.path.insert(0, str(_LIB))
+from advisor_config import load_advisor_config  # noqa: E402
 
 DENY_REASON = (
     "Advisor gate: consult the advisor before the first write of this session. "
-    "In Claude Code, invoke local-advisor-guardrail:advisor with Task/Agent. In Codex "
-    "or Cursor, call consult_advisor from "
-    "plugin-local-advisor-guardrail-local-advisor-guardrail. Supply the task, "
+    "In Cursor, invoke the configured native local-advisor-* Task/Agent subagent. Supply the task, "
     "stage, approach, evidence, "
     "and question fields from the Advisor Protocol, then retry this edit."
-)
-MCP_UNAVAILABLE_REASON = (
-    "Local advisor gate is inactive because Cursor has not registered the "
-    "consult_advisor tool from plugin-local-advisor-guardrail-local-advisor-guardrail. "
-    "This write is allowed to avoid a deadlock. Install and enable the plugin from "
-    "Cursor's /plugin Marketplace screen, approve its MCP server, and restart the session."
 )
 
 
@@ -48,19 +45,13 @@ def main() -> None:
         sys.exit(0)
 
     session_id = payload.get("session_id") or payload.get("conversation_id") or "unknown"
+    roots = payload.get("workspace_roots") or []
+    config = load_advisor_config(str(roots[0]) if roots else payload.get("cwd"))
+    if not config.enabled:
+        print(json.dumps({"permission": "allow", "user_message": "Local advisor disabled for this project.", "agent_message": "Local advisor disabled for this project."}))
+        return
     if has_marker(session_id):
         sys.exit(0)
-
-    workspace_roots = payload.get("workspace_roots") or []
-    workspace = workspace_roots[0] if workspace_roots else payload.get("cwd")
-    if not has_live_server("cursor", workspace):
-        print(MCP_UNAVAILABLE_REASON, file=sys.stderr)
-        print(json.dumps({
-            "permission": "allow",
-            "user_message": MCP_UNAVAILABLE_REASON,
-            "agent_message": MCP_UNAVAILABLE_REASON,
-        }))
-        return
 
     print(json.dumps({
         "permission": "deny",

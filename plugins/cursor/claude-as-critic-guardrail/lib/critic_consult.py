@@ -99,7 +99,7 @@ def classify_failure(stderr: str, model: str) -> str:
 def describe_timeout(limit: int, partial: Any) -> str:
     message = (
         f"Claude critic timed out after {limit} seconds. Raise consult_timeout_seconds in "
-        f"harness/claude-as-critic-guardrail/config.json, or set {CONSULT_TIMEOUT_ENV_VAR}, "
+        f"harness/claude-as-critic-guardrail/cursor-config.json, or set {CONSULT_TIMEOUT_ENV_VAR}, "
         "or send narrower evidence."
     )
     if isinstance(partial, bytes):

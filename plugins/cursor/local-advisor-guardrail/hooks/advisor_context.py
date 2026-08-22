@@ -25,6 +25,10 @@ from pathlib import Path
 
 from advisor_streams import force_utf8, read_hook_payload
 
+_LIB = Path(__file__).resolve().parents[1] / "lib"
+sys.path.insert(0, str(_LIB))
+from advisor_config import load_advisor_config  # noqa: E402
+
 
 def main() -> None:
     force_utf8()
@@ -32,6 +36,15 @@ def main() -> None:
     try:
         content = protocol.read_text(encoding="utf-8")
         payload = read_hook_payload() or {}
+        roots = payload.get("workspace_roots") or []
+        config = load_advisor_config(str(roots[0]) if roots else payload.get("cwd"))
+        if not config.enabled:
+            content = "Local advisor is disabled for this project. No consultation gate is active."
+        else:
+            content += (
+                f"\n\nCursor selection: invoke native Task/Agent subagent `{config.agent_name}` "
+                f"for this consult. Its configured advisory budget is {config.consult_timeout_seconds}s."
+            )
         if payload.get("hook_event_name") == "sessionStart":
             print(json.dumps({"additional_context": content}))
         else:

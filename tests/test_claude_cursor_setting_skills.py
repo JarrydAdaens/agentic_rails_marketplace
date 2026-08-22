@@ -53,7 +53,7 @@ class ClaudeCursorSettingSkillsTests(unittest.TestCase):
                 self.assertEqual(future.returncode, 0, future.stderr)
                 self.assertIn("Deity", future.stdout)
 
-                config_path = Path(workspace) / "harness" / plugin / "config.json"
+                config_path = Path(workspace) / "harness" / plugin / "cursor-config.json"
                 config_text = config_path.read_text(encoding="utf-8")
                 self.assertIn("// Set false", config_text)
                 config = json.loads("\n".join(line for line in config_text.splitlines() if not line.lstrip().startswith("//")))
@@ -146,7 +146,7 @@ class ClaudeCursorSettingSkillsTests(unittest.TestCase):
                 self.assertEqual(spelled.returncode, 0, spelled.stderr)
                 self.assertIn(f"{label} consult timeout is now: 400 seconds", spelled.stdout)
 
-                config_path = Path(workspace) / "harness" / plugin / "config.json"
+                config_path = Path(workspace) / "harness" / plugin / "cursor-config.json"
                 config = json.loads("\n".join(
                     line for line in config_path.read_text(encoding="utf-8").splitlines()
                     if not line.lstrip().startswith("//")
@@ -204,7 +204,7 @@ class ClaudeCursorSettingSkillsTests(unittest.TestCase):
                 )
                 self.assertEqual(initialized.returncode, 0, initialized.stderr)
                 self.assertIn("documents both timeout fields", initialized.stdout)
-                config = (Path(workspace) / "harness" / plugin / "config.json").read_text(
+                config = (Path(workspace) / "harness" / plugin / "cursor-config.json").read_text(
                     encoding="utf-8"
                 )
                 self.assertIn("Maximum wall-clock seconds a full", config)
