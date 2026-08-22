@@ -24,6 +24,7 @@ from pathlib import Path
 _LIB = Path(__file__).resolve().parents[1] / "lib"
 sys.path.insert(0, str(_LIB))
 
+from advisor_config import config_path  # noqa: E402
 from advisor_health import run_health_probe  # noqa: E402
 from windows_runtime import restore_windows_environment  # noqa: E402
 
@@ -48,6 +49,10 @@ def main(argv: list[str] | None = None) -> int:
 
     result = run_health_probe(args.session_id, workspace=args.workspace, mark_pending_first=True)
     print(result.status_block())
+    path = config_path(args.workspace)
+    print(f"Config file: {'FOUND' if path.is_file() else 'MISSING'}")
+    print(f"Config path: {path}")
+    print("Manual fields: enabled, model, effort, consult_timeout_seconds, health_timeout_seconds")
     return 0 if result.online else 1
 
 

@@ -53,12 +53,13 @@ DEFAULT_CONFIG_TEMPLATE = """\
   // One of: low, medium, high, xhigh, max
   "effort": "high",
 
-  // Wall-clock seconds for a full critic consult before hard kill.
+  // Maximum wall-clock seconds a full critic consult may run before it is killed.
   // Override with env CLAUDE_CRITIC_TIMEOUT_SECONDS when set.
   "consult_timeout_seconds": 600,
 
-  // Wall-clock seconds for the session-start / skill health probe.
-  // Override with env CLAUDE_CRITIC_HEALTH_TIMEOUT_SECONDS when set.
+  // Maximum wall-clock seconds for the session-start / manual health probe.
+  // This is separate from the consult limit. Override with
+  // CLAUDE_CRITIC_HEALTH_TIMEOUT_SECONDS when set.
   "health_timeout_seconds": 90
 }
 """
@@ -254,6 +255,7 @@ def write_default_config(workspace: str | None = None, *, force: bool = False) -
 def update_critic_config(
     workspace: str | None = None, *, enabled: bool | None = None,
     model: str | None = None, effort: str | None = None,
+    consult_timeout_seconds: int | None = None,
 ) -> CriticConfig:
     """Validate and persist one or more supported user settings as JSONC."""
     path = config_path(workspace)
@@ -267,11 +269,16 @@ def update_critic_config(
     if resolved_effort not in EFFORTS:
         raise ValueError(f"effort must be one of: {', '.join(EFFORTS)}")
     resolved_enabled = current.enabled if enabled is None else enabled
+    resolved_consult_timeout = (
+        current.consult_timeout_seconds
+        if consult_timeout_seconds is None
+        else consult_timeout_seconds
+    )
     candidate = {
         "enabled": resolved_enabled,
         "model": resolved_model,
         "effort": resolved_effort,
-        "consult_timeout_seconds": current.consult_timeout_seconds,
+        "consult_timeout_seconds": resolved_consult_timeout,
         "health_timeout_seconds": current.health_timeout_seconds,
     }
     _parse_config_object(candidate, path)
@@ -282,7 +289,9 @@ def update_critic_config(
     rendered += f'  "model": {json.dumps(resolved_model)},\n\n'
     rendered += "  // Reasoning effort: low, medium, high, xhigh, or max.\n"
     rendered += f'  "effort": {json.dumps(resolved_effort)},\n\n'
-    rendered += f'  "consult_timeout_seconds": {current.consult_timeout_seconds},\n'
+    rendered += "  // Wall-clock seconds for a full critic consult before hard kill.\n"
+    rendered += f'  "consult_timeout_seconds": {resolved_consult_timeout},\n\n'
+    rendered += "  // Wall-clock seconds for the session-start / skill health probe.\n"
     rendered += f'  "health_timeout_seconds": {current.health_timeout_seconds}\n'
     rendered += "}\n"
     path.parent.mkdir(parents=True, exist_ok=True)

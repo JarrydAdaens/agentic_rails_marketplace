@@ -37,6 +37,10 @@ the gate.
 | `claude-advisor-help` | What the plugin does, hosts, hooks, gate behavior |
 | `claude-advisor-init` | Write the harness config with commented defaults |
 | `claude-advisor-health` | Retest reachability; print ONLINE/OFFLINE + gate status |
+| `claude-advisor-enabled` | Persistently engage or disengage the advisor |
+| `claude-advisor-model` | Persist the advisor model and reasoning effort |
+| `claude-advisor-timeout` | View or persist the full-consult timeout |
+| `claude-advisor-version` | Print the installed version and edit timestamp |
 
 ## What the consuming project provides
 

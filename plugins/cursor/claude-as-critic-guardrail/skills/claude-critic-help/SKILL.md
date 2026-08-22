@@ -9,7 +9,9 @@ disable-model-invocation: true
 
 # Claude critic help
 
-Answer from this document. Do not invent hooks or MCP tools that are not listed.
+Answer from this document. Start by running `python ./cli/critic_version.py` from
+the installed plugin root and include its one-line version result. Do not invent
+hooks or MCP tools that are not listed.
 
 ## What it is
 
@@ -34,6 +36,8 @@ session so the IDE is not bricked.
 | `claude-critic-health` | Retest critic reachability mid-session; print ONLINE/OFFLINE + gate status |
 | `claude-critic-enabled` | Persistently engage or disengage the critic for this project |
 | `claude-critic-model` | Persist the critic model and reasoning effort for this project |
+| `claude-critic-timeout` | View or persist the critic consult timeout for this project |
+| `claude-critic-version` | Print the installed version and edit timestamp |
 
 ## Harness config
 
@@ -47,8 +51,11 @@ When `enabled` is `false`, the registered hooks still receive their events but
 immediately allow them: no health probe, protocol injection, critic consult, or
 write gate runs. Use `/claude-critic-enabled disabled` or
 `/claude-critic-enabled enabled` rather than editing the JSONC by hand.
-Use `/claude-critic-model opus high`, `/claude-critic-model 2a`, or a future
+Use `/claude-critic-model opus high`, `/claude-critic-model 2b`, or a future
 model id such as `/claude-critic-model deity high` to persist model and effort.
+Use `/claude-critic-timeout 123`, `/claude-critic-timeout fourhundred`, or
+`/claude-critic-timeout default` to update the consult timeout. With no
+argument, it explains the current setting and waits for your response.
 
 Create it with `/claude-critic-init`. A missing file is not an error; the
 plugin falls back to built-in defaults (`opus`, `high`, 600s, 90s). Env

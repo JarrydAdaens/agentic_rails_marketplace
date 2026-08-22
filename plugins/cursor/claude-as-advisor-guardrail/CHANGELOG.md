@@ -4,6 +4,25 @@ Keep this file and `VERSION` in sync with `.cursor-plugin/plugin.json`. This
 tree carries only the Cursor host; the Codex host is a separate copy under
 `plugins/codex/` and is consult-capable rather than gate-enforcing.
 
+## 1.3.3 — 2026-08-22
+
+- Ensure generated advisor JSONC documents both timeout fields directly above
+  their values, and regression-test the actual initializer output.
+
+## 1.3.2 — 2026-08-22
+
+- Add `/claude-advisor-timeout` for persisted, validated consult timeout
+  changes, accepting numbers, compact English values, `default`, and cancel.
+- Make health output show whether the JSONC config exists, its full path, and
+  the available manually editable fields.
+
+## 1.3.1 — 2026-08-22
+
+- Replace the misleading Default model menu entry with Haiku, Sonnet, Opus, and
+  Fable; mark the current listed model and effort.
+- Add model/effort cancellation and the `/claude-advisor-version` skill, which
+  prints the installed version plus its version-file timestamp.
+
 ## 1.3.0 — 2026-08-22
 
 - Add a persisted `enabled` boolean to the project JSONC config. Disabled means

@@ -29,7 +29,9 @@ uv run --no-project python ./scripts/launch.py ./cli/advisor_init.py --workspace
 ```
 
 3. Show the CLI stdout to the user **verbatim**, especially the `Path:` line.
-4. Remind them the file is JSONC (`//` comments are valid), and which fields to
+4. The initializer, not the skill, owns the config text. Do not hand-write or
+   replace it: it must produce JSONC comments directly above both timeout
+   fields. Remind the user the file is JSONC (`//` comments are valid), and which fields to
    edit: `enabled`, `model`, `effort`, `consult_timeout_seconds`, `health_timeout_seconds`.
    `effort` must be one of `low`, `medium`, `high`, `xhigh`, `max`; `model`
    takes a Claude alias (`opus`, `sonnet`, `fable`) or a full model id.

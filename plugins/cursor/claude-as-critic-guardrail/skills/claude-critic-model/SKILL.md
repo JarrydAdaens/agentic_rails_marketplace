@@ -20,7 +20,9 @@ If the user supplies no selection, omit the value after `--model`; the CLI
 prints the Claude-style model menu plus the effort table. It accepts the model
 aliases `haiku`, `sonnet`, `opus`, and `fable`; a specific or future model id
 such as `opus-4.7` or `deity`; effort names; model/effort phrases like
-`opus high`; and compact choices such as `2a` or `5e`.
+`opus high`; and compact choices such as `2b` or `4f`. The menu shows
+`(Current)` beside the selected listed model and effort; `cancel`, `0`, or `a`
+leaves the saved settings unchanged.
 
 Copy the successful confirmation verbatim. The choice is validated and saved
 as the project default for new critic sessions.

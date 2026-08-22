@@ -59,6 +59,7 @@ def main(argv: list[str] | None = None) -> int:
         "CLAUDE_CRITIC_TIMEOUT_SECONDS and CLAUDE_CRITIC_HEALTH_TIMEOUT_SECONDS "
         "override the matching timeout fields when set."
     )
+    print("The generated file documents both timeout fields directly above their values.")
     print("Re-run the claude-critic-health skill (or start a new session) after edits.")
     return 0
 

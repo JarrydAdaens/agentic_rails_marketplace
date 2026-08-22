@@ -37,6 +37,10 @@ the gate.
 | `claude-critic-help` | What the plugin does, hosts, hooks, gate behavior |
 | `claude-critic-init` | Write the harness config with commented defaults |
 | `claude-critic-health` | Retest reachability; print ONLINE/OFFLINE + gate status |
+| `claude-critic-enabled` | Persistently engage or disengage the critic |
+| `claude-critic-model` | Persist the critic model and reasoning effort |
+| `claude-critic-timeout` | View or persist the full-consult timeout |
+| `claude-critic-version` | Print the installed version and edit timestamp |
 
 ## What the consuming project provides
 
