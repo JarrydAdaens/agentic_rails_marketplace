@@ -24,6 +24,7 @@ Optional project file (JSONC — `//` comments allowed):
 
 ```jsonc
 {
+  "enabled": true,
   "model": "gpt-5.6-sol",
   "effort": "high",
   "fast": false,
@@ -45,6 +46,10 @@ the matching timeout fields when set.
 | `codex-advisor-help` | What the plugin does, hooks, when the gate fires |
 | `codex-advisor-init` | Write the commented harness config |
 | `codex-advisor-health` | Mid-session ONLINE/OFFLINE retest |
+| `codex-advisor-enabled` | Persistently engage or disengage the advisor |
+| `codex-advisor-model` | View or persist model and reasoning effort |
+| `codex-advisor-timeout` | View or persist the full-consult timeout |
+| `codex-advisor-version` | Print installed version and edit timestamp |
 
 ## Health and self-disable
 

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Project harness config for the Codex critic (model / effort / fast / timeouts)."""
+"""Project harness config for the Codex critic (model / effort / enabled / timeouts)."""
 
 from __future__ import annotations
 
@@ -28,35 +28,41 @@ CONFIG_RELATIVE_PATH = Path("harness") / PLUGIN_NAME / "config.json"
 DEFAULT_MODEL = "gpt-5.6-sol"
 DEFAULT_EFFORT = "high"
 DEFAULT_FAST = False
+DEFAULT_ENABLED = True
 DEFAULT_CONSULT_TIMEOUT_SECONDS = 1800
 DEFAULT_HEALTH_TIMEOUT_SECONDS = 90
 
 CONSULT_TIMEOUT_ENV_VAR = "CODEX_CRITIC_TIMEOUT_SECONDS"
 HEALTH_TIMEOUT_ENV_VAR = "CODEX_CRITIC_HEALTH_TIMEOUT_SECONDS"
 
-EFFORTS = ("minimal", "low", "medium", "high", "xhigh")
+EFFORTS = ("minimal", "low", "medium", "high", "xhigh", "max", "ultra")
 
 # Written by codex-critic-init. JSONC: // comments allowed; the loader strips them.
 DEFAULT_CONFIG_TEMPLATE = """\
 {
+  // Set false to leave this installed critic completely disengaged.
+  "enabled": true,
+
   // Codex model id passed to `codex exec --model`.
   // Copy an exact id your account can use (e.g. gpt-5.6-sol, gpt-5.4-mini).
   "model": "gpt-5.6-sol",
 
   // Reasoning effort for consults and health probes.
-  // One of: minimal, low, medium, high, xhigh
+  // One of: low, medium, high, xhigh, max, ultra.
+  // `minimal` remains accepted only for existing config compatibility.
   "effort": "high",
 
   // When true, requests Codex fast service tier (`service_tier=fast`).
   // Ignored harmlessly if the model or account does not support it.
   "fast": false,
 
-  // Wall-clock seconds for a full critic consult before hard kill.
+  // Maximum wall-clock seconds a full critic consult may run before it is killed.
   // Override with env CODEX_CRITIC_TIMEOUT_SECONDS when set.
   "consult_timeout_seconds": 1800,
 
-  // Wall-clock seconds for the session-start / skill health probe.
-  // Override with env CODEX_CRITIC_HEALTH_TIMEOUT_SECONDS when set.
+  // Maximum wall-clock seconds for the session-start / manual health probe.
+  // This is separate from the consult limit. Override with
+  // CODEX_CRITIC_HEALTH_TIMEOUT_SECONDS when set.
   "health_timeout_seconds": 90
 }
 """
@@ -64,6 +70,7 @@ DEFAULT_CONFIG_TEMPLATE = """\
 
 @dataclass(frozen=True)
 class CriticConfig:
+    enabled: bool = DEFAULT_ENABLED
     model: str = DEFAULT_MODEL
     effort: str = DEFAULT_EFFORT
     fast: bool = DEFAULT_FAST
@@ -74,7 +81,7 @@ class CriticConfig:
 
     def status_line(self) -> str:
         base = (
-            f"model {self.model}, effort {self.effort}, fast {str(self.fast).lower()}, "
+            f"enabled {self.enabled}, model {self.model}, effort {self.effort}, fast {str(self.fast).lower()}, "
             f"consult_timeout {self.consult_timeout_seconds}s, "
             f"health_timeout {self.health_timeout_seconds}s"
         )
@@ -156,6 +163,9 @@ def _parse_config_object(raw: Any, path: Path) -> CriticConfig:
     model = raw.get("model", DEFAULT_MODEL)
     effort = raw.get("effort", DEFAULT_EFFORT)
     fast = raw.get("fast", DEFAULT_FAST)
+    enabled = raw.get("enabled", DEFAULT_ENABLED)
+    if not isinstance(enabled, bool):
+        raise ValueError(f"{path} field 'enabled' must be true or false")
     if not isinstance(model, str) or not model.strip():
         raise ValueError(f"{path} field 'model' must be a non-empty string")
     if not isinstance(effort, str) or effort.strip() not in EFFORTS:
@@ -177,6 +187,7 @@ def _parse_config_object(raw: Any, path: Path) -> CriticConfig:
         DEFAULT_HEALTH_TIMEOUT_SECONDS,
     )
     return CriticConfig(
+        enabled=enabled,
         model=model.strip(),
         effort=effort.strip(),
         fast=fast,
@@ -247,3 +258,49 @@ def write_default_config(workspace: str | None = None, *, force: bool = False) -
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(DEFAULT_CONFIG_TEMPLATE, encoding="utf-8")
     return path.resolve()
+
+
+def update_critic_config(
+    workspace: str | None = None, *, enabled: bool | None = None,
+    model: str | None = None, effort: str | None = None,
+    consult_timeout_seconds: int | None = None,
+) -> CriticConfig:
+    """Validate and persist user-controlled settings as JSONC."""
+    path = config_path(workspace)
+    current = load_critic_config(workspace)
+    if current.error:
+        raise RuntimeError(f"Invalid critic harness config: {current.error}")
+    resolved_model = model.strip() if model is not None else current.model
+    resolved_effort = effort.strip() if effort is not None else current.effort
+    resolved_enabled = current.enabled if enabled is None else enabled
+    resolved_consult_timeout = (
+        current.consult_timeout_seconds
+        if consult_timeout_seconds is None else consult_timeout_seconds
+    )
+    if not resolved_model:
+        raise ValueError("model must be a non-empty identifier")
+    if resolved_effort not in EFFORTS:
+        raise ValueError(f"effort must be one of: {', '.join(EFFORTS)}")
+    candidate = {
+        "enabled": resolved_enabled, "model": resolved_model, "effort": resolved_effort,
+        "fast": current.fast, "consult_timeout_seconds": resolved_consult_timeout,
+        "health_timeout_seconds": current.health_timeout_seconds,
+    }
+    _parse_config_object(candidate, path)
+    rendered = "{\n"
+    rendered += "  // Set false to leave this installed critic completely disengaged.\n"
+    rendered += f'  "enabled": {str(resolved_enabled).lower()},\n\n'
+    rendered += "  // Codex model id passed to `codex exec --model`.\n"
+    rendered += f'  "model": {json.dumps(resolved_model)},\n\n'
+    rendered += "  // Reasoning effort: low, medium, high, xhigh, max, or ultra.\n"
+    rendered += f'  "effort": {json.dumps(resolved_effort)},\n\n'
+    rendered += "  // Legacy optional fast service-tier setting.\n"
+    rendered += f'  "fast": {str(current.fast).lower()},\n\n'
+    rendered += "  // Maximum wall-clock seconds for a full critic consult.\n"
+    rendered += f'  "consult_timeout_seconds": {resolved_consult_timeout},\n\n'
+    rendered += "  // Maximum wall-clock seconds for the session-start / manual health probe.\n"
+    rendered += f'  "health_timeout_seconds": {current.health_timeout_seconds}\n'
+    rendered += "}\n"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(rendered, encoding="utf-8")
+    return require_critic_config(workspace)

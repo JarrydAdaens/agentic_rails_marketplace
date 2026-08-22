@@ -10,7 +10,7 @@ disable-model-invocation: true
 
 # Codex critic help
 
-Answer from this document. Do not invent hooks or MCP tools that are not listed.
+Answer from this document. Start by running `python ./cli/critic_version.py` from the installed plugin root and include its one-line version result. Do not invent hooks or MCP tools that are not listed.
 
 ## What it is
 
@@ -30,12 +30,23 @@ not bricked.
 | `codex-critic-help` | This overview |
 | `codex-critic-init` | Write `harness/codex-as-critic-guardrail/config.json` with commented defaults |
 | `codex-critic-health` | Retest critic reachability mid-session; print ONLINE/OFFLINE + gate status |
+| `codex-critic-enabled` | Persistently engage or disengage the critic for this project |
+| `codex-critic-model` | View or persist the Codex model and reasoning effort |
+| `codex-critic-timeout` | View or persist the critic consult timeout |
+| `codex-critic-version` | Print the installed version and edit timestamp |
 
 ## Harness config
 
 Path: `harness/codex-as-critic-guardrail/config.json` (JSONC; `//` comments OK).
 
-Fields: `model`, `effort`, `fast`, `consult_timeout_seconds`, `health_timeout_seconds`.
+Fields: `enabled`, `model`, `effort`, `fast`, `consult_timeout_seconds`, `health_timeout_seconds`.
+
+When `enabled` is `false`, registered hooks immediately allow events: no health
+probe, protocol injection, critic consult, or write gate runs. Use
+`/codex-critic-enabled disabled` or `/codex-critic-enabled enabled`.
+Use `/codex-critic-model gpt-5.6-sol high`, `/codex-critic-model 2a`, or a
+future model id. `/codex-critic-timeout` accepts `123`, `fourhundred`, or
+`default`; with no argument it shows the current setting and waits for input.
 
 Create it with `/codex-critic-init`. Env overrides for timeouts only:
 `CODEX_CRITIC_TIMEOUT_SECONDS`, `CODEX_CRITIC_HEALTH_TIMEOUT_SECONDS`.

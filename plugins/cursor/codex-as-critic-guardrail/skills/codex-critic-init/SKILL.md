@@ -3,7 +3,7 @@ name: codex-critic-init
 description: >-
   Create the project harness config for codex-as-critic-guardrail
   (harness/codex-as-critic-guardrail/config.json) with commented defaults for
-  model, effort, fast, and timeouts. Use when setting up the critic in a new
+  enabled state, model, effort, fast, and timeouts. Use when setting up the critic in a new
   project or when the user asks to init/write the critic config.
 disable-model-invocation: true
 ---
@@ -30,7 +30,7 @@ uv run --no-project python ./scripts/launch.py ./cli/critic_init.py --workspace 
 
 3. Show the CLI stdout to the user **verbatim**, especially the `Path:` line.
 4. Remind them the file is JSONC (`//` comments are valid), and which fields to
-   edit: `model`, `effort`, `fast`, `consult_timeout_seconds`,
+   edit: `enabled`, `model`, `effort`, `fast`, `consult_timeout_seconds`,
    `health_timeout_seconds`.
 5. After they edit, suggest `/codex-critic-health` or a new session so health
    reloads the config.

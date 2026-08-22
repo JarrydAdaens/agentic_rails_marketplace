@@ -34,6 +34,7 @@ if str(_LIB) not in sys.path:
     sys.path.insert(0, str(_LIB))
 
 from critic_health import run_health_probe  # noqa: E402
+from critic_config import load_critic_config  # noqa: E402
 
 
 def _session_id(payload: dict) -> str:
@@ -60,6 +61,14 @@ def main() -> None:
 
     session_id = _session_id(payload)
     workspace = _workspace(payload)
+    config = load_critic_config(workspace)
+    if not config.enabled:
+        content = "Codex-as-critic is disabled for this project. No health check or consult gate is active."
+        if payload.get("hook_event_name") == "sessionStart":
+            print(json.dumps({"additional_context": content, "user_message": content}))
+        else:
+            print(content)
+        return
     health = run_health_probe(session_id, workspace=workspace, mark_pending_first=True)
     status = presence_line(session_id)
     status_block = (

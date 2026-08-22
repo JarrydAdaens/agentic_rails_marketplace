@@ -27,6 +27,7 @@ Optional project file (JSONC — `//` comments allowed):
 
 ```jsonc
 {
+  "enabled": true,
   "model": "gpt-5.6-sol",
   "effort": "high",
   "fast": false,
@@ -48,6 +49,10 @@ the matching timeout fields when set.
 | `codex-critic-help` | What the plugin does, hooks, when the gate fires |
 | `codex-critic-init` | Write the commented harness config |
 | `codex-critic-health` | Mid-session ONLINE/OFFLINE retest |
+| `codex-critic-enabled` | Persistently engage or disengage the critic |
+| `codex-critic-model` | View or persist model and reasoning effort |
+| `codex-critic-timeout` | View or persist the full-consult timeout |
+| `codex-critic-version` | Print installed version and edit timestamp |
 
 ## Health and self-disable
 

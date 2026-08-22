@@ -1,5 +1,15 @@
 # Changelog — codex-as-critic-guardrail (Cursor host)
 
+## 1.2.0 — 2026-08-22
+
+- Add project-persisted enabled state and hooks that early-out completely when
+  the critic is disabled.
+- Add model/effort, consult timeout, and installed-version skills. The picker
+  supports GPT-5.6 Sol/Terra/Luna, GPT-5.5, GPT-5.4, and GPT-5.4 Mini plus
+  Low through Ultra effort.
+- Make health report JSONC config presence and path; retain `fast` as a legacy
+  advanced config field.
+
 Keep this file and `VERSION` in sync with `.cursor-plugin/plugin.json` and
 `PLUGIN_VERSION` in `lib/critic_consult.py`. This tree carries only the
 Cursor host; the Claude Code host is a separate copy under `plugins/claude/`.

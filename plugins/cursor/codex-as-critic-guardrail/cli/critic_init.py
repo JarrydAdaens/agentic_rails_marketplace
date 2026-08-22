@@ -61,11 +61,12 @@ def main(argv: list[str] | None = None) -> int:
     print(f"Path: {path}")
     print(f"Relative: {CONFIG_RELATIVE_PATH.as_posix()}")
     print(
-        "Edit that JSONC file to change model, effort, fast, "
+        "Edit that JSONC file to change enabled, model, effort, fast, "
         "consult_timeout_seconds, and health_timeout_seconds. "
         "// comments are allowed. Env vars CODEX_CRITIC_TIMEOUT_SECONDS and "
         "CODEX_CRITIC_HEALTH_TIMEOUT_SECONDS override the matching timeout fields when set."
     )
+    print("The generated file documents both timeout fields directly above their values.")
     print("Re-run the codex-critic-health skill (or start a new session) after edits.")
     return 0
 

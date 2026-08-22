@@ -18,9 +18,15 @@ from __future__ import annotations
 
 import json
 import sys
+from pathlib import Path
 
 from critic_markers import HEALTH_SKILL, has_marker, health_state, offline_reason
 from critic_streams import force_utf8, read_hook_payload
+
+_LIB = Path(__file__).resolve().parents[1] / "lib"
+sys.path.insert(0, str(_LIB))
+
+from critic_config import load_critic_config  # noqa: E402
 
 DENY = (
     "Critic gate: consult the critic before the first write of this session. "
@@ -31,6 +37,14 @@ DENY = (
 
 def _session_id(payload: dict) -> str:
     return str(payload.get("session_id") or payload.get("conversation_id") or "unknown")
+
+
+def _workspace(payload: dict) -> str | None:
+    roots = payload.get("workspace_roots") or []
+    if roots:
+        return str(roots[0])
+    cwd = payload.get("cwd")
+    return str(cwd) if cwd else None
 
 
 def _reply(permission: str, message: str) -> str:
@@ -48,6 +62,11 @@ def main() -> None:
         sys.exit(0)
 
     session_id = _session_id(payload)
+    config = load_critic_config(_workspace(payload))
+    if not config.enabled:
+        message = "Codex-as-critic disabled for this project — write gate disengaged."
+        print(_reply("allow", message))
+        return
     if has_marker(session_id):
         sys.exit(0)
 

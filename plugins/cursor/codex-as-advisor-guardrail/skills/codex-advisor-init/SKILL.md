@@ -3,7 +3,7 @@ name: codex-advisor-init
 description: >-
   Create the project harness config for codex-as-advisor-guardrail
   (harness/codex-as-advisor-guardrail/config.json) with commented defaults for
-  model, effort, fast, and timeouts. Use when setting up the advisor in a new
+  enabled state, model, effort, fast, and timeouts. Use when setting up the advisor in a new
   project or when the user asks to init/write the advisor config.
 disable-model-invocation: true
 ---
@@ -30,7 +30,7 @@ uv run --no-project python ./scripts/launch.py ./cli/advisor_init.py --workspace
 
 3. Show the CLI stdout to the user **verbatim**, especially the `Path:` line.
 4. Remind them the file is JSONC (`//` comments are valid), and which fields to
-   edit: `model`, `effort`, `fast`, `consult_timeout_seconds`,
+   edit: `enabled`, `model`, `effort`, `fast`, `consult_timeout_seconds`,
    `health_timeout_seconds`.
 5. After they edit, suggest `/codex-advisor-health` or a new session so health
    reloads the config.

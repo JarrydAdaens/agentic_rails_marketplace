@@ -10,7 +10,7 @@ disable-model-invocation: true
 
 # Codex advisor help
 
-Answer from this document. Do not invent hooks or MCP tools that are not listed.
+Answer from this document. Start by running `python ./cli/advisor_version.py` from the installed plugin root and include its one-line version result. Do not invent hooks or MCP tools that are not listed.
 
 ## What it is
 
@@ -30,12 +30,23 @@ not bricked.
 | `codex-advisor-help` | This overview |
 | `codex-advisor-init` | Write `harness/codex-as-advisor-guardrail/config.json` with commented defaults |
 | `codex-advisor-health` | Retest advisor reachability mid-session; print ONLINE/OFFLINE + gate status |
+| `codex-advisor-enabled` | Persistently engage or disengage the advisor for this project |
+| `codex-advisor-model` | View or persist the Codex model and reasoning effort |
+| `codex-advisor-timeout` | View or persist the advisor consult timeout |
+| `codex-advisor-version` | Print the installed version and edit timestamp |
 
 ## Harness config
 
 Path: `harness/codex-as-advisor-guardrail/config.json` (JSONC; `//` comments OK).
 
-Fields: `model`, `effort`, `fast`, `consult_timeout_seconds`, `health_timeout_seconds`.
+Fields: `enabled`, `model`, `effort`, `fast`, `consult_timeout_seconds`, `health_timeout_seconds`.
+
+When `enabled` is `false`, registered hooks immediately allow events: no health
+probe, protocol injection, advisor consult, or write gate runs. Use
+`/codex-advisor-enabled disabled` or `/codex-advisor-enabled enabled`.
+Use `/codex-advisor-model gpt-5.6-sol high`, `/codex-advisor-model 2a`, or a
+future model id. `/codex-advisor-timeout` accepts `123`, `fourhundred`, or
+`default`; with no argument it shows the current setting and waits for input.
 
 Create it with `/codex-advisor-init`. Env overrides for timeouts only:
 `CODEX_ADVISOR_TIMEOUT_SECONDS`, `CODEX_ADVISOR_HEALTH_TIMEOUT_SECONDS`.
