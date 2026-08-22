@@ -27,6 +27,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from windows_toast import notify_guardrail_online
+
 DENY_REASON = (
     "claude-home-fence-guardrail: access to ~/.claude is banned in Cursor. "
     "Use Cursor-native skills/plugins under ~/.cursor or the agentic_rails_tooling / "
@@ -328,6 +330,9 @@ def main() -> None:
         event = str(hook.get("hook_event_name") or "")
 
         if event == "sessionStart":
+            root = project_root(hook)
+            if not config_disabled(root):
+                notify_guardrail_online()
             emit_session_policy()
             return
 

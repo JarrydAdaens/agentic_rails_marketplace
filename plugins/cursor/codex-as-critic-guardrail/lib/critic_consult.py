@@ -29,7 +29,7 @@ from critic_config import (
 )
 from windows_runtime import resolve_cli
 
-PLUGIN_VERSION = "1.1.0"
+PLUGIN_VERSION = "1.2.1"
 
 # Back-compat aliases for tests and MCP re-exports
 DEFAULT_TIMEOUT_SECONDS = DEFAULT_CONSULT_TIMEOUT_SECONDS

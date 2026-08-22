@@ -106,7 +106,7 @@ class HookTests(unittest.TestCase):
         )
         completed = subprocess.run(
             [sys.executable, "-c", launcher],
-            env={**os.environ, "CLAUDE_PLUGIN_ROOT": str(plugin_root)},
+            env={**os.environ, "CLAUDE_PLUGIN_ROOT": str(plugin_root), "AGENTIC_RAILS_SKIP_TOAST": "1"},
             capture_output=True, timeout=60, check=False,
         )
         self.assertEqual(completed.returncode, 0, completed.stderr.decode("utf-8", "replace"))

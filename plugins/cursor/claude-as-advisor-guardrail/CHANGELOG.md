@@ -4,6 +4,11 @@ Keep this file and `VERSION` in sync with `.cursor-plugin/plugin.json`. This
 tree carries only the Cursor host; the Codex host is a separate copy under
 `plugins/codex/` and is consult-capable rather than gate-enforcing.
 
+## 1.4.1 — 2026-08-22
+
+- Toast on sessionStart after the project config loads, using PowerShell's
+  registered App User Model ID. Disabled projects (`enabled: false`) stay silent.
+
 ## 1.4.0 — 2026-08-22
 
 - Add `/claude-advisor-install-hooks` and `/claude-advisor-remove-hooks` to

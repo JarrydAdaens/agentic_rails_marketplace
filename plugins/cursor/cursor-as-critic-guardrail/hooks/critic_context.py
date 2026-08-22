@@ -24,6 +24,7 @@ import sys
 from pathlib import Path
 
 from critic_streams import force_utf8, read_hook_payload
+from windows_toast import notify_guardrail_online
 
 
 def main() -> None:
@@ -35,6 +36,7 @@ def main() -> None:
         return
 
     payload = read_hook_payload() or {}
+    notify_guardrail_online()
 
     if payload.get("hook_event_name") == "sessionStart":
         print(json.dumps({"additional_context": content}))

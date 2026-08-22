@@ -10,6 +10,12 @@
         "matcher": "Shell",
         "command": "powershell -NoProfile -ExecutionPolicy Bypass -File ./hooks/block-readme-git.ps1"
       }
+    ],
+    "sessionStart": [
+      {
+        "command": "powershell -NoProfile -ExecutionPolicy Bypass -File ./hooks/notify-online.ps1",
+        "failClosed": false
+      }
     ]
   }
 }

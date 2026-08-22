@@ -35,6 +35,7 @@ if str(_LIB) not in sys.path:
 
 from advisor_health import run_health_probe  # noqa: E402
 from advisor_config import load_advisor_config  # noqa: E402
+from windows_toast import notify_guardrail_online  # noqa: E402
 
 
 def _session_id(payload: dict) -> str:
@@ -67,6 +68,7 @@ def main() -> None:
             print(message)
         return
 
+    notify_guardrail_online()
     session_id = _session_id(payload)
     health = run_health_probe(session_id, workspace=_workspace(payload), mark_pending_first=True)
     status = presence_line(session_id)

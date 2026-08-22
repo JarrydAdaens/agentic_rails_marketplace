@@ -221,16 +221,35 @@ class FenceBehaviorTests(unittest.TestCase):
         self.assertEqual(decision["permission"], "allow")
 
     def test_session_start_injects_policy(self):
-        code, decision, _ = self.invoke(
-            {
-                "hook_event_name": "sessionStart",
-                "workspace_roots": [str(self.workspace)],
-            }
-        )
+        with patch.object(claude_home_fence, "notify_guardrail_online") as toast:
+            code, decision, _ = self.invoke(
+                {
+                    "hook_event_name": "sessionStart",
+                    "workspace_roots": [str(self.workspace)],
+                }
+            )
         self.assertEqual(code, 0)
         assert decision is not None
         self.assertIn("HARD POLICY", decision["additional_context"])
         self.assertIn("~/.claude", decision["additional_context"])
+        toast.assert_called_once()
+
+    def test_session_start_skips_toast_when_disabled(self):
+        harness = self.workspace / "harness" / "claude-home-fence-guardrail"
+        harness.mkdir(parents=True)
+        (harness / "cursor-config.json").write_text('{"enabled": false}\n', encoding="utf-8")
+        with patch.object(claude_home_fence, "notify_guardrail_online") as toast:
+            code, decision, _ = self.invoke(
+                {
+                    "hook_event_name": "sessionStart",
+                    "workspace_roots": [str(self.workspace)],
+                    "cwd": str(self.workspace),
+                }
+            )
+        self.assertEqual(code, 0)
+        assert decision is not None
+        self.assertIn("HARD POLICY", decision["additional_context"])
+        toast.assert_not_called()
 
     def test_disabled_seam_allows_claude_home_read(self):
         harness = self.workspace / "harness" / "claude-home-fence-guardrail"

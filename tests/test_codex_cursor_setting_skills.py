@@ -78,7 +78,12 @@ class CodexCursorSettingSkillsTests(unittest.TestCase):
 
                 version = self.run_cli(root / "cli" / f"{prefix}_version.py")
                 self.assertEqual(version.returncode, 0, version.stderr)
-                self.assertRegex(version.stdout, r"Version is 1\.2\.0 last edited \d{2}:\d{2} \d{2}-\d{2}-\d{4}")
+                installed = (root / "VERSION").read_text(encoding="utf-8").strip()
+                escaped = installed.replace(".", r"\.")
+                self.assertRegex(
+                    version.stdout,
+                    rf"Version is {escaped} last edited \d{{2}}:\d{{2}} \d{{2}}-\d{{2}}-\d{{4}}",
+                )
 
 
 if __name__ == "__main__":

@@ -7,6 +7,12 @@
         "timeout": 600,
         "loop_limit": 10
       }
+    ],
+    "sessionStart": [
+      {
+        "command": "powershell -NoProfile -ExecutionPolicy Bypass -File ./hooks/notify-online.ps1",
+        "failClosed": false
+      }
     ]
   }
 }

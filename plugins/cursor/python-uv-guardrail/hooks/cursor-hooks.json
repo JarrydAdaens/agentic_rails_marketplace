@@ -6,6 +6,12 @@
         "matcher": "Shell",
         "command": "powershell -NoProfile -ExecutionPolicy Bypass -File ./hooks/enforce-uv-python.ps1"
       }
+    ],
+    "sessionStart": [
+      {
+        "command": "powershell -NoProfile -ExecutionPolicy Bypass -File ./hooks/notify-online.ps1",
+        "failClosed": false
+      }
     ]
   }
 }

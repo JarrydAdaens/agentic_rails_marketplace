@@ -1,7 +1,7 @@
 {
   "name": "local-advisor-guardrail",
-  "version": "3.0.0",
-  "description": "v3.0.0 — Native Cursor local-advisor guardrail: require a read-only custom subagent consultation before the first write, with persistent enable/model/timeout/version controls and no MCP server.",
+  "version": "3.0.1",
+  "description": "v3.0.1 — Native Cursor local-advisor guardrail: require a read-only custom subagent consultation before the first write, with persistent enable/model/timeout/version controls and no MCP server.",
   "author": {
     "name": "Jarryd Adaens"
   },

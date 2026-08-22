@@ -1,5 +1,10 @@
 # Changelog — codex-as-advisor-guardrail (Cursor host)
 
+## 1.2.1 — 2026-08-22
+
+- Toast on sessionStart after the project config loads, using PowerShell's
+  registered App User Model ID. Disabled projects (`enabled: false`) stay silent.
+
 ## 1.2.0 — 2026-08-22
 
 - Add project-persisted enabled state and hooks that early-out completely when

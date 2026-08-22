@@ -31,6 +31,7 @@ sys.path.insert(0, str(HOOKS))
 sys.path.insert(0, str(PLUGIN / "lib"))
 
 import critic_config
+import critic_context
 import critic_gate
 import critic_marker
 import critic_markers
@@ -206,6 +207,7 @@ class SurfaceTests(unittest.TestCase):
                 **os.environ,
                 "CLAUDE_PLUGIN_ROOT": str(PLUGIN),
                 "CLAUDE_CRITIC_SKIP_HEALTH": "1",
+                "AGENTIC_RAILS_SKIP_TOAST": "1",
             },
             input=b"{}",
             capture_output=True, timeout=60, check=False,
@@ -216,6 +218,38 @@ class SurfaceTests(unittest.TestCase):
         self.assertIn("target 2–3 per task", emitted)
         self.assertIn("Claude-as-critic", emitted)
         self.assertNotIn("�", emitted)
+
+
+class OnlineToastTests(unittest.TestCase):
+    def invoke(self, payload):
+        output = io.StringIO()
+        with patch.object(sys, "stdin", io.StringIO(json.dumps(payload))), contextlib.redirect_stdout(output):
+            try:
+                critic_context.main()
+            except SystemExit as exc:
+                self.assertEqual(exc.code, 0)
+        return output.getvalue()
+
+    def test_session_start_toasts_when_enabled(self):
+        with patch.object(critic_context, "notify_guardrail_online") as toast, patch.object(
+            critic_context, "run_health_probe"
+        ) as probe:
+            probe.return_value.status_block.return_value = "status"
+            self.invoke({"hook_event_name": "sessionStart", "session_id": "s"})
+        toast.assert_called_once()
+
+    def test_session_start_skips_toast_when_disabled(self):
+        with tempfile.TemporaryDirectory() as root:
+            harness = Path(root) / "harness" / "claude-as-critic-guardrail"
+            harness.mkdir(parents=True)
+            (harness / "cursor-config.json").write_text('{"enabled": false}\n', encoding="utf-8")
+            with patch.object(critic_context, "notify_guardrail_online") as toast:
+                self.invoke({
+                    "hook_event_name": "sessionStart",
+                    "workspace_roots": [root],
+                    "cwd": root,
+                })
+        toast.assert_not_called()
 
 
 if __name__ == "__main__":

@@ -1,7 +1,7 @@
 {
   "name": "codex-as-advisor-guardrail",
-  "version": "1.2.0",
-  "description": "v1.2.0 — Requires Cursor agents to consult a read-only Codex advisor before their first write. Shell CLI (no MCP), persistent enable/model/effort/timeout/version controls, health self-disable, and help/init/health skills.",
+  "version": "1.2.1",
+  "description": "v1.2.1 — Requires Cursor agents to consult a read-only Codex advisor before their first write. Shell CLI (no MCP), persistent enable/model/effort/timeout/version controls, health self-disable, and help/init/health skills.",
   "author": { "name": "Jarryd Adaens" },
   "hooks": "./hooks/cursor-hooks.json",
   "keywords": ["guardrail", "advisor", "codex"]

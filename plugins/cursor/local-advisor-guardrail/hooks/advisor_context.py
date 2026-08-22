@@ -28,6 +28,7 @@ from advisor_streams import force_utf8, read_hook_payload
 _LIB = Path(__file__).resolve().parents[1] / "lib"
 sys.path.insert(0, str(_LIB))
 from advisor_config import load_advisor_config  # noqa: E402
+from windows_toast import notify_guardrail_online  # noqa: E402
 
 
 def main() -> None:
@@ -41,6 +42,7 @@ def main() -> None:
         if not config.enabled:
             content = "Local advisor is disabled for this project. No consultation gate is active."
         else:
+            notify_guardrail_online()
             content += (
                 f"\n\nCursor selection: invoke native Task/Agent subagent `{config.agent_name}` "
                 f"for this consult. Its configured advisory budget is {config.consult_timeout_seconds}s."

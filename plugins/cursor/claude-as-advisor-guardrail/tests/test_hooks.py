@@ -31,10 +31,12 @@ sys.path.insert(0, str(HOOKS))
 sys.path.insert(0, str(PLUGIN / "lib"))
 
 import advisor_config
+import advisor_context
 import advisor_gate
 import advisor_marker
 import advisor_markers
 import advisor_session
+import windows_toast
 
 GATE_PAYLOAD = {
     "conversation_id": "cursor-gate",
@@ -206,6 +208,7 @@ class SurfaceTests(unittest.TestCase):
                 **os.environ,
                 "CLAUDE_PLUGIN_ROOT": str(PLUGIN),
                 "CLAUDE_ADVISOR_SKIP_HEALTH": "1",
+                "AGENTIC_RAILS_SKIP_TOAST": "1",
             },
             input=b"{}",
             capture_output=True, timeout=60, check=False,
@@ -216,6 +219,66 @@ class SurfaceTests(unittest.TestCase):
         self.assertIn("target 2–3 per task", emitted)
         self.assertIn("Claude-as-advisor", emitted)
         self.assertNotIn("�", emitted)
+
+
+class OnlineToastTests(unittest.TestCase):
+    def invoke(self, payload):
+        output = io.StringIO()
+        with patch.object(sys, "stdin", io.StringIO(json.dumps(payload))), contextlib.redirect_stdout(output):
+            try:
+                advisor_context.main()
+            except SystemExit as exc:
+                self.assertEqual(exc.code, 0)
+        return output.getvalue()
+
+    def test_session_start_toasts_when_enabled(self):
+        with patch.object(advisor_context, "notify_guardrail_online") as toast, patch.object(
+            advisor_context, "run_health_probe"
+        ) as probe:
+            probe.return_value.status_block.return_value = "status"
+            self.invoke({"hook_event_name": "sessionStart", "session_id": "s"})
+        toast.assert_called_once()
+
+    def test_session_start_skips_toast_when_disabled(self):
+        with tempfile.TemporaryDirectory() as root:
+            harness = Path(root) / "harness" / "claude-as-advisor-guardrail"
+            harness.mkdir(parents=True)
+            (harness / "cursor-config.json").write_text('{"enabled": false}\n', encoding="utf-8")
+            with patch.object(advisor_context, "notify_guardrail_online") as toast:
+                self.invoke({
+                    "hook_event_name": "sessionStart",
+                    "workspace_roots": [root],
+                    "cwd": root,
+                })
+        toast.assert_not_called()
+
+    def test_notify_spawns_hidden_powershell_with_powershell_aumid(self):
+        env = {
+            key: value
+            for key, value in os.environ.items()
+            if key not in {"PYTEST_CURRENT_TEST", "AGENTIC_RAILS_SKIP_TOAST"}
+        }
+        with patch.dict(os.environ, env, clear=True), patch.object(
+            windows_toast.os, "name", "nt"
+        ), patch.object(windows_toast.subprocess, "Popen") as popen:
+            windows_toast.notify_guardrail_online(PLUGIN)
+        popen.assert_called_once()
+        argv = popen.call_args[0][0]
+        self.assertEqual(argv[0], "powershell")
+        self.assertIn("Hidden", argv)
+        self.assertEqual(popen.call_args.kwargs["creationflags"], windows_toast.CREATE_NO_WINDOW)
+        launched = popen.call_args.kwargs["env"]
+        self.assertEqual(launched["AR_TOAST_AUMID"], windows_toast.POWERSHELL_AUMID)
+        self.assertEqual(launched["AR_TOAST_TITLE"], "claude-as-advisor-guardrail is online")
+        self.assertIn("sessionStart", launched["AR_TOAST_BODY"])
+        self.assertIn("preToolUse", launched["AR_TOAST_BODY"])
+
+    def test_notify_skips_when_pytest_is_running(self):
+        with patch.dict(os.environ, {"PYTEST_CURRENT_TEST": "1"}), patch.object(
+            windows_toast.os, "name", "nt"
+        ), patch.object(windows_toast.subprocess, "Popen") as popen:
+            windows_toast.notify_guardrail_online(PLUGIN)
+        popen.assert_not_called()
 
 
 if __name__ == "__main__":

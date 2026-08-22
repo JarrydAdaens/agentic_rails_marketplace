@@ -101,8 +101,24 @@ class HookTests(unittest.TestCase):
         self.assertNotIn("afterMCPExecution", cursor["hooks"])
 
     def test_context_uses_cursor_additional_context_shape(self):
-        cursor = json.loads(self.invoke(advisor_context, {"hook_event_name": "sessionStart"}))
+        with patch.object(advisor_context, "notify_guardrail_online") as toast:
+            cursor = json.loads(self.invoke(advisor_context, {"hook_event_name": "sessionStart"}))
+        toast.assert_called_once()
         self.assertIn("Advisor Protocol", cursor["additional_context"])
+
+    def test_session_start_skips_toast_when_disabled(self):
+        with tempfile.TemporaryDirectory() as root:
+            harness = Path(root) / "harness" / "local-advisor-guardrail"
+            harness.mkdir(parents=True)
+            (harness / "cursor-config.json").write_text('{"enabled": false}\n', encoding="utf-8")
+            with patch.object(advisor_context, "notify_guardrail_online") as toast:
+                emitted = json.loads(self.invoke(advisor_context, {
+                    "hook_event_name": "sessionStart",
+                    "workspace_roots": [root],
+                    "cwd": root,
+                }))
+        toast.assert_not_called()
+        self.assertIn("disabled", emitted["additional_context"])
 
 
 if __name__ == "__main__":

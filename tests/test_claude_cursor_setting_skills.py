@@ -220,7 +220,12 @@ class ClaudeCursorSettingSkillsTests(unittest.TestCase):
             with self.subTest(plugin=plugin):
                 result = self.run_cli(CURSOR / plugin / "cli" / f"{prefix}_version.py")
                 self.assertEqual(result.returncode, 0, result.stderr)
-                self.assertRegex(result.stdout, r"Version is 1\.3\.3 last edited \d{2}:\d{2} \d{2}-\d{2}-\d{4}")
+                version = (CURSOR / plugin / "VERSION").read_text(encoding="utf-8").strip()
+                escaped = version.replace(".", r"\.")
+                self.assertRegex(
+                    result.stdout,
+                    rf"Version is {escaped} last edited \d{{2}}:\d{{2}} \d{{2}}-\d{{2}}-\d{{4}}",
+                )
 
 
 if __name__ == "__main__":
