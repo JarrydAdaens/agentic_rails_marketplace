@@ -1,0 +1,8 @@
+{
+  "name": "local-critic-guardrail",
+  "version": "1.0.0",
+  "description": "v1.0.0 — Native Cursor local-critic guardrail: require a read-only adversarial custom-subagent consultation before the first write, with persistent enable/model/timeout/version controls and no MCP server.",
+  "author": { "name": "Jarryd Adaens" },
+  "keywords": ["critic", "guardrail", "hooks", "actor-critic", "cursor"],
+  "hooks": "./hooks/cursor-hooks.json"
+}

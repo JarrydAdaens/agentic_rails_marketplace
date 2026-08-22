@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [{ "matcher": "Write|StrReplace|Delete|Edit|MultiEdit|NotebookEdit", "command": "uv run --no-project python ./hooks/critic_gate.py", "failClosed": false }],
+    "postToolUse": [{ "command": "uv run --no-project python ./hooks/critic_marker.py", "failClosed": false }],
+    "sessionStart": [
+      { "command": "uv run --no-project python ./hooks/critic_cleanup.py", "failClosed": false },
+      { "command": "uv run --no-project python ./hooks/critic_context.py", "failClosed": false }
+    ]
+  }
+}

@@ -10,6 +10,7 @@
   "plugins": [
     { "name": "jobs-done-guardrail", "source": "./plugins/cursor/jobs-done-guardrail", "description": "Build-and-test completion guardrail.", "category": "guardrail" },
     { "name": "local-advisor-guardrail", "source": "./plugins/cursor/local-advisor-guardrail", "description": "Local child-agent advisor using Cursor Grok 4.5 High inside Cursor.", "category": "guardrail" },
+    { "name": "local-critic-guardrail", "source": "./plugins/cursor/local-critic-guardrail", "description": "Native read-only adversarial Cursor child-agent critic with persistent project controls.", "category": "guardrail" },
     { "name": "codex-as-critic-guardrail", "source": "./plugins/cursor/codex-as-critic-guardrail", "description": "Read-only GPT-5.6 Sol critic guardrail.", "category": "guardrail" },
     { "name": "codex-as-advisor-guardrail", "source": "./plugins/cursor/codex-as-advisor-guardrail", "description": "Read-only GPT-5.6 Sol advisor guardrail.", "category": "guardrail" },
     { "name": "claude-as-advisor-guardrail", "source": "./plugins/cursor/claude-as-advisor-guardrail", "description": "Read-only Claude advisor with harness config, health self-disable, and help/init/health skills. Defaults to Opus at high effort.", "category": "guardrail" },

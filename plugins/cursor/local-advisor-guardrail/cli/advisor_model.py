@@ -3,7 +3,7 @@ import argparse, os, sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "lib"))
 from advisor_config import load_advisor_config, update_advisor_config
-MODELS={"a":"auto","b":"cursor-grok-4.6","c":"composer-2.5","d":"gemini-3.7-flash","e":"gpt-5.4-nano","f":"kimi-k3"}; CANCEL={"0","cancel","abort","back","exit","quit","no"}
+MODELS={"1":"auto","2":"cursor-grok-4.6","3":"composer-2.5","4":"gemini-3.7-flash","5":"gpt-5.4-nano","6":"kimi-k3"}; CANCEL={"0","cancel","abort","back","exit","quit","no"}
 def menu(current:str)->str:
  def tag(value:str)->str:return " (Current)" if value==current else ""
  return f"""Select local advisor model
@@ -11,12 +11,12 @@ The advisor is a native Cursor custom subagent. Cursor chooses each model's own 
 Current selection: {current}
 
   0. Cancel
-  a. Auto{tag('auto')}
-  b. Cursor Grok 4.6{tag('cursor-grok-4.6')}
-  c. Composer 2.5{tag('composer-2.5')}
-  d. Gemini 3.7 Flash{tag('gemini-3.7-flash')}
-  e. GPT-5.4-Nano{tag('gpt-5.4-nano')}
-  f. Kimi-K3{tag('kimi-k3')}
+  1. Auto{tag('auto')}
+  2. Cursor Grok 4.6{tag('cursor-grok-4.6')}
+  3. Composer 2.5{tag('composer-2.5')}
+  4. Gemini 3.7 Flash{tag('gemini-3.7-flash')}
+  5. GPT-5.4-Nano{tag('gpt-5.4-nano')}
+  6. Kimi-K3{tag('kimi-k3')}
 
 No effort selector is available: Cursor applies the selected model's native defaults. Type cancel to leave settings unchanged."""
 def main()->int:
