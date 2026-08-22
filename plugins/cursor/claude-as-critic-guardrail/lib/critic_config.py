@@ -27,6 +27,7 @@ CONFIG_RELATIVE_PATH = Path("harness") / PLUGIN_NAME / "config.json"
 
 DEFAULT_MODEL = "opus"
 DEFAULT_EFFORT = "high"
+DEFAULT_ENABLED = True
 DEFAULT_CONSULT_TIMEOUT_SECONDS = 600
 DEFAULT_HEALTH_TIMEOUT_SECONDS = 90
 
@@ -40,6 +41,9 @@ EFFORTS = ("low", "medium", "high", "xhigh", "max")
 # Written by claude-critic-init. JSONC: // comments allowed; the loader strips them.
 DEFAULT_CONFIG_TEMPLATE = """\
 {
+  // Set false to leave this installed critic completely disengaged.
+  "enabled": true,
+
   // Model alias or id passed to `claude --model`.
   // An alias tracks the latest of that family (opus, sonnet, fable);
   // a full id (e.g. claude-opus-5) pins it.
@@ -62,6 +66,7 @@ DEFAULT_CONFIG_TEMPLATE = """\
 
 @dataclass(frozen=True)
 class CriticConfig:
+    enabled: bool = DEFAULT_ENABLED
     model: str = DEFAULT_MODEL
     effort: str = DEFAULT_EFFORT
     consult_timeout_seconds: int = DEFAULT_CONSULT_TIMEOUT_SECONDS
@@ -71,7 +76,7 @@ class CriticConfig:
 
     def status_line(self) -> str:
         base = (
-            f"model {self.model}, effort {self.effort}, "
+            f"enabled {self.enabled}, model {self.model}, effort {self.effort}, "
             f"consult_timeout {self.consult_timeout_seconds}s, "
             f"health_timeout {self.health_timeout_seconds}s"
         )
@@ -152,6 +157,9 @@ def _parse_config_object(raw: Any, path: Path) -> CriticConfig:
         raise ValueError(f"{path} must contain a JSON object")
     model = raw.get("model", DEFAULT_MODEL)
     effort = raw.get("effort", DEFAULT_EFFORT)
+    enabled = raw.get("enabled", DEFAULT_ENABLED)
+    if not isinstance(enabled, bool):
+        raise ValueError(f"{path} field 'enabled' must be true or false")
     if not isinstance(model, str) or not model.strip():
         raise ValueError(f"{path} field 'model' must be a non-empty string")
     if not isinstance(effort, str) or effort.strip() not in EFFORTS:
@@ -169,6 +177,7 @@ def _parse_config_object(raw: Any, path: Path) -> CriticConfig:
         DEFAULT_HEALTH_TIMEOUT_SECONDS,
     )
     return CriticConfig(
+        enabled=enabled,
         model=model.strip(),
         effort=effort.strip(),
         consult_timeout_seconds=consult_timeout,
@@ -240,3 +249,42 @@ def write_default_config(workspace: str | None = None, *, force: bool = False) -
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(DEFAULT_CONFIG_TEMPLATE, encoding="utf-8")
     return path.resolve()
+
+
+def update_critic_config(
+    workspace: str | None = None, *, enabled: bool | None = None,
+    model: str | None = None, effort: str | None = None,
+) -> CriticConfig:
+    """Validate and persist one or more supported user settings as JSONC."""
+    path = config_path(workspace)
+    current = load_critic_config(workspace)
+    if current.error:
+        raise RuntimeError(f"Invalid critic harness config: {current.error}")
+    resolved_model = model.strip() if model is not None else current.model
+    resolved_effort = effort.strip() if effort is not None else current.effort
+    if not resolved_model:
+        raise ValueError("model must be a non-empty identifier")
+    if resolved_effort not in EFFORTS:
+        raise ValueError(f"effort must be one of: {', '.join(EFFORTS)}")
+    resolved_enabled = current.enabled if enabled is None else enabled
+    candidate = {
+        "enabled": resolved_enabled,
+        "model": resolved_model,
+        "effort": resolved_effort,
+        "consult_timeout_seconds": current.consult_timeout_seconds,
+        "health_timeout_seconds": current.health_timeout_seconds,
+    }
+    _parse_config_object(candidate, path)
+    rendered = "{\n"
+    rendered += "  // Set false to leave this installed critic completely disengaged.\n"
+    rendered += f'  "enabled": {str(resolved_enabled).lower()},\n\n'
+    rendered += "  // Model alias or id passed to `claude --model`.\n"
+    rendered += f'  "model": {json.dumps(resolved_model)},\n\n'
+    rendered += "  // Reasoning effort: low, medium, high, xhigh, or max.\n"
+    rendered += f'  "effort": {json.dumps(resolved_effort)},\n\n'
+    rendered += f'  "consult_timeout_seconds": {current.consult_timeout_seconds},\n'
+    rendered += f'  "health_timeout_seconds": {current.health_timeout_seconds}\n'
+    rendered += "}\n"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(rendered, encoding="utf-8")
+    return require_critic_config(workspace)

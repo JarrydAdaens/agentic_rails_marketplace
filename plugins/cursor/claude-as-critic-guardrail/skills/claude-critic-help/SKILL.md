@@ -32,14 +32,23 @@ session so the IDE is not bricked.
 | `claude-critic-help` | This overview |
 | `claude-critic-init` | Write `harness/claude-as-critic-guardrail/config.json` with commented defaults |
 | `claude-critic-health` | Retest critic reachability mid-session; print ONLINE/OFFLINE + gate status |
+| `claude-critic-enabled` | Persistently engage or disengage the critic for this project |
+| `claude-critic-model` | Persist the critic model and reasoning effort for this project |
 
 ## Harness config
 
 Path: `harness/claude-as-critic-guardrail/config.json` (JSONC; `//` comments OK).
 
-Fields: `model`, `effort`, `consult_timeout_seconds`, `health_timeout_seconds`.
+Fields: `enabled`, `model`, `effort`, `consult_timeout_seconds`, `health_timeout_seconds`.
 `effort` is one of `low`, `medium`, `high`, `xhigh`, `max`. There is no `fast`
 field — the Claude CLI has no fast-tier flag.
+
+When `enabled` is `false`, the registered hooks still receive their events but
+immediately allow them: no health probe, protocol injection, critic consult, or
+write gate runs. Use `/claude-critic-enabled disabled` or
+`/claude-critic-enabled enabled` rather than editing the JSONC by hand.
+Use `/claude-critic-model opus high`, `/claude-critic-model 2a`, or a future
+model id such as `/claude-critic-model deity high` to persist model and effort.
 
 Create it with `/claude-critic-init`. A missing file is not an error; the
 plugin falls back to built-in defaults (`opus`, `high`, 600s, 90s). Env

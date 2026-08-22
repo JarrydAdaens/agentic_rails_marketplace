@@ -30,7 +30,7 @@ uv run --no-project python ./scripts/launch.py ./cli/advisor_init.py --workspace
 
 3. Show the CLI stdout to the user **verbatim**, especially the `Path:` line.
 4. Remind them the file is JSONC (`//` comments are valid), and which fields to
-   edit: `model`, `effort`, `consult_timeout_seconds`, `health_timeout_seconds`.
+   edit: `enabled`, `model`, `effort`, `consult_timeout_seconds`, `health_timeout_seconds`.
    `effort` must be one of `low`, `medium`, `high`, `xhigh`, `max`; `model`
    takes a Claude alias (`opus`, `sonnet`, `fable`) or a full model id.
 5. After they edit, suggest `/claude-advisor-health` or a new session so health

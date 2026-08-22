@@ -18,9 +18,16 @@ from __future__ import annotations
 
 import json
 import sys
+from pathlib import Path
 
 from advisor_markers import BACKEND_LABEL, HEALTH_SKILL, has_marker, health_state, offline_reason
 from advisor_streams import force_utf8, read_hook_payload
+
+_LIB = Path(__file__).resolve().parents[1] / "lib"
+if str(_LIB) not in sys.path:
+    sys.path.insert(0, str(_LIB))
+
+from advisor_config import load_advisor_config  # noqa: E402
 
 DENY_REASON = (
     "Claude advisor gate: consult the advisor before the first write of this "
@@ -42,11 +49,21 @@ def _reply(permission: str, message: str) -> str:
     })
 
 
+def _workspace(payload: dict) -> str | None:
+    roots = payload.get("workspace_roots") or []
+    return str(roots[0]) if roots else (str(payload.get("cwd")) if payload.get("cwd") else None)
+
+
 def main() -> None:
     force_utf8()
     payload = read_hook_payload()
     if payload is None:
         sys.exit(0)
+
+    if not load_advisor_config(_workspace(payload)).enabled:
+        message = "Claude advisor is disabled in this project's harness config. Writes are allowed."
+        print(_reply("allow", message))
+        return
 
     session_id = _session_id(payload)
     if has_marker(session_id):

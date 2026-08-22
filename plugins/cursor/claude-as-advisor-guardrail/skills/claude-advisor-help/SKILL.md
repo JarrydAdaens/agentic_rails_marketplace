@@ -32,14 +32,23 @@ session so the IDE is not bricked.
 | `claude-advisor-help` | This overview |
 | `claude-advisor-init` | Write `harness/claude-as-advisor-guardrail/config.json` with commented defaults |
 | `claude-advisor-health` | Retest advisor reachability mid-session; print ONLINE/OFFLINE + gate status |
+| `claude-advisor-enabled` | Persistently engage or disengage the advisor for this project |
+| `claude-advisor-model` | Persist the advisor model and reasoning effort for this project |
 
 ## Harness config
 
 Path: `harness/claude-as-advisor-guardrail/config.json` (JSONC; `//` comments OK).
 
-Fields: `model`, `effort`, `consult_timeout_seconds`, `health_timeout_seconds`.
+Fields: `enabled`, `model`, `effort`, `consult_timeout_seconds`, `health_timeout_seconds`.
 `effort` is one of `low`, `medium`, `high`, `xhigh`, `max`. There is no `fast`
 field — the Claude CLI has no fast-tier flag.
+
+When `enabled` is `false`, the registered hooks still receive their events but
+immediately allow them: no health probe, protocol injection, advisor consult,
+or write gate runs. Use `/claude-advisor-enabled disabled` or
+`/claude-advisor-enabled enabled` rather than editing the JSONC by hand.
+Use `/claude-advisor-model opus high`, `/claude-advisor-model 2a`, or a future
+model id such as `/claude-advisor-model deity high` to persist model and effort.
 
 Create it with `/claude-advisor-init`. A missing file is not an error; the
 plugin falls back to built-in defaults (`opus`, `high`, 600s, 90s). Env

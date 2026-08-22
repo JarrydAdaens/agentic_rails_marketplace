@@ -34,6 +34,7 @@ if str(_LIB) not in sys.path:
     sys.path.insert(0, str(_LIB))
 
 from advisor_health import run_health_probe  # noqa: E402
+from advisor_config import load_advisor_config  # noqa: E402
 
 
 def _session_id(payload: dict) -> str:
@@ -57,6 +58,14 @@ def main() -> None:
         protocol = ""
 
     payload = read_hook_payload() or {}
+
+    if not load_advisor_config(_workspace(payload)).enabled:
+        message = "Claude advisor is disabled for this project. No advisor health probe or write gate is active."
+        if payload.get("hook_event_name") == "sessionStart":
+            print(json.dumps({"additional_context": message, "user_message": message}))
+        else:
+            print(message)
+        return
 
     session_id = _session_id(payload)
     health = run_health_probe(session_id, workspace=_workspace(payload), mark_pending_first=True)

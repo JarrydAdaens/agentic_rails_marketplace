@@ -4,6 +4,15 @@ Keep this file and `VERSION` in sync with `.cursor-plugin/plugin.json`. This
 tree carries only the Cursor host; the Codex host is a separate copy under
 `plugins/codex/` and is consult-capable rather than gate-enforcing.
 
+## 1.3.0 — 2026-08-22
+
+- Add a persisted `enabled` boolean to the project JSONC config. Disabled means
+  the registered hooks early out: no health probe, no protocol injection, and
+  no write gate.
+- Add `/claude-critic-enabled` and `/claude-critic-model` skills plus their
+  CLI helpers. They accept ordinary boolean wording, Claude-style model aliases
+  or future model IDs, effort names, and compact selections such as `2a`.
+
 ## 1.2.0 — 2026-08-20
 
 - Add the `lib/` layer this plugin never had: harness JSONC config
